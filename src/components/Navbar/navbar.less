@@ -1,0 +1,39 @@
+.sidebar {
+    background: rgb(2,0,36);
+    background: linear-gradient(180deg, rgba(2,0,36,1) 50%, rgba(120,37,140,1) 100%);
+
+    height: 100vh;
+}
+
+.nvWrapper {
+    position: absolute;
+    top: 30vh;
+    left: 30px;
+}
+
+.nvIconHolder {
+    margin-top: 20px;
+    padding: 2px 4px;
+    border: 2px solid rgba(255, 255, 255, 0);
+    border-radius: 5px;
+}
+
+.nvIconHolder-unselected {
+    &:hover {
+        filter: invert(96%) sepia(5%) saturate(0%) hue-rotate(25deg) brightness(150%) contrast(86%);
+        cursor: pointer;
+    }
+}
+
+.nvIconHolderSelected {
+    border: 2px #c04ce4a8 solid;
+}
+
+.nvIcon {
+    filter: invert(54%) sepia(15%) saturate(269%) hue-rotate(243deg) brightness(97%) contrast(94%);
+    width: 15px;
+}
+
+.nvIconSelected {
+    filter: invert(50%) sepia(92%) saturate(4121%) hue-rotate(259deg) brightness(93%) contrast(92%);
+}
