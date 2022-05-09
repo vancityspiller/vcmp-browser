@@ -14,6 +14,7 @@ import CustIcon from './icons/brush-solid.svg';
 import AboutIcon from './icons/circle-info-solid.svg';
 
 import CloseIcon from './icons/circle-xmark-solid.svg';
+import Logo from './icons/logo.png';
 
 // --------------------------------------------------------- //
 
@@ -56,6 +57,9 @@ function SideNavbar({address, setAddress}) {
     return (
         <React.Fragment>
             <Sidebar className='sidebar' width={80}>
+
+                <img className='nvLogo' src={Logo} />
+
                 <div className='nvWrapper'>
                     {
                         iconList.map(element => {
