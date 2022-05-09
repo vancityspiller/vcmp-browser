@@ -58,7 +58,7 @@ function SideNavbar({address, setAddress}) {
 
     return (
         <React.Fragment>
-            <Sidebar className='sidebar' width={80} onMouseDown={() => appWindow.startDragging()}>
+            <Sidebar className='sidebar' width={80}>
 
                 <img className='nvLogo' src={Logo} />
 
