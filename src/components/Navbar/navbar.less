@@ -9,6 +9,12 @@
     position: absolute;
     top: 30vh;
     left: 30px;
+
+    // prevent selection
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
 }
 
 .nvIconHolder {
@@ -36,4 +42,20 @@
 
 .nvIconSelected {
     filter: invert(50%) sepia(92%) saturate(4121%) hue-rotate(259deg) brightness(93%) contrast(92%);
+}
+
+.nvClose {
+    bottom: 20px;
+    left: 20px;
+
+    >.nvIcon {
+        filter: invert(96%) sepia(5%) saturate(0%) hue-rotate(25deg) brightness(150%) contrast(86%);
+        width: 25px;
+    }
+
+    &:hover {
+        cursor: pointer;
+    }
+
+    position: absolute;
 }

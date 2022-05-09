@@ -1,7 +1,7 @@
 import React from 'react';
 import { Tooltip, Whisper } from 'rsuite';
 
-function CustomIcon({title, icon, clickCb, selected}) {
+function CustomIcon({title, icon, clickCb, selected, exClass}) {
     return ( 
         <React.Fragment>
             <Whisper
@@ -9,7 +9,7 @@ function CustomIcon({title, icon, clickCb, selected}) {
                 trigger='hover'
                 speaker={<Tooltip>{title}</Tooltip>}
             >
-                <div className={`nvIconHolder ${selected ? 'nvIconHolderSelected' : 'nvIconHolder-unselected'}`} onClick={clickCb}>
+                <div className={`nvIconHolder ${selected ? 'nvIconHolderSelected' : (exClass ? '' : 'nvIconHolder-unselected')}${exClass ? exClass : ''}`} onClick={clickCb}>
                     <img src={icon} className={`nvIcon ${selected ? 'nvIconSelected' : ''}`}/>
                 </div>
             </Whisper>

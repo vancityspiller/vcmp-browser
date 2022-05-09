@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React from 'react';
 
 import { Sidebar } from 'rsuite';
 import CustomIcon from './CustomIcon';
@@ -6,11 +6,16 @@ import CustomIcon from './CustomIcon';
 import './navbar.less';
 
 // ========================================================= //
+// Icons taken from FontAwesome
 
 import DashIcon from './icons/server-solid.svg';
 import SettingsIcon from './icons/gear-solid.svg';
 import CustIcon from './icons/brush-solid.svg';
 import AboutIcon from './icons/circle-info-solid.svg';
+
+import CloseIcon from './icons/circle-xmark-solid.svg';
+
+// --------------------------------------------------------- //
 
 const iconList = [
     {
@@ -58,6 +63,8 @@ function SideNavbar({address, setAddress}) {
                         })
                     }
                 </div>
+
+                <CustomIcon title={'Exit'} icon={CloseIcon} exClass='nvClose'/>
             </Sidebar>
         </React.Fragment>
     );
