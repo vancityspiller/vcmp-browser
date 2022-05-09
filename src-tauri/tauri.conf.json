@@ -56,10 +56,10 @@
     "windows": [
       {
         "fullscreen": false,
-        "height": 1067,
+        "height": 600,
         "resizable": false,
         "title": "VCMP Browser",
-        "width": 800
+        "width": 1067
       }
     ]
   }
