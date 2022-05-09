@@ -20,7 +20,7 @@ const fallback = {
 
 // ------------------------------------------------------- //
 
-export function loadConfig(setConfigLoaded) {
+export function loadConfig(setConfigLoaded, setSettings) {
     path.resourceDir()
         .then(resDirPath => {
 
@@ -42,6 +42,10 @@ export function loadConfig(setConfigLoaded) {
                                     fs.writeFile({contents: JSON.stringify(fallback[file], null, 4), path: `${resDirPath}data\\${file}.json`})
                                 }
                             })
+
+                            fs.readTextFile(`${resDirPath}data\\settings.json`)
+                                .then(value => setSettings(JSON.parse(value)))
+                                .catch();
 
                             setConfigLoaded(true);
                         })
