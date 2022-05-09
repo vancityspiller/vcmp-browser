@@ -15,6 +15,7 @@ import AboutIcon from './icons/circle-info-solid.svg';
 
 import CloseIcon from './icons/circle-xmark-solid.svg';
 import Logo from './icons/logo.png';
+import { appWindow } from '@tauri-apps/api/window';
 
 // --------------------------------------------------------- //
 
@@ -51,7 +52,7 @@ function SideNavbar({address, setAddress}) {
         if(title !== address)
         setAddress(title);
     }
-
+    
     // --------------------------------------------------------- //
 
     return (
@@ -68,7 +69,7 @@ function SideNavbar({address, setAddress}) {
                     }
                 </div>
 
-                <CustomIcon title={'Exit'} icon={CloseIcon} exClass='nvClose'/>
+                <CustomIcon title={'Exit'} icon={CloseIcon} exClass='nvClose' clickCb={() => appWindow.close()} />
             </Sidebar>
         </React.Fragment>
     );
