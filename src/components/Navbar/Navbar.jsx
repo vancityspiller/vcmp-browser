@@ -1,6 +1,8 @@
 import React from 'react';
 
 import { Sidebar } from 'rsuite';
+import { appWindow } from '@tauri-apps/api/window';
+
 import CustomIcon from './CustomIcon';
 
 import './navbar.less';
@@ -15,7 +17,6 @@ import AboutIcon from './icons/circle-info-solid.svg';
 
 import CloseIcon from './icons/circle-xmark-solid.svg';
 import Logo from './icons/logo.png';
-import { appWindow } from '@tauri-apps/api/window';
 
 // --------------------------------------------------------- //
 
@@ -57,7 +58,7 @@ function SideNavbar({address, setAddress}) {
 
     return (
         <React.Fragment>
-            <Sidebar className='sidebar' width={80}>
+            <Sidebar className='sidebar' width={80} onMouseDown={() => appWindow.startDragging()}>
 
                 <img className='nvLogo' src={Logo} />
 
