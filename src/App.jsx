@@ -1,12 +1,18 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Container } from 'rsuite';
 import SideNavbar from './components/Navbar/Navbar';
+import { loadConfig } from './utils/config.utils';
 
 // ========================================================= //
 
 function App() {
 
     const [navAddress, setNavAddress] = useState('Dashboard');
+    const [configLoaded, setConfigLoaded] = useState(false);
+
+    useEffect(() => {
+        if(!configLoaded) loadConfig(setConfigLoaded);
+    }, []);
 
     // ========================================================= //
 
