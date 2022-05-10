@@ -26,7 +26,9 @@ function App() {
             <Container>
                 <DraggableHeader />
                 <SideNavbar address={navAddress} setAddress={setNavAddress} />
-                <Dashboard />
+                {configLoaded &&
+                    <Dashboard />
+                }
             </Container>
         </React.Fragment>
     );
