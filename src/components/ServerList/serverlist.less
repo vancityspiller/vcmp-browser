@@ -1,0 +1,111 @@
+.srvHeader {
+    position: absolute;
+    top: 100px;
+    left: 110px;
+
+    color: gray;
+    font-size: 12px;
+}
+
+// --------------------------------------------------------- //
+
+.srvHeaderName {
+    position: absolute;
+    left: 50px;
+}
+
+.srvHeaderPing {
+    position: absolute;
+    left: 500px;
+}
+
+.srvHeaderPlayers {
+    position: absolute;
+    left: 600px;
+}
+
+.srvHeaderMode {
+    position: absolute;
+    left: 700px;
+}
+
+// --------------------------------------------------------- //
+
+.srvList {
+    position: absolute;
+    top: 130px;
+    left: 110px;
+
+    width: 85%;
+
+    overflow-y: auto;
+    height: 380px;
+    padding-right: 20px;
+}
+
+.srvItem {
+    margin-bottom: 13px;
+
+    background-color: #000000;
+    height: 40px;
+
+    border: 2px solid #00000000;
+    border-radius: 10px;
+
+    span {
+        margin-top: 8px;
+        font-weight: 500;
+        color: rgb(196, 196, 196);
+    }
+
+    -webkit-transition : border 300ms ease-out;
+    -moz-transition : border 300ms ease-out;
+    -o-transition : border 300ms ease-out;
+    transition : border 300ms ease-out;
+
+    &:hover {
+        cursor: pointer;
+        border-color: #c14ce4;
+    }
+
+    box-shadow: 0 0 5px #000000;
+
+}
+
+.srvItem-selected {
+    border-color: #c14ce4;
+
+    span {
+        color: rgb(216, 216, 216);
+    }
+
+    box-shadow: 0 0 5px #c14ce4;
+}
+
+// --------------------------------------------------------- //
+
+.srvItemName {
+    position: absolute;
+    margin-left: 50px;
+}
+
+.srvItemPing {
+    position: absolute;
+    margin-left: 500px;
+}
+
+.srvItemPlayers {
+    position: absolute;
+    margin-left: 600px;
+
+    span {
+        color: rgb(167, 167, 167);
+    }
+}
+
+.srvItemMode {
+    position: absolute;
+    margin-left: 700px;
+}
+
+// --------------------------------------------------------- //

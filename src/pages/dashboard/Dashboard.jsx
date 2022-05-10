@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Container, Content, Header, Nav, Tag } from 'rsuite';
+import ServerList from '../../components/ServerList/ServerList';
 
 import { useSettings } from '../../utils/settings.context';
 
@@ -49,6 +50,10 @@ function Dashboard() {
                     </div>
 
                 </Header>
+
+                <Content>
+                    <ServerList />
+                </Content>
             </Container>
         </Content>
     );
