@@ -15,6 +15,10 @@
       "all": true,
       "fs": {
         "scope": ["$RESOURCE", "$RESOURCE/*"]
+      },
+      "http": {
+        "all": true,
+        "scope": ["http://master.vc-mp.org/*"]
       }
     },
     "bundle": {
