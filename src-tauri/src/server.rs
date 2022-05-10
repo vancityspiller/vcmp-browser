@@ -1,135 +1,100 @@
 use std::net::UdpSocket;
-use std::str;
 use std::time::SystemTime;
-use serde::Deserialize;
 use serde::Serialize;
 
-#[allow(dead_code)]
-#[derive(Deserialize)]
-struct Server {
-    ip: String,
-    port: i32,
-    is_official: bool
-}
-
-#[derive(Deserialize)]
-#[allow(dead_code)]
-struct MasterList {
-    servers: Vec<Server>,
-    success: bool
-}
+// ------------------------------------------------------------------------------------------------ //
+// Serialization, for JSON
 
 #[derive(Serialize)]
 struct ServerInfo {
     ip: String,
-    info: String,
-    players: String,
+    info: Vec<u8>,
+    players: Vec<u8>,
     ping: String
 }
 
-#[derive(Serialize)]
-struct ServerInfoList {
-    servers: Vec<ServerInfo>
-}
+// ------------------------------------------------------------------------------------------------ //
+// tauri command handler
 
 #[tauri::command]
 #[allow(non_snake_case)]
-pub async fn info(sendString: String) -> String {
+pub async fn info(ip: String, send: String) -> String {
 
     let socket: UdpSocket = UdpSocket::bind("0.0.0.0:0").expect("couldn't bind to address");
+
+    // duration for timeout, 1 second
     let duration = std::time::Duration::new(1, 0);
     let dur = std::option::Option::Some(duration);
     socket.set_read_timeout(dur).expect("failed to set timeout");
 
-    let v: MasterList = serde_json::from_str(&sendString).unwrap();
+    // note time to calculate ping later on
+    let start = SystemTime::now();
+    let recv_info = get_server_info(&socket, ip.as_str().to_string(), &send).await;
 
-    let mut info_list: Vec<ServerInfo> = Vec::new();
-    
-    for(_i, x) in v.servers.iter().enumerate() {
+    // calculate ping now
+    let ping = SystemTime::now().duration_since(start).expect("Time went backwards");
+    let recv_players = get_server_players(&socket, ip.as_str().to_string(), &send).await;
 
-        let send_string = get_send_string(&x.ip, x.port);
-        let actual_ip = x.ip.to_string() + ":" + &x.port.to_string();
-        let actual_ip2 = x.ip.to_string() + ":" + &x.port.to_string();
-
-        let start = SystemTime::now();
-        let recv_info = get_server_info(&socket, &actual_ip, &send_string).await;
-        let ping = SystemTime::now()
-            .duration_since(start)
-            .expect("Time went backwards");
-
-        let srv_info = ServerInfo {
-            ip: actual_ip,
-            info: recv_info,
-            players: get_server_players(&socket, &actual_ip2, &send_string).await,
-            ping: ping.as_millis().to_string()
-        };
-        
-        info_list.push(srv_info);
+    // build our object
+    let srv_info = ServerInfo {
+        ip: ip,
+        info: recv_info,
+        players: recv_players,
+        ping: ping.as_millis().to_string()
     };
-
-    let final_list = ServerInfoList {
-        servers: info_list
-    };
-
-    let j = serde_json::to_string(&final_list).unwrap();
+      
+    // and send it as JSON
+    let j = serde_json::to_string(&srv_info).unwrap();
     j.into()
 }
 
-fn get_send_string(ip: &String, port: i32) -> String {
-    let send_string = "VCMP".to_owned() + &ip[0..4] + &port.to_string()[0..2];
-    send_string
-}
+// ------------------------------------------------------------------------------------------------ //
 
-async fn get_server_info(socket: &UdpSocket, ip: &String, send_string: &String) -> String {
+async fn get_server_info(socket: &UdpSocket, ip: String, send_string: &String) -> Vec<u8> {
 
+    // i: server info
     let new_send_string = send_string.to_owned() + "i";
 
     match socket.send_to(&new_send_string.as_bytes(), ip) {
-        Ok(..) => {},
+        Ok(..) => {
+            // continue
+        },
         Err(..) => {
-            return "INVALID".to_string()
+            return [0].to_vec()
         }
     };
 
-    let mut buf = [0; 128];
+    let mut buf = [0; 527];
     match socket.recv(&mut buf) {
         Ok(_received) => {
-
-            let s = match str::from_utf8(&buf) {
-                Ok(v) => v,
-                Err(e) => panic!("Invalid UTF-8 sequence: {}", e),
-            };
-
-            let s = s.to_string();
-            s
+            return buf.to_vec()
         },
-        Err(..) => "INVALID".to_string(),
+        Err(..) => [0].to_vec(),
     }
 }
 
-async fn get_server_players(socket: &UdpSocket, ip: &String, send_string: &String) -> String {
+// ------------------------------------------------------------------------------------------------ //
 
+async fn get_server_players(socket: &UdpSocket, ip: String, send_string: &String) -> Vec<u8> {
+
+    // c: players
     let new_send_string = send_string.to_owned() + "c";
 
     match socket.send_to(&new_send_string.as_bytes(), ip) {
-        Ok(..) => {},
+        Ok(..) => {
+            // continue
+        },
         Err(..) => {
-            return "INVALID".to_string()
+            return [0].to_vec()
         }
     };
-
-    let mut buf = [0; 2000];
+    
+    // [u8] needs constant size so need to create a new function for this, meh
+    let mut buf = [0; 3000];
     match socket.recv(&mut buf) {
         Ok(_received) => {
-
-            let s = match str::from_utf8(&buf) {
-                Ok(v) => v,
-                Err(e) => panic!("Invalid UTF-8 sequence: {}", e),
-            };
-
-            let s = s.to_string();
-            s
+            return buf.to_vec()
         },
-        Err(..) => "INVALID".to_string(),
+        Err(..) => [0].to_vec(),
     }
 }

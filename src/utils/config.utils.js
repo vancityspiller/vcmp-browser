@@ -1,5 +1,4 @@
 import { fs, path } from "@tauri-apps/api";
-import { getMasterlist } from "./server.util";
 
 // ======================================================= //
 
