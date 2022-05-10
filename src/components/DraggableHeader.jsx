@@ -9,7 +9,7 @@ function DraggableHeader() {
             style={{
                 position: 'absolute',
                 width: '100%',
-                height: '7vh'
+                height: '10vh'
             }}
             onMouseDown={() => appWindow.startDragging()}
         />
