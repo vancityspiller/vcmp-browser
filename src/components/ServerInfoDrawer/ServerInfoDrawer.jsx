@@ -5,8 +5,10 @@ import { clipboard } from '@tauri-apps/api';
 
 // ========================================================= //
 
-import ArrowRightIcon from '@rsuite/icons/ArrowRight';
-import TagIcon from '@rsuite/icons/Tag';
+import ArrowRightIcon from '@rsuite/icons/legacy/Play';
+import TagIcon from '@rsuite/icons/legacy/Star';
+import SortDownIcon from '@rsuite/icons/SortDown';
+import SortUpIcon from '@rsuite/icons/SortUp';
 
 import './serverinfodrawer.less';
 
@@ -81,10 +83,10 @@ function ServerInfoDrawer({open, handleClose, data}) {
             </div>
 
             <ButtonToolbar className='srvDrawerActions'>
-                <IconButton appearance='primary' icon={<ArrowRightIcon />} size='sm'>
+                <IconButton appearance='primary' icon={<ArrowRightIcon className='fixLegacy' />} size='sm'>
                     Launch
                 </IconButton>
-                <IconButton appearance='default' icon={<TagIcon />} size='sm'>
+                <IconButton appearance='default' icon={<TagIcon className='fixLegacy' />} size='sm'>
                     Set Favorite
                 </IconButton>
             </ButtonToolbar>
@@ -117,7 +119,7 @@ function ServerInfoDrawer({open, handleClose, data}) {
             </div>
 
             <div className='srvDrawerTip'>
-                Use <Tag>🠕</Tag> and <span><Tag>🠗</Tag> to navigate between servers</span>.
+                Use <Tag><SortUpIcon /></Tag> and <span><Tag><SortDownIcon /></Tag> to navigate between servers</span>.
             </div>
 
             </Drawer>

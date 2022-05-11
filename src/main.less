@@ -5,6 +5,8 @@
 @primary-color-dark: #c14ce4;
 @font-family-base: 'Roboto', Helvetica, Arial, sans-serif;
 
+// --------------------------------------------------------- //
+
 #root {
     background: rgb(32,31,32);
     background: linear-gradient(180deg, rgba(32,31,32,1) 0%, rgb(19, 19, 19) 100%);
@@ -19,6 +21,8 @@
 body {
     overflow: hidden;
 }
+
+// --------------------------------------------------------- //
 
 ::-webkit-scrollbar {
     width: 10px;
@@ -35,4 +39,13 @@ body {
     border-radius: 10px;
     -webkit-box-shadow: rgba(0,0,0,.12) 0 3px 13px 1px;
     box-shadow: rgba(0,0,0,.12) 0 3px 13px 1px;;
+}
+
+// --------------------------------------------------------- //
+// fix legacy icons
+
+.fixLegacy {
+    path {
+        transform: scale(0.8) translate(4px, 4px)
+    }
 }

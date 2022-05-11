@@ -4,10 +4,12 @@ import ServerInfoDrawer from '../ServerInfoDrawer/ServerInfoDrawer';
 
 // ========================================================= //
 
-import ReloadIcon from '@rsuite/icons/Reload';
-import CloseIcon from '@rsuite/icons/Close';
+import ReloadIcon from '@rsuite/icons/legacy/Refresh';
+import CloseIcon from '@rsuite/icons/legacy/Close';
 import SortDownIcon from '@rsuite/icons/SortDown';
 import SortUpIcon from '@rsuite/icons/SortUp';
+import LockIcon from '@rsuite/icons/legacy/Lock';
+import FavoriteIcon from '@rsuite/icons/legacy/Star';
 
 import './serverlist.less';
 
@@ -22,7 +24,8 @@ const data = [{
     ip: "1",
     players: [
         'Test', 'Test', 'Test', 'Test', 'Test', 'Test', 'Test', 'Test','Test', 'Test', 'Test', 'Test', 'Test', 'Test', 'Test', 'Test'
-    ]
+    ],
+    password: true
 },
 {
     serverName: 'Rob The Vehicle (IV)',
@@ -31,7 +34,8 @@ const data = [{
     numPlayers: 5,
     maxPlayers: 100,
     ip: "2",
-    players: []
+    players: [],
+    password: false
 },
 {
     serverName: 'Rob The Vehicle (IV)',
@@ -40,7 +44,8 @@ const data = [{
     numPlayers: 5,
     maxPlayers: 100,
     ip: "3",
-    players: []
+    players: [],
+    password: false
 },
 {
     serverName: 'Rob The Vehicle (IV)',
@@ -49,7 +54,8 @@ const data = [{
     numPlayers: 5,
     maxPlayers: 100,
     ip: "4",
-    players: []
+    players: [],
+    password: false
 },
 {
     serverName: 'Rob The Vehicle (IV)',
@@ -58,7 +64,8 @@ const data = [{
     numPlayers: 5,
     maxPlayers: 100,
     ip: "5",
-    players: []
+    players: [],
+    password: false
 },
 {
     serverName: 'Rob The Vehicle (IV)',
@@ -67,7 +74,8 @@ const data = [{
     numPlayers: 5,
     maxPlayers: 100,
     ip: "6",
-    players: []
+    players: [],
+    password: false
 },
 {
     serverName: 'Rob The Vehicle (IV)',
@@ -76,7 +84,8 @@ const data = [{
     numPlayers: 5,
     maxPlayers: 100,
     ip: '7',
-    players: []
+    players: [],
+    password: false
 },
 {
     serverName: 'Rob The Vehicle (IV)',
@@ -85,7 +94,8 @@ const data = [{
     numPlayers: 5,
     maxPlayers: 100,
     ip: '8',
-    players: []
+    players: [],
+    password: false
 },
 {
     serverName: 'Rob The Vehicle (IV)',
@@ -94,7 +104,8 @@ const data = [{
     numPlayers: 5,
     maxPlayers: 100,
     ip: '9',
-    players: []
+    players: [],
+    password: false
 },
 {
     serverName: 'Polski LCS-DM (Liberty City Stories) by LU-DM Team - discord.gg/PFwem6J',
@@ -103,7 +114,8 @@ const data = [{
     numPlayers: 5,
     maxPlayers: 100,
     ip: '10',
-    players: []
+    players: [],
+    password: false
 }];
 
 // --------------------------------------------------------- //
@@ -166,8 +178,6 @@ function ServerList() {
         
         const mode = isSorted(column);
 
-        console.log(mode);
-
         if(mode === 'asc') {
             return <SortDownIcon />
         } else if(mode === 'des') {
@@ -183,6 +193,12 @@ function ServerList() {
 
         // make a copy of state
         let borrowed = [...rawData];
+
+        // add favorites key; so it can be used later as well
+        borrowed = borrowed.map((v) => {
+            // TODO: map with favorite list when implemented
+            return {...v, isFavorite: true}
+        });
 
         // search logic
         if(search.trim() !== '') {
@@ -296,7 +312,13 @@ function ServerList() {
                 {rows.map((element, idx) => {
                     return (
                         <div className='srvItem' key={element.ip} onClick={() => handleSelect(idx)}>
-                            <span className='srvItemName'>{element.serverName.length > 55 ? (element.serverName.slice(0, 55) + '...') : element.serverName}</span>
+                            <span className='srvItemLocked'>{element.password ? <LockIcon /> : ''}</span>
+                            <span className='srvItemName'>
+                                {element.serverName.length > 55 
+                                ? (element.serverName.slice(0, 55) + '...') 
+                                : element.serverName}
+                            </span>
+                            <span className='srvItemFav'>{element.isFavorite ? <FavoriteIcon /> : ''}</span>
                             <span className='srvItemPing'>{element.ping}</span>
                             <span className='srvItemPlayers'>{element.numPlayers}<span>/{element.maxPlayers}</span></span>
                             <span className='srvItemMode'>{element.gameMode.length > 20 ? (element.gameMode.slice(0, 20) + '...') : element.gameMode}</span>
