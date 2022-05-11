@@ -1,4 +1,5 @@
-import React from 'react';
+import React, { useState, useCallback } from 'react';
+import ServerInfoDrawer from '../ServerInfoDrawer/ServerInfoDrawer';
 
 // ========================================================= //
 
@@ -6,78 +7,116 @@ import './serverlist.less';
 
 // --------------------------------------------------------- //
 
+const data = [{
+    serverName: 'Polski LCS-DM (Liberty City Stories) by LU-DM Team - discord.gg/PFwem6J',
+    gameMode: 'RTV v4.3s',
+    ping: '140',
+    numPlayers: 5,
+    maxPlayers: 100,
+    ip: "1",
+    players: [
+        'Test', 'Test', 'Test', 'Test', 'Test', 'Test', 'Test', 'Test','Test', 'Test', 'Test', 'Test', 'Test', 'Test', 'Test', 'Test'
+    ]
+},
+{
+    serverName: 'Rob The Vehicle (IV)',
+    gameMode: '[Main Lobby] [A/D] Liberty City Killers:Basemode Public Server',
+    ping: '140',
+    numPlayers: 5,
+    maxPlayers: 100,
+    ip: "2",
+    players: []
+},
+{
+    serverName: 'Rob The Vehicle (IV)',
+    gameMode: 'RTV v4.3s',
+    ping: '140',
+    numPlayers: 5,
+    maxPlayers: 100,
+    ip: "3"
+},
+{
+    serverName: 'Rob The Vehicle (IV)',
+    gameMode: 'RTV v4.3s',
+    ping: '140',
+    numPlayers: 5,
+    maxPlayers: 100,
+    ip: "4"
+},
+{
+    serverName: 'Rob The Vehicle (IV)',
+    gameMode: 'RTV v4.3s',
+    ping: '140',
+    numPlayers: 5,
+    maxPlayers: 100,
+    ip: "5"
+},
+{
+    serverName: 'Rob The Vehicle (IV)',
+    gameMode: 'RTV v4.3s',
+    ping: '140',
+    numPlayers: 5,
+    maxPlayers: 100,
+    ip: "6"
+},
+{
+    serverName: 'Rob The Vehicle (IV)',
+    gameMode: 'RTV v4.3s',
+    ping: '140',
+    numPlayers: 5,
+    maxPlayers: 100,
+    ip: '7'
+},
+{
+    serverName: 'Rob The Vehicle (IV)',
+    gameMode: 'RTV v4.3s',
+    ping: '140',
+    numPlayers: 5,
+    maxPlayers: 100,
+    ip: '8'
+},
+{
+    serverName: 'Rob The Vehicle (IV)',
+    gameMode: 'RTV v4.3s',
+    ping: '140',
+    numPlayers: 5,
+    maxPlayers: 100,
+    ip: '9'
+},
+{
+    serverName: 'Polski LCS-DM (Liberty City Stories) by LU-DM Team - discord.gg/PFwem6J',
+    gameMode: 'RTV v4.3s',
+    ping: '140',
+    numPlayers: 5,
+    maxPlayers: 100,
+    ip: '10'
+}];
+
+// --------------------------------------------------------- //
+
 function ServerList() {
 
-    const data = [{
-        serverName: 'Polski LCS-DM (Liberty City Stories) by LU-DM Team - discord.gg/PFwem6J',
-        gameMode: 'RTV v4.3s',
-        ping: '140',
-        numPlayers: 5,
-        maxPlayers: 100
-    },
-    {
-        serverName: 'Rob The Vehicle (IV)',
-        gameMode: '[Main Lobby] [A/D] Liberty City Killers:Basemode Public Server',
-        ping: '140',
-        numPlayers: 5,
-        maxPlayers: 100
-    },
-    {
-        serverName: 'Rob The Vehicle (IV)',
-        gameMode: 'RTV v4.3s',
-        ping: '140',
-        numPlayers: 5,
-        maxPlayers: 100
-    },
-    {
-        serverName: 'Rob The Vehicle (IV)',
-        gameMode: 'RTV v4.3s',
-        ping: '140',
-        numPlayers: 5,
-        maxPlayers: 100
-    },
-    {
-        serverName: 'Rob The Vehicle (IV)',
-        gameMode: 'RTV v4.3s',
-        ping: '140',
-        numPlayers: 5,
-        maxPlayers: 100
-    },
-    {
-        serverName: 'Rob The Vehicle (IV)',
-        gameMode: 'RTV v4.3s',
-        ping: '140',
-        numPlayers: 5,
-        maxPlayers: 100
-    },
-    {
-        serverName: 'Rob The Vehicle (IV)',
-        gameMode: 'RTV v4.3s',
-        ping: '140',
-        numPlayers: 5,
-        maxPlayers: 100
-    },
-    {
-        serverName: 'Rob The Vehicle (IV)',
-        gameMode: 'RTV v4.3s',
-        ping: '140',
-        numPlayers: 5,
-        maxPlayers: 100
-    },
-    {
-        serverName: 'Rob The Vehicle (IV)',
-        gameMode: 'RTV v4.3s',
-        ping: '140',
-        numPlayers: 5,
-        maxPlayers: 100
-    },
-    {
-        serverName: 'Polski LCS-DM (Liberty City Stories) by LU-DM Team - discord.gg/PFwem6J',
-        gameMode: 'RTV v4.3s',
-        ping: '140',
-        numPlayers: 5,
-        maxPlayers: 100
-    }];
+    const [rawData, setRawData] = useState([...data]);
+    const [rows, setRows] = useState([...rawData]);
+
+    const [selected, setSelected] = useState(null);
+
+    // --------------------------------------------------------- //
+    // for drawer
+
+    const [drawerOpen, setDrawerOpen] = useState(false);
+
+    const handleDrawerClose = () => {
+        setDrawerOpen(false);
+    }
+
+    // --------------------------------------------------------- //
+
+    const handleSelect = useCallback((idx) => {
+
+        setSelected(rows[idx]);
+        setDrawerOpen(true);
+    }, [])
 
     // --------------------------------------------------------- //
 
@@ -91,9 +130,9 @@ function ServerList() {
             </div>
             
             <div className='srvList'>
-                {data.map(element => {
+                {rows.map((element, idx) => {
                     return (
-                        <div className='srvItem'>
+                        <div className='srvItem' key={element.ip} onClick={() => handleSelect(idx)}>
                             <span className='srvItemName'>{element.serverName.length > 55 ? (element.serverName.slice(0, 55) + '...') : element.serverName}</span>
                             <span className='srvItemPing'>{element.ping}</span>
                             <span className='srvItemPlayers'>{element.numPlayers}<span>/{element.maxPlayers}</span></span>
@@ -103,6 +142,8 @@ function ServerList() {
                 })}
                 
             </div>
+            
+            <ServerInfoDrawer open={drawerOpen} handleClose={handleDrawerClose} data={selected}/>
         </React.Fragment>
     );
 }
