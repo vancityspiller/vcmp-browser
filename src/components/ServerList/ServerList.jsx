@@ -6,6 +6,8 @@ import ServerInfoDrawer from '../ServerInfoDrawer/ServerInfoDrawer';
 
 import ReloadIcon from '@rsuite/icons/Reload';
 import CloseIcon from '@rsuite/icons/Close';
+import SortDownIcon from '@rsuite/icons/SortDown';
+import SortUpIcon from '@rsuite/icons/SortUp';
 
 import './serverlist.less';
 
@@ -112,28 +114,93 @@ function ServerList() {
     const [selected, setSelected] = useState(null);
 
     const [search, setSearch] = useState('');
+    const [sort, setSort] = useState({
+        column: '',
+        mode: ''
+    });
+
+    // --------------------------------------------------------- //
+
+    const handleSort = (value) => {
+
+        // if no sort mode set, set this one!
+        if(sort.column !== value) {
+            setSort({
+                column: value,
+                mode: 'asc'
+            });
+
+        } else {
+            if(sort.mode === 'asc') {
+                // if mode is ascending, switch it to descending
+                setSort({
+                    column: value,
+                    mode: 'des'
+                });
+            
+            } else {
+                // otherwise, unset it
+                setSort({
+                    column: '',
+                    mode: ''
+                });
+            }
+        }
+    };
 
     const handleSearch = (value) => {
         setSearch(value.trim());
     }
 
+    // --------------------------------------------------------- //
+
+    const isSorted = useCallback((column) => {
+        if(column === sort.column) {
+            return sort.mode;
+        }
+
+        return false;
+    }, [sort]);
+
+    function SortedIcon(column) {
+        
+        const mode = isSorted(column);
+
+        console.log(mode);
+
+        if(mode === 'asc') {
+            return <SortDownIcon />
+        } else if(mode === 'des') {
+            return <SortUpIcon />
+        } else {
+            return <React.Fragment />
+        }
+    }
+    
+    // --------------------------------------------------------- //
+
     const rows = useMemo(() => {
 
+        // make a copy of state
         let borrowed = [...rawData];
 
+        // search logic
         if(search.trim() !== '') {
             borrowed = borrowed.filter(server => {
 
                 const searchTerm = search.toLowerCase();
 
+                // we search for server name
                 if(server.serverName.toLowerCase().indexOf(searchTerm) !== -1)
                     return true;
-
+                
+                // we search for server ip
                 if(server.ip.toLowerCase().indexOf(searchTerm) !== -1)
                     return true;
-
+                
                 let playerSearch = false;
                 
+                // so why leave players (2261A: stalking is illegal)
                 for(let i = 0 ; i < server.players.length ; i++) {
                     if(server.players[i].toLowerCase().indexOf(searchTerm) !== -1) {
                         playerSearch = true;
@@ -146,8 +213,38 @@ function ServerList() {
             });
         }
 
+        // --------------------------------------------------------- //
+
+        // sort (default sorted by ping: asc ; because that's how they're received ; so we'll just use unset instead)
+        // it doesn't make much sense to sort by name when you can search but doesn't hurt me
+        if(sort.mode.length > 0 && sort.column.length > 0) {
+
+            borrowed.sort((a, b) => {
+
+                // get the column data for which we are sorting
+                let x = a[sort.column];
+                let y = b[sort.column];
+
+                // need to be some sort of integer for comparison
+                if(typeof(x) === 'string') {
+                    x = x.charCodeAt();
+                }
+
+                if(typeof(y) === 'string') {
+                    y = y.charCodeAt();
+                }
+                
+                // increasing or decreasing order?
+                if(sort.mode === 'asc') {
+                    return x - y;
+                } else {
+                    return y - x;
+                }
+            });
+        }
+
         return borrowed;
-    }, [rawData, search]);
+    }, [rawData, search, sort]);
 
     // --------------------------------------------------------- //
     // for drawer
@@ -164,16 +261,34 @@ function ServerList() {
 
         setSelected(rows[idx]);
         setDrawerOpen(true);
-    }, [])
+    }, []);
 
     // --------------------------------------------------------- //
 
     return (
         <React.Fragment>
             <div className='srvHeader'>
-                <span className='srvHeaderName'>Server</span>
-                <span className='srvHeaderPing'>Ping</span>
-                <span className='srvHeaderPlayers'>Players</span>
+                <span 
+                    className='srvHeaderName srvHeaderSortable'
+                    onClick={() => handleSort('serverName')}
+                >
+                    Server { SortedIcon('serverName') }
+                </span>
+
+                <span 
+                    className='srvHeaderPing srvHeaderSortable' 
+                    onClick={() => handleSort('ping')}
+                >
+                    Ping { SortedIcon('ping') }
+                </span>
+
+                <span 
+                    className='srvHeaderPlayers srvHeaderSortable' 
+                    onClick={() => handleSort('numPlayers')}
+                >
+                    Players { SortedIcon('numPlayers') }
+                </span>
+
                 <span className='srvHeaderMode'>Gamemode</span>
             </div>
             
@@ -199,7 +314,7 @@ function ServerList() {
 
                     <Input 
                         placeholder='Search' 
-                        size='sm' 
+                        size='md' 
                         value={search}
                         onChange={handleSearch}
                     />
