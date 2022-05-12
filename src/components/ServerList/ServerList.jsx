@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useMemo } from 'react';
+import React, { useState, useCallback, useMemo, useEffect, useRef } from 'react';
 import { Input, InputGroup } from 'rsuite';
 import ServerInfoDrawer from '../ServerInfoDrawer/ServerInfoDrawer';
 
@@ -114,6 +114,210 @@ const data = [{
     numPlayers: 5,
     maxPlayers: 100,
     ip: '10',
+    players: [],
+    password: false
+},
+{
+    serverName: 'Polski LCS-DM (Liberty City Stories) by LU-DM Team - discord.gg/PFwem6J',
+    gameMode: 'RTV v4.3s',
+    ping: '140',
+    numPlayers: 5,
+    maxPlayers: 100,
+    ip: "11",
+    players: [
+        'Test', 'Test', 'Test', 'Test', 'Test', 'Test', 'Test', 'Test','Test', 'Test', 'Test', 'Test', 'Test', 'Test', 'Test', 'Test'
+    ],
+    password: true
+},
+{
+    serverName: 'Rob The Vehicle (IV)',
+    gameMode: '[Main Lobby] [A/D] Liberty City Killers:Basemode Public Server',
+    ping: '140',
+    numPlayers: 5,
+    maxPlayers: 100,
+    ip: "12",
+    players: [],
+    password: false
+},
+{
+    serverName: 'Rob The Vehicle (IV)',
+    gameMode: 'RTV v4.3s',
+    ping: '140',
+    numPlayers: 5,
+    maxPlayers: 100,
+    ip: "13",
+    players: [],
+    password: false
+},
+{
+    serverName: 'Rob The Vehicle (IV)',
+    gameMode: 'RTV v4.3s',
+    ping: '140',
+    numPlayers: 5,
+    maxPlayers: 100,
+    ip: "14",
+    players: [],
+    password: false
+},
+{
+    serverName: 'Rab The Vehicle (IV)',
+    gameMode: 'RTV v4.3s',
+    ping: '140',
+    numPlayers: 5,
+    maxPlayers: 100,
+    ip: "15",
+    players: [],
+    password: false
+},
+{
+    serverName: 'Rob The Vehicle (IV)',
+    gameMode: 'RTV v4.3s',
+    ping: '140',
+    numPlayers: 5,
+    maxPlayers: 100,
+    ip: "16",
+    players: [],
+    password: false
+},
+{
+    serverName: 'Rob The Vehicle (IV)',
+    gameMode: 'RTV v4.3s',
+    ping: '140',
+    numPlayers: 5,
+    maxPlayers: 100,
+    ip: '17',
+    players: [],
+    password: false
+},
+{
+    serverName: 'Rob The Vehicle (IV)',
+    gameMode: 'RTV v4.3s',
+    ping: '140',
+    numPlayers: 5,
+    maxPlayers: 100,
+    ip: '18',
+    players: [],
+    password: false
+},
+{
+    serverName: 'Rob The Vehicle (IV)',
+    gameMode: 'RTV v4.3s',
+    ping: '140',
+    numPlayers: 5,
+    maxPlayers: 100,
+    ip: '19',
+    players: [],
+    password: false
+},
+{
+    serverName: 'Polski LCS-DM (Liberty City Stories) by LU-DM Team - discord.gg/PFwem6J',
+    gameMode: 'RTV v4.3s',
+    ping: '140',
+    numPlayers: 5,
+    maxPlayers: 100,
+    ip: '20',
+    players: [],
+    password: false
+},
+{
+    serverName: 'Polski LCS-DM (Liberty City Stories) by LU-DM Team - discord.gg/PFwem6J',
+    gameMode: 'RTV v4.3s',
+    ping: '140',
+    numPlayers: 5,
+    maxPlayers: 100,
+    ip: "21",
+    players: [
+        'Test', 'Test', 'Test', 'Test', 'Test', 'Test', 'Test', 'Test','Test', 'Test', 'Test', 'Test', 'Test', 'Test', 'Test', 'Test'
+    ],
+    password: true
+},
+{
+    serverName: 'Rob The Vehicle (IV)',
+    gameMode: '[Main Lobby] [A/D] Liberty City Killers:Basemode Public Server',
+    ping: '140',
+    numPlayers: 5,
+    maxPlayers: 100,
+    ip: "22",
+    players: [],
+    password: false
+},
+{
+    serverName: 'Rob The Vehicle (IV)',
+    gameMode: 'RTV v4.3s',
+    ping: '140',
+    numPlayers: 5,
+    maxPlayers: 100,
+    ip: "23",
+    players: [],
+    password: false
+},
+{
+    serverName: 'Rob The Vehicle (IV)',
+    gameMode: 'RTV v4.3s',
+    ping: '140',
+    numPlayers: 5,
+    maxPlayers: 100,
+    ip: "24",
+    players: [],
+    password: false
+},
+{
+    serverName: 'Rab The Vehicle (IV)',
+    gameMode: 'RTV v4.3s',
+    ping: '140',
+    numPlayers: 5,
+    maxPlayers: 100,
+    ip: "25",
+    players: [],
+    password: false
+},
+{
+    serverName: 'Rob The Vehicle (IV)',
+    gameMode: 'RTV v4.3s',
+    ping: '140',
+    numPlayers: 5,
+    maxPlayers: 100,
+    ip: "26",
+    players: [],
+    password: false
+},
+{
+    serverName: 'Rob The Vehicle (IV)',
+    gameMode: 'RTV v4.3s',
+    ping: '140',
+    numPlayers: 5,
+    maxPlayers: 100,
+    ip: '27',
+    players: [],
+    password: false
+},
+{
+    serverName: 'Rob The Vehicle (IV)',
+    gameMode: 'RTV v4.3s',
+    ping: '140',
+    numPlayers: 5,
+    maxPlayers: 100,
+    ip: '28',
+    players: [],
+    password: false
+},
+{
+    serverName: 'Rob The Vehicle (IV)',
+    gameMode: 'RTV v4.3s',
+    ping: '140',
+    numPlayers: 5,
+    maxPlayers: 100,
+    ip: '29',
+    players: [],
+    password: false
+},
+{
+    serverName: 'Polski LCS-DM (Liberty City Stories) by LU-DM Team - discord.gg/PFwem6J',
+    gameMode: 'RTV v4.3s',
+    ping: '140',
+    numPlayers: 5,
+    maxPlayers: 100,
+    ip: '30',
     players: [],
     password: false
 }];
@@ -277,7 +481,61 @@ function ServerList() {
 
         setSelected(rows[idx]);
         setDrawerOpen(true);
-    }, []);
+    }, [rows]);
+
+    // --------------------------------------------------------- //
+
+    const srvList = useRef();
+
+    useEffect(() => {
+
+        // register shortcut, Up and Down arrows to navigate serverlist
+        const listener = event => {
+
+            // if a server is selected, use to go to next/previous
+            if(drawerOpen && selected) {
+                if(!event.ctrlKey) {
+                    if(event.key === 'ArrowDown') {
+                        const current = rows.findIndex(v => v.ip === selected.ip);
+                        const next = current === (rows.length - 1) ? 0 : current + 1;
+
+                        const scrollTo = current === (rows.length - 1) ? 0 : srvList.current.scrollTop + 15;
+                        srvList.current.scrollTo({top: scrollTo, behaviour: 'smooth'});
+
+                        handleSelect(next);
+
+                    } else if(event.key === 'ArrowUp') {
+
+                        const current = rows.findIndex(v => v.ip === selected.ip);
+                        const next = current === 0 ? (rows.length - 1) : current - 1;
+
+                        const scrollTo = current === 0 ? srvList.current.scrollHeight : srvList.current.scrollTop - 15;
+                        srvList.current.scrollTo({top: scrollTo, behaviour: 'smooth'});
+
+                        handleSelect(next);
+                    }
+                }
+            }
+
+            // for scrolling
+            if(!event.ctrlKey) {
+                if(event.key === 'ArrowDown') {
+                    const scrollTo = srvList.current.scrollTop + 30;
+                    srvList.current.scrollTo({top: scrollTo, behaviour: 'smooth'})
+
+                } else if(event.key === 'ArrowUp') {
+                    const scrollTo = srvList.current.scrollTop - 30;
+                    srvList.current.scrollTo({top: scrollTo, behaviour: 'smooth'})
+                }
+            }
+        };
+
+        document.addEventListener('keydown', listener);
+
+        return () => {
+            document.removeEventListener('keydown', listener)
+        }
+    }, [drawerOpen, selected]);
 
     // --------------------------------------------------------- //
 
@@ -308,7 +566,7 @@ function ServerList() {
                 <span className='srvHeaderMode'>Gamemode</span>
             </div>
             
-            <div className='srvList'>
+            <div className='srvList' ref={srvList}>
                 {rows.map((element, idx) => {
                     return (
                         <div className={`srvItem ${drawerOpen && selected?.ip === element.ip ? 'srvItem-selected' : ''}`} key={element.ip} onClick={() => handleSelect(idx)}>

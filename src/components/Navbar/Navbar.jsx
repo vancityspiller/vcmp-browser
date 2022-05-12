@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 
 import { Sidebar } from 'rsuite';
 import { appWindow } from '@tauri-apps/api/window';
@@ -17,6 +17,7 @@ import AboutIcon from './icons/circle-info-solid.svg';
 
 import CloseIcon from './icons/circle-xmark-solid.svg';
 import Logo from './icons/logo.png';
+import { globalShortcut } from '@tauri-apps/api';
 
 // --------------------------------------------------------- //
 
@@ -26,12 +27,12 @@ const iconList = [
         icon: DashIcon
     },
     {
-        title: 'Settings',
-        icon: SettingsIcon
-    },
-    {
         title: 'Customize',
         icon: CustIcon
+    },
+    {
+        title: 'Settings',
+        icon: SettingsIcon
     },
     {
         title: 'About',
@@ -53,6 +54,36 @@ function SideNavbar({address, setAddress}) {
         if(title !== address)
         setAddress(title);
     }
+
+    // --------------------------------------------------------- //
+
+    useEffect(() => {
+
+        // register shortcut, Ctrl + Up/Down Arrow to switch between menus
+        const listener = event => {
+
+            if(event.ctrlKey) {
+                if(event.key === 'ArrowDown') {
+                    const current = iconList.findIndex(v => v.title === address);
+                    const next = current === (iconList.length - 1) ? 0 : current + 1;
+
+                    clickCb(iconList[next].title);
+                } else if(event.key === 'ArrowUp') {
+
+                    const current = iconList.findIndex(v => v.title === address);
+                    const next = current === 0 ? (iconList.length - 1) : current - 1;
+
+                    clickCb(iconList[next].title);
+                }
+            }
+        };
+
+        document.addEventListener('keydown', listener);
+
+        return () => {
+            document.removeEventListener('keydown', listener)
+        }
+    }, [address]);
     
     // --------------------------------------------------------- //
 
