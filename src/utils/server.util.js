@@ -33,9 +33,9 @@ export const performUDP = async (ip, port) => {
  */
 const parseServerData = async (serverInfo) => {
 
-    return new Promise(async (resolve, reject) => {
+    return new Promise(async (resolve) => {
         if(serverInfo.info.length === 1) {
-            reject();
+            resolve({ip: serverInfo.ip, ping: null});
             return;
         }
 

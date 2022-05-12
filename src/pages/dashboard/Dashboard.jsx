@@ -1,13 +1,15 @@
 import React, { useState, useEffect } from 'react';
-import { Container, Content, Header, Loader, Nav, Tag } from 'rsuite';
+import { Container, Content, Header, Nav, Tag } from 'rsuite';
 import ServerList from '../../components/ServerList/ServerList';
 
 import { http } from "@tauri-apps/api";
 import { useSettings } from '../../utils/settings.context';
+import { useServers } from '../../utils/config.utils';
 
 // ========================================================= //
 
 import './dashboard.less';
+import { performUDP } from '../../utils/server.util';
 
 // --------------------------------------------------------- //
 
@@ -16,19 +18,12 @@ function Dashboard() {
     const {settings} = useSettings();
     const [tab, setTab] = useState(settings.master.defaultTab);
 
-    const [loading, setLoading] = useState('loading');
-    const [processing, setProcessing] = useState(true);
-
+    const [servers] = useServers();
     const [serverList, setServerList] = useState([]);
 
     // --------------------------------------------------------- //
 
     const handleSelect = (key) => {
-
-        if(loading !== 'loaded' || processing) {
-            return;
-        }
-
         if(tab !== key) {
             setTab(key);
         }
@@ -41,15 +36,24 @@ function Dashboard() {
     // --------------------------------------------------------- //
 
     useEffect(() => {
-
-        setLoading('loading');
-
-        http.fetch(settings.master.url + 'servers')
+        http.fetch(`${settings.master.url}servers`)
             .then(response => {
-                setServerList(response.data.servers);
-                setLoading('loaded');
-            })
-            .catch(() => setLoading('failed'));
+
+                response.data.servers.forEach(async (v) => {
+                    performUDP(v.ip, v.port)
+                        .then(r => {
+                            setServerList(p => {
+                                return [...p, r];
+                            });
+                        })
+                        .catch();
+                });
+            });
+    }, []);
+
+    // --------------------------------------------------------- //
+
+    useEffect(() => {
 
         // register shortcut, Q and E to switch between dashboard tabs
         const listener = event => {
@@ -107,8 +111,10 @@ function Dashboard() {
                 </Header>
 
                 <Content>
-                    { loading === 'loaded' && <ServerList list={serverList} setProcessing={setProcessing} /> }
-                    { loading === 'loading' && <Loader vertical content='Fetching masterlist...' /> }
+                    { tab ==='Masterlist' && <ServerList list={serverList} includeWaiting={false} /> }
+                    { tab ==='Featured' && <ServerList list={[]} includeWaiting /> }
+                    { tab ==='Recent' && <ServerList list={servers.history} includeWaiting /> }
+                    { tab ==='Favorites' && <ServerList list={servers.favorites} includeWaiting /> }
                 </Content>
             </Container>
         </Content>

@@ -2,6 +2,7 @@ import React, { useState, useCallback, useMemo, useEffect, useRef } from 'react'
 import { Input, InputGroup } from 'rsuite';
 
 import ServerInfoDrawer from '../ServerInfoDrawer/ServerInfoDrawer';
+import { useServers } from '../../utils/config.utils';
 
 // ========================================================= //
 
@@ -13,14 +14,11 @@ import LockIcon from '@rsuite/icons/legacy/Lock';
 import FavoriteIcon from '@rsuite/icons/legacy/Star';
 
 import './serverlist.less';
-import { useServers } from '../../utils/config.utils';
-import { performUDP } from '../../utils/server.util';
 
 // --------------------------------------------------------- //
 
-function ServerList({list, setProcessing}) {
+function ServerList({list, includeWaiting}) {
 
-    const [rawData, setRawData] = useState([]);
     const [selected, setSelected] = useState(null);
 
     const [search, setSearch] = useState('');
@@ -31,27 +29,6 @@ function ServerList({list, setProcessing}) {
 
     const [servers] = useServers();
 
-    // --------------------------------------------------------- //
-
-    useEffect(() => {
-
-        setProcessing(true);
-
-        list.forEach(async (v) => {
-
-            performUDP(v.ip, v.port)
-                .then(r => {
-
-                    setRawData(p => {
-                        return [...p, r];
-                    });
-                })
-                .catch(() => {
-                    setProcessing(false);
-                });
-        });
-
-    }, [list])
 
     // --------------------------------------------------------- //
 
@@ -114,7 +91,13 @@ function ServerList({list, setProcessing}) {
     const rows = useMemo(() => {
 
         // make a copy of state
-        let borrowed = [...rawData];
+        let borrowed = [...list];
+
+        if(!includeWaiting) {
+            borrowed = borrowed.filter(v => {
+                return v.ping !== null;
+            });
+        }
 
         // add favorites key; so it can be used later as well
         borrowed = borrowed.map((v) => {
@@ -192,7 +175,7 @@ function ServerList({list, setProcessing}) {
         }
 
         return borrowed;
-    }, [rawData, search, sort, servers]);
+    }, [list, search, sort, servers]);
 
     // --------------------------------------------------------- //
     // for drawer
