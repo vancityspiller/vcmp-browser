@@ -1,3 +1,4 @@
+import { useReducer } from 'react';
 import { fs, path } from "@tauri-apps/api";
 
 // ======================================================= //
@@ -19,7 +20,7 @@ const fallback = {
     },
 
     servers: {
-        favourites: [],
+        favorites: [],
         passwords: [],
         history: []
     }
@@ -27,7 +28,7 @@ const fallback = {
 
 // ------------------------------------------------------- //
 
-export function loadConfig(setConfigLoaded, setSettings) {
+export function loadConfig(setConfigLoaded, setSettings, setServers) {
     path.resourceDir()
         .then(resDirPath => {
 
@@ -47,8 +48,15 @@ export function loadConfig(setConfigLoaded, setSettings) {
                             files.forEach(file => {
                                 if(entries.findIndex(entry => entry.name === `${file}.json`) == -1) {
                                     fs.writeFile({contents: JSON.stringify(fallback[file], null, 2), path: `${resDirPath}data\\${file}.json`})
+                                        .catch();
                                 }
-                            })
+                            });
+
+                            fs.readTextFile(`${resDirPath}data\\servers.json`)
+                                .then(value => {
+                                    setServers({type: 'LOAD', value: JSON.parse(value)});
+                                })
+                                .catch();
 
                             fs.readTextFile(`${resDirPath}data\\settings.json`)
                                 .then(value => {
@@ -56,10 +64,60 @@ export function loadConfig(setConfigLoaded, setSettings) {
                                     setConfigLoaded(true);
                                 })
                                 .catch();
+                            
                         })
                         .catch();
                 })
                 .catch();
         })
         .catch();
+}
+
+// ======================================================= //
+
+function ServersReducer() {
+
+    const reducerFunc = (prev, action) => {
+
+        switch(action.type) {
+            case 'ADD':
+                {
+                    const borrowed = {...prev};
+                    borrowed[action.key].push(action.value);
+                    console.log(borrowed);
+                    return borrowed;
+                }
+
+            case 'REMOVE':
+                {
+                    const borrowed = {...prev};
+                    borrowed[action.key] = prev[action.key].filter(action.value);
+                    console.log(borrowed);
+                    return borrowed;
+                }       
+                
+            case "LOAD":
+                {
+                    return action.value;
+                }
+
+            case "SAVE":
+                {
+                    path.resourceDir()
+                        .then(resDirPath => {
+                            fs.writeFile({path: `${resDirPath}data\\servers.json`, contents: JSON.stringify(State, null, 2)})
+                                .catch();
+                        })
+                        .catch();
+                }
+        }
+        
+    }
+
+    const [State, Dispatch] = useReducer(reducerFunc, {...fallback.servers});
+    return [State, Dispatch];
+}
+
+export function useServers() {
+    return ServersReducer();
 }

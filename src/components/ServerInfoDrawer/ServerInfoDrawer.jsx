@@ -6,16 +6,20 @@ import { clipboard } from '@tauri-apps/api';
 // ========================================================= //
 
 import ArrowRightIcon from '@rsuite/icons/legacy/Play';
-import TagIcon from '@rsuite/icons/legacy/Star';
+import FavIcon from '@rsuite/icons/legacy/Star';
+import FavIconUnfilled from '@rsuite/icons/legacy/StarO';
 import LockIcon from '@rsuite/icons/legacy/Lock';
 import SortDownIcon from '@rsuite/icons/SortDown';
 import SortUpIcon from '@rsuite/icons/SortUp';
 
 import './serverinfodrawer.less';
+import { useServers } from '../../utils/config.utils';
 
 // ========================================================= //
 
 function ServerInfoDrawer({open, handleClose, data}) {
+
+    const [, setServers] = useServers();
 
     // --------------------------------------------------------- //
 
@@ -48,7 +52,23 @@ function ServerInfoDrawer({open, handleClose, data}) {
 
     // --------------------------------------------------------- //
 
-    return data ? (
+    const handleFavorite = () => {
+        if(data.isFavorite) {
+            setServers({type: 'REMOVE', key: 'favorites', value: (v) => {
+                return (v.ip + ':' + v.port) !== data.ip;
+            }});
+
+        } else {
+            const [ip, port] = data.ip.split(':');
+            setServers({type: 'ADD', key: 'favorites', value: {ip: ip, port: port}});
+        }
+
+        data.isFavorite = !data.isFavorite;
+    }
+
+    // --------------------------------------------------------- //
+
+    return (
         <React.Fragment>
             <Drawer 
                 size='xs' 
@@ -56,79 +76,89 @@ function ServerInfoDrawer({open, handleClose, data}) {
                 open={open}
                 onClose={handleClose}
             >
+            
+            {data &&
+            <React.Fragment>
+                <Drawer.Header>
+                    <Drawer.Title>{data.serverName}</Drawer.Title>
+                </Drawer.Header>
 
-            <Drawer.Header>
-                <Drawer.Title>{data.serverName}</Drawer.Title>
-            </Drawer.Header>
+                <div className='srvDrawerInfo'>
+                    <Panel header='Server Information'>
+                        <div className='srvDrawerInfoB'>IP: <span>{data.ip}</span></div>
+                        <div className='srvDrawerInfoB'>Gamemode: <span>{data.gameMode.length > 45 ? (data.gameMode.slice(0, 45) + '...') : data.gameMode}</span></div>
+                        <div className='srvDrawerInfoB'>Players: <span>{data.numPlayers}/{data.maxPlayers}</span></div>
 
-            <div className='srvDrawerInfo'>
-                <Panel header='Server Information'>
-                    <div className='srvDrawerInfoB'>IP: <span>{data.ip}</span></div>
-                    <div className='srvDrawerInfoB'>Gamemode: <span>{data.gameMode.length > 45 ? (data.gameMode.slice(0, 45) + '...') : data.gameMode}</span></div>
-                    <div className='srvDrawerInfoB'>Players: <span>{data.numPlayers}/{data.maxPlayers}</span></div>
+                        <ButtonToolbar className='srvDrawerInfoButtons'>
+                            <Whisper placement="top" trigger="click" speaker={<Tooltip>Copied!</Tooltip>}>
+                                <Button appearance='subtle' size='xs' onClick={() => copyClick('ip')}>
+                                    Copy IP
+                                </Button>
+                            </Whisper>
 
-                    <ButtonToolbar className='srvDrawerInfoButtons'>
-                        <Whisper placement="top" trigger="click" speaker={<Tooltip>Copied!</Tooltip>}>
-                            <Button appearance='subtle' size='xs' onClick={() => copyClick('ip')}>
-                                Copy IP
-                            </Button>
-                        </Whisper>
+                            <Whisper placement="top" trigger="click" speaker={<Tooltip>Copied!</Tooltip>}>
+                                <Button appearance='subtle' size='xs' onClick={() => copyClick('info')}>
+                                    Copy Info
+                                </Button>
+                            </Whisper>
+                        </ButtonToolbar>
+                    </Panel>                
+                </div>
 
-                        <Whisper placement="top" trigger="click" speaker={<Tooltip>Copied!</Tooltip>}>
-                            <Button appearance='subtle' size='xs' onClick={() => copyClick('info')}>
-                                Copy Info
-                            </Button>
-                        </Whisper>
-                    </ButtonToolbar>
-                </Panel>                
-            </div>
-
-            <ButtonToolbar className='srvDrawerActions'>
-                <IconButton appearance='primary' icon={data.password ? <LockIcon className='fixLegacy' /> : <ArrowRightIcon className='fixLegacy' />} size='sm'>
-                    Launch
-                </IconButton>
-                <IconButton appearance='default' icon={<TagIcon className='fixLegacy' />} size='sm'>
-                    Set Favorite
-                </IconButton>
-            </ButtonToolbar>
-
-            <div className='srvDrawerPlayers'>
-                <span className='srvDrawerPlayersTitle'>
-                    Players
-                </span>
-
-                {data.players.length > 0 &&
-                    <Table 
-                        className='srvDrawerPlayersTable'
-                        data={getPlayersObj}
-                        headerHeight={0}
-                        hover={false}
-                        height={250}
-                        rowHeight={30}
-                        rowClassName='srvDrawerPlayersRow'
+                <ButtonToolbar className='srvDrawerActions'>
+                    <IconButton 
+                        appearance='primary' 
+                        icon={data.password ? <LockIcon className='fixLegacy' /> : <ArrowRightIcon className='fixLegacy' />} 
+                        size='sm'
                     >
-                        <Column width={360}>
-                            <HeaderCell></HeaderCell>
-                            <Cell dataKey="name" />
-                        </Column>
-                    </Table>
-                }
+                        Launch
+                    </IconButton>
+                    <IconButton 
+                        appearance='default' 
+                        icon={data.isFavorite ? <FavIcon className='fixLegacy' /> : <FavIconUnfilled className='fixLegacy' /> } 
+                        size='sm'
+                        onClick={handleFavorite}
+                    >
+                        { data.isFavorite ? 'Remove' : 'Set' } Favorite
+                    </IconButton>
+                </ButtonToolbar>
 
-                {data.players.length === 0 && 
-                    <div className='srvDrawerPlayersFB' />
-                }
-            </div>
+                <div className='srvDrawerPlayers'>
+                    <span className='srvDrawerPlayersTitle'>
+                        Players
+                    </span>
 
-            <div className='srvDrawerTip'>
-                Use <Tag><SortUpIcon /></Tag> and <span><Tag><SortDownIcon /></Tag> to navigate between servers</span>.
-            </div>
+                    {data.players.length > 0 &&
+                        <Table 
+                            className='srvDrawerPlayersTable'
+                            data={getPlayersObj}
+                            headerHeight={0}
+                            hover={false}
+                            height={250}
+                            rowHeight={30}
+                            rowClassName='srvDrawerPlayersRow'
+                        >
+                            <Column width={360}>
+                                <HeaderCell></HeaderCell>
+                                <Cell dataKey="name" />
+                            </Column>
+                        </Table>
+                    }
+
+                    {data.players.length === 0 && 
+                        <div className='srvDrawerPlayersFB' />
+                    }
+                </div>
+
+                <div className='srvDrawerTip'>
+                    Use <Tag><SortUpIcon /></Tag> and <span><Tag><SortDownIcon /></Tag> to navigate between servers</span>.
+                </div>
+            </React.Fragment>
+            }
 
             </Drawer>
         </React.Fragment>
     ) 
-    : 
-    // fallback if no data
-    ( <React.Fragment /> );
 }
 
 export default ServerInfoDrawer;

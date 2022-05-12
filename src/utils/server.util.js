@@ -63,7 +63,10 @@ const parseServerData = async (serverInfo) => {
         mapName: await Utf8ArrayToStr(serverInfo.info.slice(len_gamemode + 4, len_map)),
 
         players: [],
-        ping: serverInfo.ping
+        ping: serverInfo.ping,
+
+        // will map this later with our favorites
+        isFavorite: false
     }
 
     // players are in a continuous fashion of strlen followed by name

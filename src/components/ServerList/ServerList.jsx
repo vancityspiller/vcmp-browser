@@ -1,5 +1,6 @@
 import React, { useState, useCallback, useMemo, useEffect, useRef } from 'react';
 import { Input, InputGroup } from 'rsuite';
+
 import ServerInfoDrawer from '../ServerInfoDrawer/ServerInfoDrawer';
 
 // ========================================================= //
@@ -12,6 +13,7 @@ import LockIcon from '@rsuite/icons/legacy/Lock';
 import FavoriteIcon from '@rsuite/icons/legacy/Star';
 
 import './serverlist.less';
+import { useServers } from '../../utils/config.utils';
 
 // --------------------------------------------------------- //
 
@@ -21,7 +23,7 @@ const data = [{
     ping: '140',
     numPlayers: 5,
     maxPlayers: 100,
-    ip: "1",
+    ip: "1:5",
     players: [
         'Test', 'Test', 'Test', 'Test', 'Test', 'Test', 'Test', 'Test','Test', 'Test', 'Test', 'Test', 'Test', 'Test', 'Test', 'Test'
     ],
@@ -335,6 +337,8 @@ function ServerList() {
         mode: ''
     });
 
+    const [servers] = useServers();
+
     // --------------------------------------------------------- //
 
     const handleSort = (value) => {
@@ -400,8 +404,18 @@ function ServerList() {
 
         // add favorites key; so it can be used later as well
         borrowed = borrowed.map((v) => {
-            // TODO: map with favorite list when implemented
-            return {...v, isFavorite: true}
+            return {...v, isFavorite: false}
+        });
+
+        borrowed = borrowed.map((v) => {
+
+            if(servers.favorites.findIndex(fav => {
+                return (fav.ip + ':' + fav.port) === v.ip;
+            }) === -1) {
+                return v;
+            }
+
+            return {...v, isFavorite: true};
         });
 
         // search logic
@@ -464,7 +478,7 @@ function ServerList() {
         }
 
         return borrowed;
-    }, [rawData, search, sort]);
+    }, [rawData, search, sort, servers]);
 
     // --------------------------------------------------------- //
     // for drawer
@@ -497,21 +511,21 @@ function ServerList() {
                 if(!event.ctrlKey) {
                     if(event.key === 'ArrowDown') {
                         const current = rows.findIndex(v => v.ip === selected.ip);
-                        const next = current === (rows.length - 1) ? 0 : current + 1;
 
-                        const scrollTo = current === (rows.length - 1) ? 0 : srvList.current.scrollTop + 15;
-                        srvList.current.scrollTo({top: scrollTo, behaviour: 'smooth'});
+                        if(current === rows.length - 1) return;
+                        const next = current + 1;
 
+                        srvList.current.scrollTop += 15;
                         handleSelect(next);
 
                     } else if(event.key === 'ArrowUp') {
 
                         const current = rows.findIndex(v => v.ip === selected.ip);
-                        const next = current === 0 ? (rows.length - 1) : current - 1;
 
-                        const scrollTo = current === 0 ? srvList.current.scrollHeight : srvList.current.scrollTop - 15;
-                        srvList.current.scrollTo({top: scrollTo, behaviour: 'smooth'});
+                        if(current === 0) return;
+                        const next = current - 1;
 
+                        srvList.current.scrollTop -= 15;
                         handleSelect(next);
                     }
                 }

@@ -3,7 +3,7 @@ import { Container } from 'rsuite';
 import DraggableHeader from './components/DraggableHeader';
 import SideNavbar from './components/Navbar/Navbar';
 import Dashboard from './pages/dashboard/Dashboard';
-import { loadConfig } from './utils/config.utils';
+import { loadConfig, useServers } from './utils/config.utils';
 import { useSettings } from './utils/settings.context';
 
 // ========================================================= //
@@ -14,12 +14,20 @@ function App() {
     const [configLoaded, setConfigLoaded] = useState(false);
 
     const {setSettings} = useSettings();
+    const [, serversDispatch] = useServers();
 
     useEffect(() => {
-        if(!configLoaded) loadConfig(setConfigLoaded, setSettings);
+        if(!configLoaded) loadConfig(setConfigLoaded, setSettings, serversDispatch);
     }, []);
 
     // ========================================================= //
+
+    function NavElement() {
+        if(navAddress === 'Dashboard') return ( <Dashboard /> );
+        return (<React.Fragment />);
+    }
+
+    // --------------------------------------------------------- //
 
     return (
         <React.Fragment>
@@ -27,7 +35,7 @@ function App() {
                 <DraggableHeader />
                 <SideNavbar address={navAddress} setAddress={setNavAddress} />
                 {configLoaded &&
-                    <Dashboard />
+                    <NavElement />
                 }
             </Container>
         </React.Fragment>

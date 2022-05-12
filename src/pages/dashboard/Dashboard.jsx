@@ -15,7 +15,6 @@ function Dashboard() {
     const {settings} = useSettings();
     const [tab, setTab] = useState(settings.master.defaultTab);
 
-
     // --------------------------------------------------------- //
 
     const handleSelect = (key) => {
