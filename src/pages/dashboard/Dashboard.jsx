@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { Container, Content, Header, Nav, Tag } from 'rsuite';
+import { Container, Content, Header, Loader, Nav, Tag } from 'rsuite';
 import ServerList from '../../components/ServerList/ServerList';
 
+import { http } from "@tauri-apps/api";
 import { useSettings } from '../../utils/settings.context';
 
 // ========================================================= //
@@ -15,9 +16,18 @@ function Dashboard() {
     const {settings} = useSettings();
     const [tab, setTab] = useState(settings.master.defaultTab);
 
+    const [loading, setLoading] = useState('loading');
+    const [processing, setProcessing] = useState(true);
+
+    const [serverList, setServerList] = useState([]);
+
     // --------------------------------------------------------- //
 
     const handleSelect = (key) => {
+
+        if(loading !== 'loaded' || processing) {
+            return;
+        }
 
         if(tab !== key) {
             setTab(key);
@@ -31,6 +41,15 @@ function Dashboard() {
     // --------------------------------------------------------- //
 
     useEffect(() => {
+
+        setLoading('loading');
+
+        http.fetch(settings.master.url + 'servers')
+            .then(response => {
+                setServerList(response.data.servers);
+                setLoading('loaded');
+            })
+            .catch(() => setLoading('failed'));
 
         // register shortcut, Q and E to switch between dashboard tabs
         const listener = event => {
@@ -88,7 +107,8 @@ function Dashboard() {
                 </Header>
 
                 <Content>
-                    <ServerList />
+                    { loading === 'loaded' && <ServerList list={serverList} setProcessing={setProcessing} /> }
+                    { loading === 'loading' && <Loader vertical content='Fetching masterlist...' /> }
                 </Content>
             </Container>
         </Content>

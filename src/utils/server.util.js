@@ -2,29 +2,23 @@ import { http, invoke } from "@tauri-apps/api";
 
 // ======================================================= //
 
-export async function getMasterlist() {
-
-    http.fetch('http://master.vc-mp.org/servers')
-        .then(response => performUDP(response.data.servers));            
-}
-
-// ======================================================= //
-
 /**
  * Fetches server info using Rust UDPSocket
  * @param {Object[]} serverList 
  * @param {String} serverList.ip
  * @param {Number} serverList.port
  */
-const performUDP = async (serverList) => {
-    serverList.forEach((value, idx) => {
-
-        invoke('info', {ip: value.ip + ":" + value.port, send: `VCMP${value.ip.slice(0, 4)}${value.port.toString().slice(0, 2)}`})
+export const performUDP = async (ip, port) => {
+    return new Promise(async (resolve, reject) => {
+        invoke('info', {ip: ip + ":" + port, send: `VCMP${ip.slice(0, 4)}${port.toString().slice(0, 2)}`})
             .then(message => {
                 const serverInfo = JSON.parse(message);
-                parseServerData(serverInfo);
+                parseServerData(serverInfo)
+                    .then(result => resolve(result))
+                    .catch(() => reject());
             })
-    })
+            .catch(e => console.log(e))
+    });
 }
 
 // ------------------------------------------------------- //
@@ -39,47 +33,55 @@ const performUDP = async (serverList) => {
  */
 const parseServerData = async (serverInfo) => {
 
-    if(serverInfo.info.length === 1) return;
+    return new Promise(async (resolve, reject) => {
+        if(serverInfo.info.length === 1) {
+            reject();
+            return;
+        }
 
-    // we know server, gamemode and map name are not fixed at indexes
-    const   len_server = 32 + serverInfo.info.slice(28, 31).reduce((p, n) => p + n),
-            len_gamemode = len_server + 4 + serverInfo.info.slice(len_server, len_server + 3).reduce((p, n) => p + n),
-            len_map = len_gamemode + 4 + serverInfo.info.slice(len_gamemode, len_gamemode + 3).reduce((p, n) => p + n);
+        // we know server, gamemode and map name are not fixed at indexes
+        const   len_server = 32 + serverInfo.info.slice(28, 31).reduce((p, n) => p + n),
+                len_gamemode = len_server + 4 + serverInfo.info.slice(len_server, len_server + 3).reduce((p, n) => p + n),
+                len_map = len_gamemode + 4 + serverInfo.info.slice(len_gamemode, len_gamemode + 3).reduce((p, n) => p + n);
 
-    const parsedData = {
-        // doesn't occupy whole 12 bytes alloted to it
-        version: await Utf8ArrayToStr(serverInfo.info.slice(11, 19)),
+        const parsedData = {
 
-        // single byte alloted to password
-        password: serverInfo.info[23] === 0 ? false : true,
+            ip: serverInfo.ip,
 
-        // need to treat these differently, multiple bytes for single integer
-        numPlayers: serverInfo.info.slice(24, 25).reduce((p, n) => p + n), 
-        maxPlayers: serverInfo.info.slice(26, 27).reduce((p, n) => p + n),
-        
-        // strlen is provided for following values
-        serverName: await Utf8ArrayToStr(serverInfo.info.slice(32, len_server)),
-        gameMode: await Utf8ArrayToStr(serverInfo.info.slice(len_server + 4, len_gamemode)),
-        mapName: await Utf8ArrayToStr(serverInfo.info.slice(len_gamemode + 4, len_map)),
+            // doesn't occupy whole 12 bytes alloted to it
+            version: await Utf8ArrayToStr(serverInfo.info.slice(11, 19)),
 
-        players: [],
-        ping: serverInfo.ping,
+            // single byte alloted to password
+            password: serverInfo.info[23] === 0 ? false : true,
 
-        // will map this later with our favorites
-        isFavorite: false
-    }
+            // need to treat these differently, multiple bytes for single integer
+            numPlayers: serverInfo.info.slice(24, 25).reduce((p, n) => p + n), 
+            maxPlayers: serverInfo.info.slice(26, 27).reduce((p, n) => p + n),
+            
+            // strlen is provided for following values
+            serverName: await Utf8ArrayToStr(serverInfo.info.slice(32, len_server)),
+            gameMode: await Utf8ArrayToStr(serverInfo.info.slice(len_server + 4, len_gamemode)),
+            mapName: await Utf8ArrayToStr(serverInfo.info.slice(len_gamemode + 4, len_map)),
 
-    // players are in a continuous fashion of strlen followed by name
-    let lastLen = 13;
-    for(let i = 0 ; i < parsedData.numPlayers ; i++) {
+            players: [],
+            ping: serverInfo.ping,
 
-        const len_player = serverInfo.players[lastLen];        
-        parsedData.players.push(await Utf8ArrayToStr(serverInfo.players.slice(lastLen + 1, lastLen + 1 + len_player)));
+            // will map this later with our favorites
+            isFavorite: false
+        }
 
-        lastLen += len_player + 1;
-    }
- 
-    console.log(parsedData);
+        // players are in a continuous fashion of strlen followed by name
+        let lastLen = 13;
+        for(let i = 0 ; i < parsedData.numPlayers ; i++) {
+
+            const len_player = serverInfo.players[lastLen];        
+            parsedData.players.push(await Utf8ArrayToStr(serverInfo.players.slice(lastLen + 1, lastLen + 1 + len_player)));
+
+            lastLen += len_player + 1;
+        }
+    
+        resolve(parsedData);
+    })
 }
 
 // ------------------------------------------------------- //

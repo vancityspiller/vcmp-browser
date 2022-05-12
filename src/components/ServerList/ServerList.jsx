@@ -14,321 +14,13 @@ import FavoriteIcon from '@rsuite/icons/legacy/Star';
 
 import './serverlist.less';
 import { useServers } from '../../utils/config.utils';
+import { performUDP } from '../../utils/server.util';
 
 // --------------------------------------------------------- //
 
-const data = [{
-    serverName: 'Polski LCS-DM (Liberty City Stories) by LU-DM Team - discord.gg/PFwem6J',
-    gameMode: 'RTV v4.3s',
-    ping: '140',
-    numPlayers: 5,
-    maxPlayers: 100,
-    ip: "1:5",
-    players: [
-        'Test', 'Test', 'Test', 'Test', 'Test', 'Test', 'Test', 'Test','Test', 'Test', 'Test', 'Test', 'Test', 'Test', 'Test', 'Test'
-    ],
-    password: true
-},
-{
-    serverName: 'Rob The Vehicle (IV)',
-    gameMode: '[Main Lobby] [A/D] Liberty City Killers:Basemode Public Server',
-    ping: '140',
-    numPlayers: 5,
-    maxPlayers: 100,
-    ip: "2",
-    players: [],
-    password: false
-},
-{
-    serverName: 'Rob The Vehicle (IV)',
-    gameMode: 'RTV v4.3s',
-    ping: '140',
-    numPlayers: 5,
-    maxPlayers: 100,
-    ip: "3",
-    players: [],
-    password: false
-},
-{
-    serverName: 'Rob The Vehicle (IV)',
-    gameMode: 'RTV v4.3s',
-    ping: '140',
-    numPlayers: 5,
-    maxPlayers: 100,
-    ip: "4",
-    players: [],
-    password: false
-},
-{
-    serverName: 'Rab The Vehicle (IV)',
-    gameMode: 'RTV v4.3s',
-    ping: '140',
-    numPlayers: 5,
-    maxPlayers: 100,
-    ip: "5",
-    players: [],
-    password: false
-},
-{
-    serverName: 'Rob The Vehicle (IV)',
-    gameMode: 'RTV v4.3s',
-    ping: '140',
-    numPlayers: 5,
-    maxPlayers: 100,
-    ip: "6",
-    players: [],
-    password: false
-},
-{
-    serverName: 'Rob The Vehicle (IV)',
-    gameMode: 'RTV v4.3s',
-    ping: '140',
-    numPlayers: 5,
-    maxPlayers: 100,
-    ip: '7',
-    players: [],
-    password: false
-},
-{
-    serverName: 'Rob The Vehicle (IV)',
-    gameMode: 'RTV v4.3s',
-    ping: '140',
-    numPlayers: 5,
-    maxPlayers: 100,
-    ip: '8',
-    players: [],
-    password: false
-},
-{
-    serverName: 'Rob The Vehicle (IV)',
-    gameMode: 'RTV v4.3s',
-    ping: '140',
-    numPlayers: 5,
-    maxPlayers: 100,
-    ip: '9',
-    players: [],
-    password: false
-},
-{
-    serverName: 'Polski LCS-DM (Liberty City Stories) by LU-DM Team - discord.gg/PFwem6J',
-    gameMode: 'RTV v4.3s',
-    ping: '140',
-    numPlayers: 5,
-    maxPlayers: 100,
-    ip: '10',
-    players: [],
-    password: false
-},
-{
-    serverName: 'Polski LCS-DM (Liberty City Stories) by LU-DM Team - discord.gg/PFwem6J',
-    gameMode: 'RTV v4.3s',
-    ping: '140',
-    numPlayers: 5,
-    maxPlayers: 100,
-    ip: "11",
-    players: [
-        'Test', 'Test', 'Test', 'Test', 'Test', 'Test', 'Test', 'Test','Test', 'Test', 'Test', 'Test', 'Test', 'Test', 'Test', 'Test'
-    ],
-    password: true
-},
-{
-    serverName: 'Rob The Vehicle (IV)',
-    gameMode: '[Main Lobby] [A/D] Liberty City Killers:Basemode Public Server',
-    ping: '140',
-    numPlayers: 5,
-    maxPlayers: 100,
-    ip: "12",
-    players: [],
-    password: false
-},
-{
-    serverName: 'Rob The Vehicle (IV)',
-    gameMode: 'RTV v4.3s',
-    ping: '140',
-    numPlayers: 5,
-    maxPlayers: 100,
-    ip: "13",
-    players: [],
-    password: false
-},
-{
-    serverName: 'Rob The Vehicle (IV)',
-    gameMode: 'RTV v4.3s',
-    ping: '140',
-    numPlayers: 5,
-    maxPlayers: 100,
-    ip: "14",
-    players: [],
-    password: false
-},
-{
-    serverName: 'Rab The Vehicle (IV)',
-    gameMode: 'RTV v4.3s',
-    ping: '140',
-    numPlayers: 5,
-    maxPlayers: 100,
-    ip: "15",
-    players: [],
-    password: false
-},
-{
-    serverName: 'Rob The Vehicle (IV)',
-    gameMode: 'RTV v4.3s',
-    ping: '140',
-    numPlayers: 5,
-    maxPlayers: 100,
-    ip: "16",
-    players: [],
-    password: false
-},
-{
-    serverName: 'Rob The Vehicle (IV)',
-    gameMode: 'RTV v4.3s',
-    ping: '140',
-    numPlayers: 5,
-    maxPlayers: 100,
-    ip: '17',
-    players: [],
-    password: false
-},
-{
-    serverName: 'Rob The Vehicle (IV)',
-    gameMode: 'RTV v4.3s',
-    ping: '140',
-    numPlayers: 5,
-    maxPlayers: 100,
-    ip: '18',
-    players: [],
-    password: false
-},
-{
-    serverName: 'Rob The Vehicle (IV)',
-    gameMode: 'RTV v4.3s',
-    ping: '140',
-    numPlayers: 5,
-    maxPlayers: 100,
-    ip: '19',
-    players: [],
-    password: false
-},
-{
-    serverName: 'Polski LCS-DM (Liberty City Stories) by LU-DM Team - discord.gg/PFwem6J',
-    gameMode: 'RTV v4.3s',
-    ping: '140',
-    numPlayers: 5,
-    maxPlayers: 100,
-    ip: '20',
-    players: [],
-    password: false
-},
-{
-    serverName: 'Polski LCS-DM (Liberty City Stories) by LU-DM Team - discord.gg/PFwem6J',
-    gameMode: 'RTV v4.3s',
-    ping: '140',
-    numPlayers: 5,
-    maxPlayers: 100,
-    ip: "21",
-    players: [
-        'Test', 'Test', 'Test', 'Test', 'Test', 'Test', 'Test', 'Test','Test', 'Test', 'Test', 'Test', 'Test', 'Test', 'Test', 'Test'
-    ],
-    password: true
-},
-{
-    serverName: 'Rob The Vehicle (IV)',
-    gameMode: '[Main Lobby] [A/D] Liberty City Killers:Basemode Public Server',
-    ping: '140',
-    numPlayers: 5,
-    maxPlayers: 100,
-    ip: "22",
-    players: [],
-    password: false
-},
-{
-    serverName: 'Rob The Vehicle (IV)',
-    gameMode: 'RTV v4.3s',
-    ping: '140',
-    numPlayers: 5,
-    maxPlayers: 100,
-    ip: "23",
-    players: [],
-    password: false
-},
-{
-    serverName: 'Rob The Vehicle (IV)',
-    gameMode: 'RTV v4.3s',
-    ping: '140',
-    numPlayers: 5,
-    maxPlayers: 100,
-    ip: "24",
-    players: [],
-    password: false
-},
-{
-    serverName: 'Rab The Vehicle (IV)',
-    gameMode: 'RTV v4.3s',
-    ping: '140',
-    numPlayers: 5,
-    maxPlayers: 100,
-    ip: "25",
-    players: [],
-    password: false
-},
-{
-    serverName: 'Rob The Vehicle (IV)',
-    gameMode: 'RTV v4.3s',
-    ping: '140',
-    numPlayers: 5,
-    maxPlayers: 100,
-    ip: "26",
-    players: [],
-    password: false
-},
-{
-    serverName: 'Rob The Vehicle (IV)',
-    gameMode: 'RTV v4.3s',
-    ping: '140',
-    numPlayers: 5,
-    maxPlayers: 100,
-    ip: '27',
-    players: [],
-    password: false
-},
-{
-    serverName: 'Rob The Vehicle (IV)',
-    gameMode: 'RTV v4.3s',
-    ping: '140',
-    numPlayers: 5,
-    maxPlayers: 100,
-    ip: '28',
-    players: [],
-    password: false
-},
-{
-    serverName: 'Rob The Vehicle (IV)',
-    gameMode: 'RTV v4.3s',
-    ping: '140',
-    numPlayers: 5,
-    maxPlayers: 100,
-    ip: '29',
-    players: [],
-    password: false
-},
-{
-    serverName: 'Polski LCS-DM (Liberty City Stories) by LU-DM Team - discord.gg/PFwem6J',
-    gameMode: 'RTV v4.3s',
-    ping: '140',
-    numPlayers: 5,
-    maxPlayers: 100,
-    ip: '30',
-    players: [],
-    password: false
-}];
+function ServerList({list, setProcessing}) {
 
-// --------------------------------------------------------- //
-
-function ServerList() {
-
-    const [rawData, setRawData] = useState([...data]);
+    const [rawData, setRawData] = useState([]);
     const [selected, setSelected] = useState(null);
 
     const [search, setSearch] = useState('');
@@ -338,6 +30,28 @@ function ServerList() {
     });
 
     const [servers] = useServers();
+
+    // --------------------------------------------------------- //
+
+    useEffect(() => {
+
+        setProcessing(true);
+
+        list.forEach(async (v) => {
+
+            performUDP(v.ip, v.port)
+                .then(r => {
+
+                    setRawData(p => {
+                        return [...p, r];
+                    });
+                })
+                .catch(() => {
+                    setProcessing(false);
+                });
+        });
+
+    }, [list])
 
     // --------------------------------------------------------- //
 
