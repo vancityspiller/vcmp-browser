@@ -97,13 +97,15 @@ function ServerList({list, includeWaiting}) {
             borrowed = borrowed.filter(v => {
                 return v.ping !== null;
             });
+        } else {
+            borrowed = borrowed.map((v) => {
+                if(v.ping === null) {
+                    return {...v, ping: 9999, serverName: 'Waiting for server data...', gameMode: '', numPlayer: 0, version: '', password: false, isFavorite: false, players: []}
+                } else return v;
+            });
         }
 
         // add favorites key; so it can be used later as well
-        borrowed = borrowed.map((v) => {
-            return {...v, isFavorite: false}
-        });
-
         borrowed = borrowed.map((v) => {
 
             if(servers.favorites.findIndex(fav => {

@@ -3,13 +3,14 @@ import { Container, Content, Header, Nav, Tag } from 'rsuite';
 import ServerList from '../../components/ServerList/ServerList';
 
 import { http } from "@tauri-apps/api";
+
 import { useSettings } from '../../utils/settings.context';
 import { useServers } from '../../utils/config.utils';
+import { performUDP } from '../../utils/server.util';
 
 // ========================================================= //
 
 import './dashboard.less';
-import { performUDP } from '../../utils/server.util';
 
 // --------------------------------------------------------- //
 
@@ -19,7 +20,11 @@ function Dashboard() {
     const [tab, setTab] = useState(settings.master.defaultTab);
 
     const [servers] = useServers();
+
     const [serverList, setServerList] = useState([]);
+    const [favList, setFavList] = useState([]);
+    const [featuredList, setFeaturedList] = useState([]);
+    const [recentList, setRecentList] = useState([]);
 
     // --------------------------------------------------------- //
 
@@ -38,7 +43,6 @@ function Dashboard() {
     useEffect(() => {
         http.fetch(`${settings.master.url}servers`)
             .then(response => {
-
                 response.data.servers.forEach(async (v) => {
                     performUDP(v.ip, v.port)
                         .then(r => {
@@ -49,7 +53,47 @@ function Dashboard() {
                         .catch();
                 });
             });
+        
+        http.fetch(`${settings.master.url}official`)
+            .then(response => {
+                response.data.servers.forEach(async (v) => {
+                    performUDP(v.ip, v.port)
+                        .then(r => {
+                            setFeaturedList(p => {
+                                return [...p, r];
+                            });
+                        })
+                        .catch();
+                });
+            });
+        
     }, []);
+
+    useEffect(() => {
+
+        // don't rerender if on favorites page already, that's to be handled manually
+        if(tab !== 'Favorites') {
+            servers.favorites.forEach(async (v) => {
+                performUDP(v.ip, v.port)
+                    .then(r => {
+                        setFavList(p => {
+                            return [...p, r];
+                        });
+                    })
+                    .catch();
+            });
+        }
+
+        servers.history.forEach(async (v) => {
+            performUDP(v.ip, v.port)
+                .then(r => {
+                    setRecentList(p => {
+                        return [...p, r];
+                    });
+                })
+                .catch();
+        });
+    }, [servers]);
 
     // --------------------------------------------------------- //
 
@@ -112,9 +156,9 @@ function Dashboard() {
 
                 <Content>
                     { tab ==='Masterlist' && <ServerList list={serverList} includeWaiting={false} /> }
-                    { tab ==='Featured' && <ServerList list={[]} includeWaiting /> }
-                    { tab ==='Recent' && <ServerList list={servers.history} includeWaiting /> }
-                    { tab ==='Favorites' && <ServerList list={servers.favorites} includeWaiting /> }
+                    { tab ==='Featured' && <ServerList list={featuredList} includeWaiting /> }
+                    { tab ==='Recent' && <ServerList list={recentList} includeWaiting /> }
+                    { tab ==='Favorites' && <ServerList list={favList} includeWaiting /> }
                 </Content>
             </Container>
         </Content>

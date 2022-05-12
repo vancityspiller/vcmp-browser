@@ -110,6 +110,7 @@ function ServerInfoDrawer({open, handleClose, data}) {
                         appearance='primary' 
                         icon={data.password ? <LockIcon className='fixLegacy' /> : <ArrowRightIcon className='fixLegacy' />} 
                         size='sm'
+                        disabled={data.ping === 9999}
                     >
                         Launch
                     </IconButton>
