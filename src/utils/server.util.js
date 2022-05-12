@@ -55,7 +55,7 @@ const parseServerData = async (serverInfo) => {
             password: serverInfo.info[23] === 0 ? false : true,
 
             // need to treat these differently, multiple bytes for single integer
-            numPlayers: serverInfo.info.slice(24, 25).reduce((p, n) => p + n), 
+            numPlayers: parseInt(serverInfo.info.slice(24, 25).reduce((p, n) => p + n)), 
             maxPlayers: serverInfo.info.slice(26, 27).reduce((p, n) => p + n),
             
             // strlen is provided for following values
@@ -64,7 +64,7 @@ const parseServerData = async (serverInfo) => {
             mapName: await Utf8ArrayToStr(serverInfo.info.slice(len_gamemode + 4, len_map)),
 
             players: [],
-            ping: serverInfo.ping,
+            ping: parseInt(serverInfo.ping),
 
             // will map this later with our favorites
             isFavorite: false

@@ -23,8 +23,8 @@ function ServerList({list, includeWaiting}) {
 
     const [search, setSearch] = useState('');
     const [sort, setSort] = useState({
-        column: '',
-        mode: ''
+        column: 'ping',
+        mode: 'asc'
     });
 
     const [servers] = useServers();
@@ -146,7 +146,7 @@ function ServerList({list, includeWaiting}) {
 
         // --------------------------------------------------------- //
 
-        // sort (default sorted by ping: asc ; because that's how they're received ; so we'll just use unset instead)
+        // sort (default sorted by ping: asc ; because that's how they're received )
         // it doesn't make much sense to sort by name when you can search but doesn't hurt me
         if(sort.mode.length > 0 && sort.column.length > 0) {
 
@@ -166,10 +166,12 @@ function ServerList({list, includeWaiting}) {
                 }
                 
                 // increasing or decreasing order?
-                if(sort.mode === 'asc') {
-                    return x - y;
+                // less ping is better, so swap for that
+                
+                if(sort.mode === 'des') {
+                    return (sort.column === 'ping' ? y - x :  x - y);
                 } else {
-                    return y - x;
+                    return (sort.column === 'ping' ? x - y :  y - x);
                 }
             });
         }
