@@ -58,7 +58,7 @@ const data = [{
     password: false
 },
 {
-    serverName: 'Rob The Vehicle (IV)',
+    serverName: 'Rab The Vehicle (IV)',
     gameMode: 'RTV v4.3s',
     ping: '140',
     numPlayers: 5,
@@ -311,7 +311,7 @@ function ServerList() {
             <div className='srvList'>
                 {rows.map((element, idx) => {
                     return (
-                        <div className='srvItem' key={element.ip} onClick={() => handleSelect(idx)}>
+                        <div className={`srvItem ${drawerOpen && selected?.ip === element.ip ? 'srvItem-selected' : ''}`} key={element.ip} onClick={() => handleSelect(idx)}>
                             <span className='srvItemLocked'>{element.password ? <LockIcon /> : ''}</span>
                             <span className='srvItemName'>
                                 {element.serverName.length > 55 

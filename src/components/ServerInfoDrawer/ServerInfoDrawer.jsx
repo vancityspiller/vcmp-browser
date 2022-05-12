@@ -7,6 +7,7 @@ import { clipboard } from '@tauri-apps/api';
 
 import ArrowRightIcon from '@rsuite/icons/legacy/Play';
 import TagIcon from '@rsuite/icons/legacy/Star';
+import LockIcon from '@rsuite/icons/legacy/Lock';
 import SortDownIcon from '@rsuite/icons/SortDown';
 import SortUpIcon from '@rsuite/icons/SortUp';
 
@@ -83,7 +84,7 @@ function ServerInfoDrawer({open, handleClose, data}) {
             </div>
 
             <ButtonToolbar className='srvDrawerActions'>
-                <IconButton appearance='primary' icon={<ArrowRightIcon className='fixLegacy' />} size='sm'>
+                <IconButton appearance='primary' icon={data.password ? <LockIcon className='fixLegacy' /> : <ArrowRightIcon className='fixLegacy' />} size='sm'>
                     Launch
                 </IconButton>
                 <IconButton appearance='default' icon={<TagIcon className='fixLegacy' />} size='sm'>
