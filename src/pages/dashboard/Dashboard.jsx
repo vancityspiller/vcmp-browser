@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Container, Content, Header, Loader, Nav, Tag } from 'rsuite';
 import ServerList from '../../components/ServerList/ServerList';
 
@@ -17,6 +17,7 @@ function Dashboard() {
 
     const [tab, setTab] = useState();
     const [loading, setLoading] = useState(true);
+    const [reload, setReload] = useState(0);
 
     // read file values
     const [favs, setFavs] = useState([]);
@@ -27,6 +28,12 @@ function Dashboard() {
     const [favList, setFavList] = useState([]);
     const [featuredList, setFeaturedList] = useState([]);
     const [recentList, setRecentList] = useState([]);
+
+    // --------------------------------------------------------- //
+
+    const forceReload = useCallback(() => {
+        setReload(p => p + 1);
+    }, [reload]);
 
     // --------------------------------------------------------- //
 
@@ -46,17 +53,39 @@ function Dashboard() {
 
         const effect = async () => {
             setLoading(true);
+            setServerList([]);
+            setFavList([]);
+            setFeaturedList([]);
+            setRecentList([]);
+
+            // --------------------------------------------------------- //
 
             const settingsFile = await loadFile('settings.json');
             const {favorites, history} = await loadFile('servers.json');
 
-            setFavs(favorites); setRecents(history); setTab(settingsFile.master.defaultTab);
+            setFavs(favorites); setRecents(history); 
 
+            if(reload === 0) {
+                // only change tabs if first render
+                setTab(settingsFile.master.defaultTab);
+            }
+            
             const masterServers = await http.fetch(`${settingsFile.master.url}servers`);
             const featServers = await http.fetch(`${settingsFile.master.url}official`);
             setLoading(false);
 
             // --------------------------------------------------------- //
+
+            // featured servers should be much lesser than masterlist, process them first
+            featServers.data.servers.forEach(async (v) => {
+                performUDP(v.ip, v.port)
+                    .then(r => {
+                        setFeaturedList(p => {
+                            return [...p, r];
+                        });
+                    })
+                    .catch();
+            });
 
             masterServers.data.servers.forEach(async (v) => {
                 performUDP(v.ip, v.port)
@@ -67,16 +96,9 @@ function Dashboard() {
                     })
                     .catch();
             });
-            
-            featServers.data.servers.forEach(async (v) => {
-                performUDP(v.ip, v.port)
-                    .then(r => {
-                        setFeaturedList(p => {
-                            return [...p, r];
-                        });
-                    })
-                    .catch();
-            });
+
+            // already taken care after first render
+            if(reload !== 0) return;
 
             favs.forEach(async (v) => {
                 performUDP(v.ip, v.port)
@@ -100,7 +122,7 @@ function Dashboard() {
         }
 
         effect();
-    }, []);
+    }, [reload]);
 
     // --------------------------------------------------------- //
 
@@ -235,8 +257,8 @@ function Dashboard() {
                     <Loader className='dashLoader' vertical content='Fetching masterlist...' size='md'/>
                 :
                     <Content>
-                        { tab ==='Masterlist' && <ServerList list={serverList} favoriteList={favs} changeFavs={setFavs} includeWaiting={false} /> }
-                        { tab ==='Featured' && <ServerList list={featuredList} favoriteList={favs} changeFavs={setFavs} includeWaiting={false} /> }
+                        { tab ==='Masterlist' && <ServerList list={serverList} favoriteList={favs} changeFavs={setFavs} includeWaiting={false} reloadCb={forceReload}/> }
+                        { tab ==='Featured' && <ServerList list={featuredList} favoriteList={favs} changeFavs={setFavs} includeWaiting={false} reloadCb={forceReload}/> }
                         { tab ==='Recent' && <ServerList list={recentList} favoriteList={favs} changeFavs={setFavs} includeWaiting /> }
                         { tab ==='Favorites' && <ServerList list={favList} favoriteList={favs} changeFavs={setFavs} includeWaiting /> }
                     </Content>

@@ -17,7 +17,7 @@ import './serverlist.less';
 
 // --------------------------------------------------------- //
 
-function ServerList({list, includeWaiting, favoriteList, changeFavs}) {
+function ServerList({list, includeWaiting, favoriteList, changeFavs, reloadCb}) {
 
     const [selected, setSelected] = useState(null);
 
@@ -309,9 +309,11 @@ function ServerList({list, includeWaiting, favoriteList, changeFavs}) {
             
             <div className='srvBarWrapper'>
                 <InputGroup>
-                    <InputGroup.Button appearance='primary'>
-                        <ReloadIcon />
-                    </InputGroup.Button>
+                    { reloadCb !== undefined && 
+                        <InputGroup.Button appearance='primary' onClick={reloadCb}>
+                            <ReloadIcon />
+                        </InputGroup.Button>
+                    }
 
                     <Input 
                         placeholder='Search' 
