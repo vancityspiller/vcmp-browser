@@ -54,9 +54,7 @@ function Dashboard() {
         const effect = async () => {
             setLoading(true);
             setServerList([]);
-            setFavList([]);
             setFeaturedList([]);
-            setRecentList([]);
 
             // --------------------------------------------------------- //
 
@@ -79,7 +77,7 @@ function Dashboard() {
             // featured servers should be much lesser than masterlist, process them first
             featServers.data.servers.forEach(async (v) => {
                 performUDP(v.ip, v.port)
-                    .then(r => {
+                    .then(async r => {
                         setFeaturedList(p => {
                             return [...p, r];
                         });
@@ -89,7 +87,7 @@ function Dashboard() {
 
             masterServers.data.servers.forEach(async (v) => {
                 performUDP(v.ip, v.port)
-                    .then(r => {
+                    .then(async r => {
                         setServerList(p => {
                             return [...p, r];
                         });
@@ -100,9 +98,12 @@ function Dashboard() {
             // already taken care after first render
             if(reload !== 0) return;
 
-            favs.forEach(async (v) => {
+            setFavList([]);
+            setRecentList([]);
+
+            favorites.forEach(async (v) => {
                 performUDP(v.ip, v.port)
-                    .then(r => {
+                    .then(async r => {
                         setFavList(p => {
                             return [...p, r];
                         });
@@ -110,9 +111,9 @@ function Dashboard() {
                     .catch();
             });
 
-            recents.forEach(async (v) => {
+            history.forEach(async (v) => {
                 performUDP(v.ip, v.port)
-                    .then(r => {
+                    .then(async r => {
                         setRecentList(p => {
                             return [...p, r];
                         });
@@ -257,10 +258,10 @@ function Dashboard() {
                     <Loader className='dashLoader' vertical content='Fetching masterlist...' size='md'/>
                 :
                     <Content>
-                        { tab ==='Masterlist' && <ServerList list={serverList} updateList={setServerList} favoriteList={favs} changeFavs={setFavs} includeWaiting={false} reloadCb={forceReload}/> }
-                        { tab ==='Featured' && <ServerList list={featuredList} updateList={setFeaturedList} favoriteList={favs} changeFavs={setFavs} includeWaiting={false} reloadCb={forceReload}/> }
-                        { tab ==='Recent' && <ServerList list={recentList} updateList={setRecentList} favoriteList={favs} changeFavs={setFavs} includeWaiting /> }
-                        { tab ==='Favorites' && <ServerList list={favList} updateList={setFavList} favoriteList={favs} changeFavs={setFavs} includeWaiting /> }
+                        { tab === 'Masterlist' && <ServerList list={serverList} updateList={setServerList} favoriteList={favs} changeFavs={setFavs} includeWaiting={false} reloadCb={forceReload}/> }
+                        { tab === 'Featured' && <ServerList list={featuredList} updateList={setFeaturedList} favoriteList={favs} changeFavs={setFavs} includeWaiting={false} reloadCb={forceReload}/> }
+                        { tab === 'Recent' && <ServerList list={recentList} updateList={setRecentList} favoriteList={favs} changeFavs={setFavs} includeWaiting replaceGm /> }
+                        { tab === 'Favorites' && <ServerList list={favList} updateList={setFavList} favoriteList={favs} changeFavs={setFavs} includeWaiting showAdd /> }
                     </Content>
                 }
             </Container>

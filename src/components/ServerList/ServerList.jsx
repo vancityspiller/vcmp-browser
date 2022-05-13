@@ -15,10 +15,11 @@ import ExcIcon from '@rsuite/icons/legacy/ExclamationTriangle';
 
 import './serverlist.less';
 import { performUDP } from '../../utils/server.util';
+import AddFav from './AddFav';
 
 // --------------------------------------------------------- //
 
-function ServerList({list, updateList, includeWaiting, favoriteList, changeFavs, reloadCb}) {
+function ServerList({list, updateList, includeWaiting, favoriteList, changeFavs, reloadCb, replaceGm, showAdd}) {
 
     const [selected, setSelected] = useState(null);
 
@@ -295,7 +296,8 @@ function ServerList({list, updateList, includeWaiting, favoriteList, changeFavs,
                     Players { SortedIcon('numPlayers') }
                 </span>
 
-                <span className='srvHeaderMode'>Gamemode</span>
+                <span className='srvHeaderMode'>{replaceGm ? 'Played' : 'Gamemode'}</span>
+                {showAdd && <AddFav setFavorites={changeFavs} />}
             </div>
 
             {
