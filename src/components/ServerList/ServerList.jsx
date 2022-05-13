@@ -25,9 +25,11 @@ function ServerList({list, updateList, includeWaiting, favoriteList, changeFavs,
 
     const [search, setSearch] = useState('');
     const [sort, setSort] = useState({
-        column: '',
-        mode: ''
+        column: showAdd ? 'addedAt' : '',
+        mode: showAdd ? 'des' : ''
     });
+
+    console.log(favoriteList);
 
     // --------------------------------------------------------- //
 
@@ -51,8 +53,8 @@ function ServerList({list, updateList, includeWaiting, favoriteList, changeFavs,
             } else {
                 // otherwise, unset it
                 setSort({
-                    column: '',
-                    mode: ''
+                    column: showAdd ? 'addedAt' : '',
+                    mode: showAdd ? 'des' : ''
                 });
             }
         }

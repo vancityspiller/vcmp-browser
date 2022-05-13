@@ -56,7 +56,7 @@ function AddFav({setFavorites}) {
                 if(p.findIndex(v => {
                     return (v.ip === s_ip && v.port === parseInt(s_port));
                 }) === -1 ) {
-                    return [...p, {ip: s_ip, port: parseInt(s_port)}];
+                    return [...p, {ip: s_ip, port: parseInt(s_port), addedAt: Date.now()}];
                 } else {
 
                     failed = true;
@@ -101,7 +101,7 @@ function AddFav({setFavorites}) {
                         if(p.findIndex(v => {
                             return (v.ip === s_ip && v.port === s_port);
                         }) === -1 ) {
-                            return [...p, {ip: s_ip, port: s_port}];
+                            return [...p, {ip: s_ip, port: s_port, addedAt: Date.now()}];
                         } else {
 
                             failed = true;

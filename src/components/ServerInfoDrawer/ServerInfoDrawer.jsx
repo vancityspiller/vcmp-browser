@@ -61,7 +61,7 @@ function ServerInfoDrawer({open, handleClose, data, setFavs}) {
         } else {
 
             const [ip, port] = data.ip.split(':');
-            const newFav = {ip: ip, port: parseInt(port)};
+            const newFav = {ip: ip, port: parseInt(port), addedAt: Date.now()};
 
             setFavs(p => {
                 return [...p, newFav];
