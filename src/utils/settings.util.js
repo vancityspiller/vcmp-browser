@@ -12,3 +12,20 @@ export async function loadFile(fileName) {
             .catch(() => reject());
     });
 }
+
+// ------------------------------------------------------- //
+
+export async function saveFile(fileName, contents) {
+
+    return new Promise((resolve, reject) => {
+        path.resourceDir()
+            .then(resDirPath => {
+                fs.writeFile({path: `${resDirPath}data\\${fileName}`, contents: JSON.stringify(contents, null, 2)})
+                .then(() => resolve())
+                .catch(() => reject());
+            })
+            .catch(() => reject());
+    });
+}
+
+// ------------------------------------------------------- //

@@ -4,7 +4,7 @@ import ServerList from '../../components/ServerList/ServerList';
 
 import { http } from "@tauri-apps/api";
 
-import { loadFile } from '../../utils/settings.util';
+import { loadFile, saveFile } from '../../utils/settings.util';
 import { performUDP } from '../../utils/server.util';
 
 // ========================================================= //
@@ -99,53 +99,72 @@ function Dashboard() {
             });
         }
 
-        effect();        
+        effect();
     }, []);
 
     // --------------------------------------------------------- //
 
     useEffect(() => {
         
-        // carefully check what to add or remove
-        if(favList.length > favs.length) {
-            setFavList(p => {
-                return p.filter(v => {
-                    const [ip, port] = v.ip.split(':');
-                    return favs.findIndex(v2 => {
-                        return (v2.ip === ip) && (v2.port === parseInt(port));
-                    }) !== -1;
-                })
-            })
+        const effect = async() => {
 
-        } else if(favList.length < favs.length) {
-
-            const v = favs.at(-1);
-            performUDP(v.ip, v.port)
-                .then(r => {
-                    setFavList(p => {
-                        return [...p, r];
-                    });
+            // carefully check what to add or remove
+            if(favList.length > favs.length) {
+                setFavList(p => {
+                    return p.filter(v => {
+                        const [ip, port] = v.ip.split(':');
+                        return favs.findIndex(v2 => {
+                            return (v2.ip === ip) && (v2.port === parseInt(port));
+                        }) !== -1;
+                    })
                 })
-                .catch();
+
+            } else if(favList.length < favs.length) {
+
+                const v = favs.at(-1);
+                performUDP(v.ip, v.port)
+                    .then(r => {
+                        setFavList(p => {
+                            return [...p, r];
+                        });
+                    })
+                    .catch();
+            } else {
+                return;
+            }
+
+            // save our changes
+            const servers = await loadFile('servers.json');
+            saveFile('servers.json', {...servers, favorites: favs});
         }
+
+        effect();
 
     }, [favs]);
 
     // --------------------------------------------------------- //
 
     useEffect(() => {
-
+        
         if(recents.length === 0) return;
+        const effect = async () => {
 
-        // its more than likely that there is gonna be more recents if state is changed
-        const v = recents.at(-1);
-        performUDP(v.ip, v.port)
-            .then(r => {
-                setRecentList(p => {
-                    return [...p, r];
-                });
-            })
-            .catch();
+            // its more than likely that there is gonna be more recents if state is changed
+            const v = recents.at(-1);
+            performUDP(v.ip, v.port)
+                .then(r => {
+                    setRecentList(p => {
+                        return [...p, r];
+                    });
+                })
+                .catch();
+
+            // save our changes
+            const servers = await loadFile('servers.json');
+            saveFile('servers.json', {...servers, history: recents});
+        }
+
+        effect();
 
     }, [recents]);
 

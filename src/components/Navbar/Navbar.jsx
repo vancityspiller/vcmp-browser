@@ -17,7 +17,6 @@ import AboutIcon from './icons/circle-info-solid.svg';
 
 import CloseIcon from './icons/circle-xmark-solid.svg';
 import Logo from './icons/logo.png';
-import { globalShortcut } from '@tauri-apps/api';
 
 // --------------------------------------------------------- //
 

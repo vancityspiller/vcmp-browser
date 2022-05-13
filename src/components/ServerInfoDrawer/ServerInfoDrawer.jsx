@@ -24,12 +24,12 @@ function ServerInfoDrawer({open, handleClose, data, setFavs}) {
         
         if(mode === 'ip') {
             clipboard.writeText(data.ip)
-                .catch(e => console.log('ERR: clipboard.writeText failed!'));
+                .catch(() => console.log('ERR: clipboard.writeText failed!'));
         } 
 
         else if(mode === 'info') {
             clipboard.writeText(`Server Name: ${data.serverName}\nIP: ${data.ip}\nGamemode: ${data.gameMode}\nVersion: ${data.version}`)
-                .catch(e => console.log('ERR: clipboard.writeText failed!'));
+                .catch(() => console.log('ERR: clipboard.writeText failed!'));
         }
 
     }, [data]);
@@ -67,7 +67,7 @@ function ServerInfoDrawer({open, handleClose, data, setFavs}) {
                 return [...p, newFav];
             });
         }
-        
+
         data.isFavorite = !data.isFavorite;
     }
 

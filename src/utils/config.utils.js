@@ -1,4 +1,3 @@
-import { useReducer } from 'react';
 import { fs, path } from "@tauri-apps/api";
 
 // ======================================================= //
