@@ -2,7 +2,6 @@ import React, { useState, useCallback, useMemo, useEffect, useRef } from 'react'
 import { Input, InputGroup } from 'rsuite';
 
 import ServerInfoDrawer from '../ServerInfoDrawer/ServerInfoDrawer';
-import { useServers } from '../../utils/config.utils';
 
 // ========================================================= //
 
@@ -17,7 +16,7 @@ import './serverlist.less';
 
 // --------------------------------------------------------- //
 
-function ServerList({list, includeWaiting}) {
+function ServerList({list, includeWaiting, favoriteList, changeFavs}) {
 
     const [selected, setSelected] = useState(null);
 
@@ -26,9 +25,6 @@ function ServerList({list, includeWaiting}) {
         column: 'ping',
         mode: 'asc'
     });
-
-    const [servers] = useServers();
-
 
     // --------------------------------------------------------- //
 
@@ -108,7 +104,7 @@ function ServerList({list, includeWaiting}) {
         // add favorites key; so it can be used later as well
         borrowed = borrowed.map((v) => {
 
-            if(servers.favorites.findIndex(fav => {
+            if(favoriteList.findIndex(fav => {
                 return (fav.ip + ':' + fav.port) === v.ip;
             }) === -1) {
                 return v;
@@ -179,7 +175,7 @@ function ServerList({list, includeWaiting}) {
         }
 
         return borrowed;
-    }, [list, search, sort, servers]);
+    }, [list, search, sort, favoriteList]);
 
     // --------------------------------------------------------- //
     // for drawer
@@ -194,7 +190,7 @@ function ServerList({list, includeWaiting}) {
 
     const handleSelect = useCallback((idx) => {
 
-        setSelected(rows[idx]);
+        setSelected({...rows[idx]});
         setDrawerOpen(true);
     }, [rows]);
 
@@ -320,7 +316,7 @@ function ServerList({list, includeWaiting}) {
                 </InputGroup>
             </div>
 
-            <ServerInfoDrawer open={drawerOpen} handleClose={handleDrawerClose} data={selected}/>
+            <ServerInfoDrawer open={drawerOpen} handleClose={handleDrawerClose} data={selected} setFavs={changeFavs}/>
         </React.Fragment>
     );
 }

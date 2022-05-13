@@ -13,13 +13,10 @@ import SortDownIcon from '@rsuite/icons/SortDown';
 import SortUpIcon from '@rsuite/icons/SortUp';
 
 import './serverinfodrawer.less';
-import { useServers } from '../../utils/config.utils';
 
 // ========================================================= //
 
-function ServerInfoDrawer({open, handleClose, data}) {
-
-    const [, setServers] = useServers();
+function ServerInfoDrawer({open, handleClose, data, setFavs}) {
 
     // --------------------------------------------------------- //
 
@@ -54,15 +51,23 @@ function ServerInfoDrawer({open, handleClose, data}) {
 
     const handleFavorite = () => {
         if(data.isFavorite) {
-            setServers({type: 'REMOVE', key: 'favorites', value: (v) => {
-                return (v.ip + ':' + v.port) !== data.ip;
-            }});
+            
+            setFavs(p => {
+                return p.filter(v => {
+                    return data.ip !== (v.ip + ':' + v.port);
+                })
+            })
 
         } else {
-            const [ip, port] = data.ip.split(':');
-            setServers({type: 'ADD', key: 'favorites', value: {ip: ip, port: port}});
-        }
 
+            const [ip, port] = data.ip.split(':');
+            const newFav = {ip: ip, port: parseInt(port)};
+
+            setFavs(p => {
+                return [...p, newFav];
+            });
+        }
+        
         data.isFavorite = !data.isFavorite;
     }
 

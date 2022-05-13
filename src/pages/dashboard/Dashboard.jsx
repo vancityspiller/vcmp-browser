@@ -4,8 +4,7 @@ import ServerList from '../../components/ServerList/ServerList';
 
 import { http } from "@tauri-apps/api";
 
-import { useSettings } from '../../utils/settings.context';
-import { useServers } from '../../utils/config.utils';
+import { loadFile } from '../../utils/settings.util';
 import { performUDP } from '../../utils/server.util';
 
 // ========================================================= //
@@ -16,11 +15,14 @@ import './dashboard.less';
 
 function Dashboard() {
 
-    const {settings} = useSettings();
-    const [tab, setTab] = useState(settings.master.defaultTab);
+    const [tab, setTab] = useState();
+    const [loading, setLoading] = useState(true);
 
-    const [servers] = useServers();
+    // read file values
+    const [favs, setFavs] = useState([]);
+    const [recents, setRecents] = useState([]);
 
+    // server lists
     const [serverList, setServerList] = useState([]);
     const [favList, setFavList] = useState([]);
     const [featuredList, setFeaturedList] = useState([]);
@@ -41,39 +43,42 @@ function Dashboard() {
     // --------------------------------------------------------- //
 
     useEffect(() => {
-        http.fetch(`${settings.master.url}servers`)
-            .then(response => {
-                response.data.servers.forEach(async (v) => {
-                    performUDP(v.ip, v.port)
-                        .then(r => {
-                            setServerList(p => {
-                                return [...p, r];
-                            });
-                        })
-                        .catch();
-                });
-            });
-        
-        http.fetch(`${settings.master.url}official`)
-            .then(response => {
-                response.data.servers.forEach(async (v) => {
-                    performUDP(v.ip, v.port)
-                        .then(r => {
-                            setFeaturedList(p => {
-                                return [...p, r];
-                            });
-                        })
-                        .catch();
-                });
-            });
-        
-    }, []);
 
-    useEffect(() => {
+        const effect = async () => {
+            setLoading(true);
 
-        // don't rerender if on favorites page already, that's to be handled manually
-        if(tab !== 'Favorites') {
-            servers.favorites.forEach(async (v) => {
+            const settingsFile = await loadFile('settings.json');
+            const {favorites, history} = await loadFile('servers.json');
+
+            setFavs(favorites); setRecents(history); setTab(settingsFile.master.defaultTab);
+
+            const masterServers = await http.fetch(`${settingsFile.master.url}servers`);
+            const featServers = await http.fetch(`${settingsFile.master.url}official`);
+            setLoading(false);
+
+            // --------------------------------------------------------- //
+
+            masterServers.data.servers.forEach(async (v) => {
+                performUDP(v.ip, v.port)
+                    .then(r => {
+                        setServerList(p => {
+                            return [...p, r];
+                        });
+                    })
+                    .catch();
+            });
+            
+            featServers.data.servers.forEach(async (v) => {
+                performUDP(v.ip, v.port)
+                    .then(r => {
+                        setFeaturedList(p => {
+                            return [...p, r];
+                        });
+                    })
+                    .catch();
+            });
+
+            favs.forEach(async (v) => {
                 performUDP(v.ip, v.port)
                     .then(r => {
                         setFavList(p => {
@@ -82,18 +87,67 @@ function Dashboard() {
                     })
                     .catch();
             });
+
+            recents.forEach(async (v) => {
+                performUDP(v.ip, v.port)
+                    .then(r => {
+                        setRecentList(p => {
+                            return [...p, r];
+                        });
+                    })
+                    .catch();
+            });
         }
 
-        servers.history.forEach(async (v) => {
+        effect();        
+    }, []);
+
+    // --------------------------------------------------------- //
+
+    useEffect(() => {
+        
+        // carefully check what to add or remove
+        if(favList.length > favs.length) {
+            setFavList(p => {
+                return p.filter(v => {
+                    const [ip, port] = v.ip.split(':');
+                    return favs.findIndex(v2 => {
+                        return (v2.ip === ip) && (v2.port === parseInt(port));
+                    }) !== -1;
+                })
+            })
+
+        } else if(favList.length < favs.length) {
+
+            const v = favs.at(-1);
             performUDP(v.ip, v.port)
                 .then(r => {
-                    setRecentList(p => {
+                    setFavList(p => {
                         return [...p, r];
                     });
                 })
                 .catch();
-        });
-    }, [servers]);
+        }
+
+    }, [favs]);
+
+    // --------------------------------------------------------- //
+
+    useEffect(() => {
+
+        if(recents.length === 0) return;
+
+        // its more than likely that there is gonna be more recents if state is changed
+        const v = recents.at(-1);
+        performUDP(v.ip, v.port)
+            .then(r => {
+                setRecentList(p => {
+                    return [...p, r];
+                });
+            })
+            .catch();
+
+    }, [recents]);
 
     // --------------------------------------------------------- //
 
@@ -154,12 +208,14 @@ function Dashboard() {
 
                 </Header>
 
-                <Content>
-                    { tab ==='Masterlist' && <ServerList list={serverList} includeWaiting={false} /> }
-                    { tab ==='Featured' && <ServerList list={featuredList} includeWaiting /> }
-                    { tab ==='Recent' && <ServerList list={recentList} includeWaiting /> }
-                    { tab ==='Favorites' && <ServerList list={favList} includeWaiting /> }
-                </Content>
+                {!loading &&
+                    <Content>
+                        { tab ==='Masterlist' && <ServerList list={serverList} favoriteList={favs} changeFavs={setFavs} includeWaiting={false} /> }
+                        { tab ==='Featured' && <ServerList list={featuredList} favoriteList={favs} changeFavs={setFavs} includeWaiting={false} /> }
+                        { tab ==='Recent' && <ServerList list={recentList} favoriteList={favs} changeFavs={setFavs} includeWaiting /> }
+                        { tab ==='Favorites' && <ServerList list={favList} favoriteList={favs} changeFavs={setFavs} includeWaiting /> }
+                    </Content>
+                }
             </Container>
         </Content>
     );

@@ -3,8 +3,7 @@ import { Container } from 'rsuite';
 import DraggableHeader from './components/DraggableHeader';
 import SideNavbar from './components/Navbar/Navbar';
 import Dashboard from './pages/dashboard/Dashboard';
-import { loadConfig, useServers } from './utils/config.utils';
-import { useSettings } from './utils/settings.context';
+import { checkConfig } from './utils/config.utils';
 
 // ========================================================= //
 
@@ -13,11 +12,8 @@ function App() {
     const [navAddress, setNavAddress] = useState('Dashboard');
     const [configLoaded, setConfigLoaded] = useState(false);
 
-    const {setSettings} = useSettings();
-    const [, serversDispatch] = useServers();
-
     useEffect(() => {
-        if(!configLoaded) loadConfig(setConfigLoaded, setSettings, serversDispatch);
+        if(!configLoaded) checkConfig(setConfigLoaded);
     }, []);
 
     // ========================================================= //
