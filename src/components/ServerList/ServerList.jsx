@@ -14,17 +14,18 @@ import FavoriteIcon from '@rsuite/icons/legacy/Star';
 import ExcIcon from '@rsuite/icons/legacy/ExclamationTriangle';
 
 import './serverlist.less';
+import { performUDP } from '../../utils/server.util';
 
 // --------------------------------------------------------- //
 
-function ServerList({list, includeWaiting, favoriteList, changeFavs, reloadCb}) {
+function ServerList({list, updateList, includeWaiting, favoriteList, changeFavs, reloadCb}) {
 
     const [selected, setSelected] = useState(null);
 
     const [search, setSearch] = useState('');
     const [sort, setSort] = useState({
-        column: 'ping',
-        mode: 'asc'
+        column: '',
+        mode: ''
     });
 
     // --------------------------------------------------------- //
@@ -191,8 +192,27 @@ function ServerList({list, includeWaiting, favoriteList, changeFavs, reloadCb}) 
 
     const handleSelect = useCallback((idx) => {
 
-        setSelected({...rows[idx]});
-        setDrawerOpen(true);
+        const cb = async () => {
+
+            setSelected({...rows[idx]});
+            setDrawerOpen(true);
+
+            const rawIndex = list.findIndex(v => {
+                return rows[idx].ip === v.ip;
+            });
+    
+            const [ip, port] = rows[idx].ip.split(':');
+            const newData = await performUDP(ip, parseInt(port));
+    
+            updateList(p => {
+                const n = [...p];
+                n[rawIndex] = newData;
+                return n;
+            });
+    
+        };
+        cb();
+
     }, [rows]);
 
     // --------------------------------------------------------- //

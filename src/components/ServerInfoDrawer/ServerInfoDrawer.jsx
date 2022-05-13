@@ -92,7 +92,7 @@ function ServerInfoDrawer({open, handleClose, data, setFavs}) {
                     <Panel header='Server Information'>
                         <div className='srvDrawerInfoB'>IP: <span>{data.ip}</span></div>
                         <div className='srvDrawerInfoB'>Gamemode: <span>{data.gameMode.length > 45 ? (data.gameMode.slice(0, 45) + '...') : data.gameMode}</span></div>
-                        <div className='srvDrawerInfoB'>Players: <span>{data.numPlayers}/{data.maxPlayers}</span></div>
+                        <div className='srvDrawerInfoB'>Ping: <span>{data.ping}</span></div>
 
                         <ButtonToolbar className='srvDrawerInfoButtons'>
                             <Whisper placement="top" trigger="click" speaker={<Tooltip>Copied!</Tooltip>}>
@@ -131,7 +131,7 @@ function ServerInfoDrawer({open, handleClose, data, setFavs}) {
 
                 <div className='srvDrawerPlayers'>
                     <span className='srvDrawerPlayersTitle'>
-                        Players
+                        Players <span>{data.numPlayers}/{data.maxPlayers}</span>
                     </span>
 
                     {data.players.length > 0 &&

@@ -257,10 +257,10 @@ function Dashboard() {
                     <Loader className='dashLoader' vertical content='Fetching masterlist...' size='md'/>
                 :
                     <Content>
-                        { tab ==='Masterlist' && <ServerList list={serverList} favoriteList={favs} changeFavs={setFavs} includeWaiting={false} reloadCb={forceReload}/> }
-                        { tab ==='Featured' && <ServerList list={featuredList} favoriteList={favs} changeFavs={setFavs} includeWaiting={false} reloadCb={forceReload}/> }
-                        { tab ==='Recent' && <ServerList list={recentList} favoriteList={favs} changeFavs={setFavs} includeWaiting /> }
-                        { tab ==='Favorites' && <ServerList list={favList} favoriteList={favs} changeFavs={setFavs} includeWaiting /> }
+                        { tab ==='Masterlist' && <ServerList list={serverList} updateList={setServerList} favoriteList={favs} changeFavs={setFavs} includeWaiting={false} reloadCb={forceReload}/> }
+                        { tab ==='Featured' && <ServerList list={featuredList} updateList={setFeaturedList} favoriteList={favs} changeFavs={setFavs} includeWaiting={false} reloadCb={forceReload}/> }
+                        { tab ==='Recent' && <ServerList list={recentList} updateList={setRecentList} favoriteList={favs} changeFavs={setFavs} includeWaiting /> }
+                        { tab ==='Favorites' && <ServerList list={favList} updateList={setFavList} favoriteList={favs} changeFavs={setFavs} includeWaiting /> }
                     </Content>
                 }
             </Container>
