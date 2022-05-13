@@ -11,6 +11,7 @@ import SortDownIcon from '@rsuite/icons/SortDown';
 import SortUpIcon from '@rsuite/icons/SortUp';
 import LockIcon from '@rsuite/icons/legacy/Lock';
 import FavoriteIcon from '@rsuite/icons/legacy/Star';
+import ExcIcon from '@rsuite/icons/legacy/ExclamationTriangle';
 
 import './serverlist.less';
 
@@ -276,26 +277,35 @@ function ServerList({list, includeWaiting, favoriteList, changeFavs}) {
 
                 <span className='srvHeaderMode'>Gamemode</span>
             </div>
-            
-            <div className='srvList' ref={srvList}>
-                {rows.map((element, idx) => {
-                    return (
-                        <div className={`srvItem ${drawerOpen && selected?.ip === element.ip ? 'srvItem-selected' : ''}`} key={element.ip} onClick={() => handleSelect(idx)}>
-                            <span className='srvItemLocked'>{element.password ? <LockIcon /> : ''}</span>
-                            <span className='srvItemName'>
-                                {element.serverName.length > 55 
-                                ? (element.serverName.slice(0, 55) + '...') 
-                                : element.serverName}
-                            </span>
-                            <span className='srvItemFav'>{element.isFavorite ? <FavoriteIcon /> : ''}</span>
-                            <span className='srvItemPing'>{element.ping}</span>
-                            <span className='srvItemPlayers'>{element.numPlayers}<span>/{element.maxPlayers}</span></span>
-                            <span className='srvItemMode'>{element.gameMode.length > 20 ? (element.gameMode.slice(0, 20) + '...') : element.gameMode}</span>
-                        </div>
-                    )
-                })}
-                
-            </div>
+
+            {
+                rows.length === 0 
+                ? 
+                    <div className='srvEmptyFallback'>
+                        <ExcIcon />
+                        <h5>No servers found</h5>
+                        <span>{ search.length > 0 ? 'refine your search' : 'check a different tab' }</span>
+                    </div>
+                :
+                <div className='srvList' ref={srvList}>
+                    {rows.map((element, idx) => {
+                        return (
+                            <div className={`srvItem ${drawerOpen && selected?.ip === element.ip ? 'srvItem-selected' : ''}`} key={element.ip} onClick={() => handleSelect(idx)}>
+                                <span className='srvItemLocked'>{element.password ? <LockIcon /> : ''}</span>
+                                <span className='srvItemName'>
+                                    {element.serverName.length > 55 
+                                    ? (element.serverName.slice(0, 55) + '...') 
+                                    : element.serverName}
+                                </span>
+                                <span className='srvItemFav'>{element.isFavorite ? <FavoriteIcon /> : ''}</span>
+                                <span className='srvItemPing'>{element.ping}</span>
+                                <span className='srvItemPlayers'>{element.numPlayers}<span>/{element.maxPlayers}</span></span>
+                                <span className='srvItemMode'>{element.gameMode.length > 20 ? (element.gameMode.slice(0, 20) + '...') : element.gameMode}</span>
+                            </div>
+                        )
+                    })}
+                </div>
+            }
             
             <div className='srvBarWrapper'>
                 <InputGroup>

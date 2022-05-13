@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Container, Content, Header, Nav, Tag } from 'rsuite';
+import { Container, Content, Header, Loader, Nav, Tag } from 'rsuite';
 import ServerList from '../../components/ServerList/ServerList';
 
 import { http } from "@tauri-apps/api";
@@ -230,7 +230,10 @@ function Dashboard() {
 
                 </Header>
 
-                {!loading &&
+                {loading 
+                ? 
+                    <Loader className='dashLoader' vertical content='Fetching masterlist...' size='md'/>
+                :
                     <Content>
                         { tab ==='Masterlist' && <ServerList list={serverList} favoriteList={favs} changeFavs={setFavs} includeWaiting={false} /> }
                         { tab ==='Featured' && <ServerList list={featuredList} favoriteList={favs} changeFavs={setFavs} includeWaiting={false} /> }
