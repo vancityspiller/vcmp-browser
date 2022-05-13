@@ -56,7 +56,7 @@ function ServerList({list, includeWaiting, favoriteList, changeFavs}) {
     };
 
     const handleSearch = (value) => {
-        setSearch(value.trim());
+        setSearch(value);
     }
 
     // --------------------------------------------------------- //
@@ -117,7 +117,7 @@ function ServerList({list, includeWaiting, favoriteList, changeFavs}) {
         if(search.trim() !== '') {
             borrowed = borrowed.filter(server => {
 
-                const searchTerm = search.toLowerCase();
+                const searchTerm = search.trim().toLowerCase();
 
                 // we search for server name
                 if(server.serverName.toLowerCase().indexOf(searchTerm) !== -1)

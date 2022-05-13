@@ -176,6 +176,9 @@ function Dashboard() {
         const listener = event => {
             if(!event.ctrlKey) {
 
+                // it should not work while searching
+                if(document.activeElement.nodeName === 'INPUT') return;
+
                 let next = '';
                 if(event.key === 'q') {
                     switch(tab) {
