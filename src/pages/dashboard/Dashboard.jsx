@@ -233,6 +233,8 @@ function Dashboard() {
         }
     }, [tab]);
 
+    const shouldShowFallback = (tab === 'Masterlist' || tab === 'Featured');
+
     // --------------------------------------------------------- //
     
     return (
@@ -253,7 +255,7 @@ function Dashboard() {
 
                 </Header>
 
-                {loading 
+                {loading && shouldShowFallback
                 ? 
                     <Loader className='dashLoader' vertical content='Fetching masterlist...' size='md'/>
                 :
