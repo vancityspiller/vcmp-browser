@@ -106,6 +106,7 @@ function AddFav({setFavorites}) {
 
                             failed = true;
                             setProcessingFailed(true);
+                            setProcessingIp(false);
                             setProcError('Server already exists in favorites!')
                             return p;
                         }
@@ -155,6 +156,9 @@ function AddFav({setFavorites}) {
                         onChange={handleChange}
                         value={ip}
                         disabled={processingIp}
+                        onPressEnter={() => {
+                            if(addEnabled) handleAdd();
+                        }}
                     />
                 </Modal.Body>
 

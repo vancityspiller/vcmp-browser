@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { Container, Content, Header, Loader, Nav, Tag } from 'rsuite';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { IconButton, Container, Content, Header, Loader, Nav, Tag } from 'rsuite';
 import ServerList from '../../components/ServerList/ServerList';
 
 import { http } from "@tauri-apps/api";
@@ -9,6 +9,9 @@ import { performUDP } from '../../utils/server.util';
 
 // ========================================================= //
 
+import ReloadIcon from '@rsuite/icons/legacy/Refresh';
+import ExcIcon from '@rsuite/icons/legacy/ExclamationTriangle';
+
 import './dashboard.less';
 
 // --------------------------------------------------------- //
@@ -17,6 +20,7 @@ function Dashboard() {
 
     const [tab, setTab] = useState();
     const [loading, setLoading] = useState(true);
+    const [failed, setFailed] = useState(false);
     const [reload, setReload] = useState(0);
 
     // read file values
@@ -28,6 +32,9 @@ function Dashboard() {
     const [favList, setFavList] = useState([]);
     const [featuredList, setFeaturedList] = useState([]);
     const [recentList, setRecentList] = useState([]);
+
+    // track initial render
+    const isInitialMount = useRef(true);
 
     // --------------------------------------------------------- //
 
@@ -53,6 +60,8 @@ function Dashboard() {
 
         const effect = async () => {
             setLoading(true);
+            setFailed(false);
+
             setServerList([]);
             setFeaturedList([]);
 
@@ -68,8 +77,22 @@ function Dashboard() {
                 setTab(settingsFile.master.defaultTab);
             }
             
-            const masterServers = await http.fetch(`${settingsFile.master.url}servers`);
-            const featServers = await http.fetch(`${settingsFile.master.url}official`);
+            let masterServers, featServers, failed = false;
+
+            try {
+                masterServers = await http.fetch(`${settingsFile.master.url}servers`);
+                featServers = await http.fetch(`${settingsFile.master.url}official`);    
+
+                if(!masterServers.data.hasOwnProperty('servers') || !featServers.data.hasOwnProperty('servers')) {
+                    failed = true;
+                    throw new Error();
+                }
+
+            } catch (error) {
+                failed = true;
+                setFailed(true);
+            }
+
             setLoading(false);
 
             // --------------------------------------------------------- //
@@ -82,6 +105,9 @@ function Dashboard() {
                     performUDP(v.ip, v.port)
                         .then(async r => {
                             setFavList(p => {
+                                if(p.length === 0) {
+                                    return [{...r, addedAt: v.addedAt}];
+                                }
                                 return [...p, {...r, addedAt: v.addedAt}];
                             });
                         })
@@ -89,26 +115,29 @@ function Dashboard() {
                 });
             }
 
-            // featured servers should be much lesser than masterlist, process them first
-            featServers.data.servers.forEach(async (v) => {
-                performUDP(v.ip, v.port)
-                    .then(async r => {
-                        setFeaturedList(p => {
-                            return [...p, r];
-                        });
-                    })
-                    .catch();
-            });
+            if(!failed)
+            {
+                // featured servers should be much lesser than masterlist, process them first
+                featServers.data.servers.forEach(async (v) => {
+                    performUDP(v.ip, v.port)
+                        .then(async r => {
+                            setFeaturedList(p => {
+                                return [...p, r];
+                            });
+                        })
+                        .catch();
+                });
 
-            masterServers.data.servers.forEach(async (v) => {
-                performUDP(v.ip, v.port)
-                    .then(async r => {
-                        setServerList(p => {
-                            return [...p, r];
-                        });
-                    })
-                    .catch();
-            });
+                masterServers.data.servers.forEach(async (v) => {
+                    performUDP(v.ip, v.port)
+                        .then(async r => {
+                            setServerList(p => {
+                                return [...p, r];
+                            });
+                        })
+                        .catch();
+                });
+            }
 
             // already taken care after first render
             if(reload !== 0) return;
@@ -132,40 +161,49 @@ function Dashboard() {
     // --------------------------------------------------------- //
 
     useEffect(() => {
-        
+      
         const effect = async() => {
 
+            let v, fetched;
+            if(favs.length > 0) {
+
+                // extract last element
+                v = favs.at(-1); 
+                fetched = await performUDP(v.ip, v.port);
+            }
+
             // carefully check what to add or remove
-            if(favList.length > favs.length) {
-                setFavList(p => {
+            setFavList(p => {
+
+                if(!p) return p;
+          
+                if(p.length > favs.length) {
+
                     return p.filter(v => {
                         const [ip, port] = v.ip.split(':');
                         return favs.findIndex(v2 => {
                             return (v2.ip === ip) && (v2.port === parseInt(port));
                         }) !== -1;
                     })
-                })
 
-            } else if(favList.length < favs.length) {
+                } else if(p.length < favs.length) {
+                    return [...p, {...fetched, addedAt: v.addedAt}];
 
-                const v = favs.at(-1);
-                performUDP(v.ip, v.port)
-                    .then(r => {
-                        setFavList(p => {
-                            return [...p, r];
-                        });
-                    })
-                    .catch();
-            } else {
-                return;
-            }
+                } else {
+                    return p;
+                }
+            });
 
             // save our changes
             const servers = await loadFile('servers.json');
             saveFile('servers.json', {...servers, favorites: favs});
         }
 
-        effect();
+        if(isInitialMount.current) {
+            isInitialMount.current = false;
+        } else {
+            effect();
+        }
 
     }, [favs]);
 
@@ -259,9 +297,10 @@ function Dashboard() {
 
                 </Header>
 
-                {loading && shouldShowFallback
+                {(loading || failed) && shouldShowFallback
                 ? 
-                    <Loader className='dashLoader' vertical content='Fetching masterlist...' size='md'/>
+                    failed  ? <div className='dashFetchError'><ExcIcon className='dashExc'/><h5>Failed to fetch masterlist</h5> <IconButton icon={<ReloadIcon />} onClick={forceReload}>Retry</IconButton></div> 
+                            : <Loader className='dashLoader' vertical content='Fetching masterlist...' size='md'/>
                 :
                     <Content>
                         { tab === 'Masterlist' && <ServerList list={serverList} updateList={setServerList} favoriteList={favs} changeFavs={setFavs} includeWaiting={false} reloadCb={forceReload}/> }
