@@ -1,7 +1,9 @@
 import React, { useState, useCallback, useMemo, useEffect, useRef } from 'react';
 import { Input, InputGroup } from 'rsuite';
 
+import AddFav from './AddFav';
 import ServerInfoDrawer from '../ServerInfoDrawer/ServerInfoDrawer';
+import { performUDP } from '../../utils/server.util';
 
 // ========================================================= //
 
@@ -14,8 +16,6 @@ import FavoriteIcon from '@rsuite/icons/legacy/Star';
 import ExcIcon from '@rsuite/icons/legacy/ExclamationTriangle';
 
 import './serverlist.less';
-import { performUDP } from '../../utils/server.util';
-import AddFav from './AddFav';
 
 // --------------------------------------------------------- //
 
@@ -28,8 +28,6 @@ function ServerList({list, updateList, includeWaiting, favoriteList, changeFavs,
         column: showAdd ? 'addedAt' : '',
         mode: showAdd ? 'des' : ''
     });
-
-    console.log(favoriteList);
 
     // --------------------------------------------------------- //
 

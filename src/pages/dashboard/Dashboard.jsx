@@ -74,6 +74,21 @@ function Dashboard() {
 
             // --------------------------------------------------------- //
 
+            // people want to land on favorites first, and it doesn't depend on masterlist
+            if(reload === 0) {
+                setFavList([]);
+
+                favorites.forEach(async (v) => {
+                    performUDP(v.ip, v.port)
+                        .then(async r => {
+                            setFavList(p => {
+                                return [...p, {...r, addedAt: v.addedAt}];
+                            });
+                        })
+                        .catch();
+                });
+            }
+
             // featured servers should be much lesser than masterlist, process them first
             featServers.data.servers.forEach(async (v) => {
                 performUDP(v.ip, v.port)
@@ -98,18 +113,7 @@ function Dashboard() {
             // already taken care after first render
             if(reload !== 0) return;
 
-            setFavList([]);
             setRecentList([]);
-
-            favorites.forEach(async (v) => {
-                performUDP(v.ip, v.port)
-                    .then(async r => {
-                        setFavList(p => {
-                            return [...p, r];
-                        });
-                    })
-                    .catch();
-            });
 
             history.forEach(async (v) => {
                 performUDP(v.ip, v.port)
