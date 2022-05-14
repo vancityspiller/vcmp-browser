@@ -19,14 +19,14 @@ import './serverlist.less';
 
 // --------------------------------------------------------- //
 
-function ServerList({list, updateList, includeWaiting, favoriteList, changeFavs, reloadCb, replaceGm, showAdd}) {
+function ServerList({list, updateList, favoriteList, changeFavs, reloadCb, recentsTab, favoritesTab}) {
 
     const [selected, setSelected] = useState(null);
 
     const [search, setSearch] = useState('');
     const [sort, setSort] = useState({
-        column: showAdd ? 'addedAt' : '',
-        mode: showAdd ? 'des' : ''
+        column: favoritesTab ? 'addedAt' : '',
+        mode: favoritesTab ? 'des' : ''
     });
 
     // --------------------------------------------------------- //
@@ -51,8 +51,8 @@ function ServerList({list, updateList, includeWaiting, favoriteList, changeFavs,
             } else {
                 // otherwise, unset it
                 setSort({
-                    column: showAdd ? 'addedAt' : '',
-                    mode: showAdd ? 'des' : ''
+                    column: favoritesTab ? 'addedAt' : '',
+                    mode: favoritesTab ? 'des' : ''
                 });
             }
         }
@@ -92,6 +92,9 @@ function ServerList({list, updateList, includeWaiting, favoriteList, changeFavs,
         // make a copy of state
         let borrowed = [...list];
 
+        // show 'Waiting for server data...' on favorites and recents page
+        const includeWaiting = favoritesTab || recentsTab;
+
         if(!includeWaiting) {
             borrowed = borrowed.filter(v => {
                 return v.ping !== null;
@@ -107,13 +110,15 @@ function ServerList({list, updateList, includeWaiting, favoriteList, changeFavs,
         // add favorites key; so it can be used later as well
         borrowed = borrowed.map((v) => {
 
-            if(favoriteList.findIndex(fav => {
+            const fIdx = favoriteList.findIndex(fav => {
                 return (fav.ip + ':' + fav.port) === v.ip;
-            }) === -1) {
+            });
+
+            if(fIdx === -1) {
                 return v;
             }
 
-            return {...v, isFavorite: true};
+            return {...v, isFavorite: true, addedAt: favoriteList[fIdx].addedAt};
         });
 
         // search logic
@@ -296,8 +301,8 @@ function ServerList({list, updateList, includeWaiting, favoriteList, changeFavs,
                     Players { SortedIcon('numPlayers') }
                 </span>
 
-                <span className='srvHeaderMode'>{replaceGm ? 'Played' : 'Gamemode'}</span>
-                {showAdd && <AddFav setFavorites={changeFavs} />}
+                <span className='srvHeaderMode'>{recentsTab ? 'Played At' : 'Gamemode'}</span>
+                {favoritesTab && <AddFav setFavorites={changeFavs} />}
             </div>
 
             {

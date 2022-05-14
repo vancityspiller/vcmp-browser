@@ -105,10 +105,7 @@ function Dashboard() {
                     performUDP(v.ip, v.port)
                         .then(async r => {
                             setFavList(p => {
-                                if(p.length === 0) {
-                                    return [{...r, addedAt: v.addedAt}];
-                                }
-                                return [...p, {...r, addedAt: v.addedAt}];
+                                return [...p, r];
                             });
                         })
                         .catch();
@@ -187,7 +184,7 @@ function Dashboard() {
                     })
 
                 } else if(p.length < favs.length) {
-                    return [...p, {...fetched, addedAt: v.addedAt}];
+                    return [...p, fetched];
 
                 } else {
                     return p;
@@ -303,10 +300,10 @@ function Dashboard() {
                             : <Loader className='dashLoader' vertical content='Fetching masterlist...' size='md'/>
                 :
                     <Content>
-                        { tab === 'Masterlist' && <ServerList list={serverList} updateList={setServerList} favoriteList={favs} changeFavs={setFavs} includeWaiting={false} reloadCb={forceReload}/> }
-                        { tab === 'Featured' && <ServerList list={featuredList} updateList={setFeaturedList} favoriteList={favs} changeFavs={setFavs} includeWaiting={false} reloadCb={forceReload}/> }
-                        { tab === 'Recent' && <ServerList list={recentList} updateList={setRecentList} favoriteList={favs} changeFavs={setFavs} includeWaiting replaceGm /> }
-                        { tab === 'Favorites' && <ServerList list={favList} updateList={setFavList} favoriteList={favs} changeFavs={setFavs} includeWaiting showAdd /> }
+                        { tab === 'Masterlist' && <ServerList list={serverList} updateList={setServerList} favoriteList={favs} changeFavs={setFavs} reloadCb={forceReload}/> }
+                        { tab === 'Featured' && <ServerList list={featuredList} updateList={setFeaturedList} favoriteList={favs} changeFavs={setFavs} reloadCb={forceReload}/> }
+                        { tab === 'Recent' && <ServerList list={recentList} updateList={setRecentList} favoriteList={favs} changeFavs={setFavs} recentsTab /> }
+                        { tab === 'Favorites' && <ServerList list={favList} updateList={setFavList} favoriteList={favs} changeFavs={setFavs} favoritesTab /> }
                     </Content>
                 }
             </Container>
