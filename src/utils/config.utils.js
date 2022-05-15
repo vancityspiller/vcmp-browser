@@ -6,8 +6,9 @@ const fallback = {
 
     settings: {
         updater: {
-            url: 'http://v4.vcmp.net/updater',
+            url: 'http://v4.vcmp.net/updater/',
             password: '',
+            checkOnStartup: true
         },
         master: {
             url: 'http://master.vc-mp.org/',
@@ -27,16 +28,22 @@ const fallback = {
 
 // ------------------------------------------------------- //
 
-export async function checkConfig(setConfigLoaded) {
-    path.resourceDir()
+export async function checkConfig() {
+
+    return new Promise((resolve) => {
+        path.resourceDir()
         .then(resDirPath => {
 
             fs  .readDir(resDirPath)
-                .then(entries => {
+                .then(async entries => {
 
-                    // need to create the data dir if it doesn't exist
+                    // need to create the data & versions dirs if it doesn't exist
                     if(entries.findIndex(entry => entry.name === 'data') === -1) {
-                        fs.createDir(resDirPath + 'data');
+                        await fs.createDir(resDirPath + 'data');
+                    }
+
+                    if(entries.findIndex(entry => entry.name === 'versions') === -1) {
+                        await fs.createDir(resDirPath + 'versions');
                     }
 
                     fs  .readDir(resDirPath + 'data')
@@ -50,13 +57,14 @@ export async function checkConfig(setConfigLoaded) {
                                 }
                             }));
 
-                            setConfigLoaded(true);
+                            resolve();
                         })
                         .catch();
                 })
                 .catch();
         })
         .catch();
+    })
 }
 
 // ======================================================= //

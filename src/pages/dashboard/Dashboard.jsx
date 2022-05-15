@@ -4,7 +4,7 @@ import ServerList from '../../components/ServerList/ServerList';
 
 import { http } from "@tauri-apps/api";
 
-import { loadFile, saveFile } from '../../utils/settings.util';
+import { loadFile, saveFile } from '../../utils/resfile.util';
 import { performUDP } from '../../utils/server.util';
 
 // ========================================================= //
