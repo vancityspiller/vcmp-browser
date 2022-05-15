@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Container } from 'rsuite';
+import { Container, Loader } from 'rsuite';
 
 import DraggableHeader from './components/DraggableHeader';
 import SideNavbar from './components/Navbar/Navbar';
@@ -39,7 +39,7 @@ function App() {
         }
 
         // run either on first mount or when manually checking for updates
-        if(isInitialMount || update > 0) {
+        if(isInitialMount.current || update > 0) {
             effect();
         }
 
@@ -63,8 +63,9 @@ function App() {
             <Container>
                 <DraggableHeader />
                 <SideNavbar address={navAddress} setAddress={setNavAddress} />
-                {!updating &&
-                    <NavElement />
+                {updating 
+                    ? <Loader className='updateLoader' vertical content='Updating...' size='md'/>
+                    : <NavElement />
                 }
             </Container>
         </React.Fragment>

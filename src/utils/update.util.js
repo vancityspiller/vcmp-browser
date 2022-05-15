@@ -5,9 +5,16 @@ import { Body, ResponseType } from "@tauri-apps/api/http";
 
 export async function runUpdater(updater) {
     
+    const currentVersions = await buildVersions();
+
     return new Promise((resolve, reject) => {
-        checkVersions(updater, buildVersions())
+        checkVersions(updater, currentVersions)
             .then(versions => {
+
+                if(versions.length === 0) {
+                    resolve();
+                    return;
+                }
 
                 versions.forEach(v => {
                     downloadVersion(updater, v)
@@ -105,21 +112,26 @@ export async function downloadVersion(updater, version) {
 
 // ======================================================= //
 
-function buildVersions() {
+export async function buildVersions() {
 
-    const versions = {};
+    return new Promise(resolve => {
+        const versions = {};
     
-    path.resourceDir()
-        .then(resDirPath => {
-            fs.readDir(`${resDirPath}versions`)
-                .then(entries => {
-                    fs.readTextFile(`${resDirPath}versions\\${entries.name}\version.txt`)
-                        .then(version => {
-                            versions[entries.name] = version;
-                        })
-                        .catch(() => {});
-                })
-        })
+        path.resourceDir()
+            .then(resDirPath => {
+                fs.readDir(`${resDirPath}versions`)
+                    .then(async entries => {
 
-    return versions;
+                        const versionList = await Promise.all(entries.map(entry => {
+                            return fs.readTextFile(`${resDirPath}versions\\${entry.name}\\version.txt`);
+                        }));
+
+                        versionList.forEach((v, i) => {
+                            versions[entries[i].name] = v;
+                        });
+
+                        resolve(versions);      
+                    });
+            });
+    });
 }
