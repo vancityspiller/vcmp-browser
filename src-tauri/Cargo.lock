@@ -57,6 +57,7 @@ checksum = "08f9b8508dccb7687a1d6c4ce66b2b0ecef467c94667de27d8d7fe1f8d2a9cdc"
 name = "app"
 version = "0.1.0"
 dependencies = [
+ "rust7z",
  "serde",
  "serde_json",
  "tauri",
@@ -2470,6 +2471,15 @@ dependencies = [
  "wasm-bindgen-futures",
  "web-sys",
  "windows 0.35.0",
+]
+
+[[package]]
+name = "rust7z"
+version = "0.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "f32c9105bea8754ab411790d3c40e763db8034f6013a0f512a2e1f94045289d3"
+dependencies = [
+ "cc",
 ]
 
 [[package]]

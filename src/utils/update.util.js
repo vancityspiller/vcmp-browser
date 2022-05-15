@@ -1,4 +1,4 @@
-import { fs, http, path } from "@tauri-apps/api";
+import { fs, http, invoke, path } from "@tauri-apps/api";
 import { Body, ResponseType } from "@tauri-apps/api/http";
 
 // ======================================================= //
@@ -72,17 +72,30 @@ export async function downloadVersion(updater, version) {
         .then(async r => {
 
             path.resourceDir()
-                .then(async resDirPath => {
+                .then(resDirPath => {
 
                     fs.readDir(`${resDirPath}versions`)
                         .then(async entries => {
 
+                            const savePath = `${resDirPath}versions\\${version}\\`;
+
                             if(entries.findIndex(entry => entry.name === version) === -1) {
-                                await fs.createDir(resDirPath + version);
+                                await fs.createDir(savePath);
+                            } else {
+                                await fs.removeDir(savePath, {recursive: true});
+                                await fs.createDir(savePath);
                             }
 
-                            fs.writeBinaryFile({contents: r.data, path: `${resDirPath}versions\\${version}\\version.7z`})
-                                .then(() => resolve());
+                            fs.createDir(`${savePath}images`);
+
+                            fs.writeBinaryFile({contents: r.data, path: `${savePath}version.7z`})
+                                .then(() => {
+                                    invoke("extract7z", {path: `${savePath}version.7z`, dest: savePath})
+                                        .then(() => {
+                                            fs.removeFile(`${savePath}version.7z`)
+                                                .then(() => resolve())
+                                        })
+                                });
                         })
                 })
         })

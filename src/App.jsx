@@ -22,8 +22,6 @@ function App() {
 
     // --------------------------------------------------------- //
 
-    // --------------------------------------------------------- //
-
     useEffect(() => {
 
         const effect = async () => {
@@ -34,8 +32,10 @@ function App() {
             const settings = await loadFile('settings.json');
 
             if(settings.updater.checkOnStartup) {
-                runUpdater(settings.updater)
+                await runUpdater(settings.updater);
             }
+
+            setUpdating(false);
         }
 
         // run either on first mount or when manually checking for updates

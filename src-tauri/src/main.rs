@@ -4,10 +4,11 @@
 )]
 
 mod server;
+mod 7z;
 
 fn main() {
   tauri::Builder::default()
-    .invoke_handler(tauri::generate_handler![server::info])
+    .invoke_handler(tauri::generate_handler![server::info, 7z::extract7z])
     .run(tauri::generate_context!())
     .expect("error while running tauri application");
 }
