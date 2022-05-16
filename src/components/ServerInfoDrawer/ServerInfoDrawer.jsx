@@ -15,7 +15,7 @@ import './serverinfodrawer.less';
 
 // ========================================================= //
 
-function ServerInfoDrawer({open, handleClose, data, handleFavorite, handleCopy}) {
+function ServerInfoDrawer({open, handleClose, data, handleFavorite, handleCopy, handleLaunch}) {
 
     const getPlayersObj = useMemo(() => {
 
@@ -73,6 +73,7 @@ function ServerInfoDrawer({open, handleClose, data, handleFavorite, handleCopy})
                         icon={data.password ? <LockIcon className='fixLegacy' /> : <ArrowRightIcon className='fixLegacy' />} 
                         size='sm'
                         disabled={data.ping === 9999}
+                        onClick={() => { handleClose(); handleLaunch(); }}
                     >
                         Launch
                     </IconButton>

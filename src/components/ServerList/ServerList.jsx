@@ -17,6 +17,7 @@ import FavoriteIcon from '@rsuite/icons/legacy/Star';
 import ExcIcon from '@rsuite/icons/legacy/ExclamationTriangle';
 
 import './serverlist.less';
+import PasswordModal from './PasswordModal';
 
 // --------------------------------------------------------- //
 
@@ -274,6 +275,11 @@ function ServerList({list, updateList, favoriteList, changeFavs, reloadCb, recen
         // --------------------------------------------------------- //
 
         const contextListener = () => {
+
+            if(!triggerRef.current) {
+                return;
+            }
+
             triggerRef.current.style.opacity = 0;
             triggerRef.current.style["z-index"] = -1;
         }
@@ -331,6 +337,21 @@ function ServerList({list, updateList, favoriteList, changeFavs, reloadCb, recen
 
     // --------------------------------------------------------- //
 
+    const [passwordModal, setPasswordModal] = useState(false);
+
+    const actLaunchRequested = useCallback(() => {
+        setPasswordModal(false);
+
+    }, [selected]);
+
+    // --------------------------------------------------------- //
+
+    const actLaunchPassword = useCallback(() => {
+        setPasswordModal(true);
+    }, [selected]);
+
+    // ========================================================= //
+
     const triggerRef = useRef();
 
     const handleContextMenuOpen = (idx, event) => {
@@ -355,6 +376,7 @@ function ServerList({list, updateList, favoriteList, changeFavs, reloadCb, recen
 
         switch(key) {
             case 1:
+                actLaunchPassword();
                 break;
 
             case 2: {
@@ -421,7 +443,7 @@ function ServerList({list, updateList, favoriteList, changeFavs, reloadCb, recen
                         <Dropdown.Menu
                             onSelect={handleContextMenuSelect}
                         >
-                            <Dropdown.Item eventKey={1}>Launch</Dropdown.Item>
+                            <Dropdown.Item disabled={selected?.ping === 9999} eventKey={1}>Launch</Dropdown.Item>
                             <Dropdown.Item eventKey={2}>{selected?.isFavorite ? 'Remove Favorite' : 'Set Favorite'}</Dropdown.Item>
                             <Dropdown.Item eventKey={3}>Copy IP</Dropdown.Item>
                             <Dropdown.Item eventKey={4}>Copy Info</Dropdown.Item>
@@ -473,7 +495,9 @@ function ServerList({list, updateList, favoriteList, changeFavs, reloadCb, recen
                 </InputGroup>
             </div>
 
-            <ServerInfoDrawer open={drawerOpen} handleClose={handleDrawerClose} data={selected} handleFavorite={actHandleFavorite} handleCopy={actCopyInfo}/>
+            <ServerInfoDrawer open={drawerOpen} handleClose={handleDrawerClose} data={selected} handleFavorite={actHandleFavorite} handleCopy={actCopyInfo} handleLaunch={selected?.password ? actLaunchPassword : actLaunchRequested}/>
+            <PasswordModal open={passwordModal} setOpen={setPasswordModal} selected={selected} next={actLaunchRequested}/>
+
         </React.Fragment>
     );
 }

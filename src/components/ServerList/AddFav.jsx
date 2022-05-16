@@ -142,6 +142,7 @@ function AddFav({setFavorites}) {
                 open={open}
                 onClose={handleClose}
                 keyboard={false}
+                className='modalCenter'
             >
 
                 <Modal.Header closeButton={false}>
