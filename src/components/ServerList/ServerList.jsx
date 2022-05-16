@@ -1,8 +1,11 @@
 import React, { useState, useCallback, useMemo, useEffect, useRef } from 'react';
-import { Dropdown, Input, InputGroup, Popover, Whisper } from 'rsuite';
+import { Dropdown, Input, InputGroup, Popover } from 'rsuite';
 
 import AddFav from './AddFav';
+import PasswordModal from './PasswordModal';
+
 import ServerInfoDrawer from '../ServerInfoDrawer/ServerInfoDrawer';
+
 import { clipboard } from '@tauri-apps/api';
 import { performUDP } from '../../utils/server.util';
 
@@ -17,8 +20,7 @@ import FavoriteIcon from '@rsuite/icons/legacy/Star';
 import ExcIcon from '@rsuite/icons/legacy/ExclamationTriangle';
 
 import './serverlist.less';
-import PasswordModal from './PasswordModal';
-
+import LaunchModal from './LaunchModal';
 // --------------------------------------------------------- //
 
 function ServerList({list, updateList, favoriteList, changeFavs, reloadCb, recentsTab, favoritesTab}) {
@@ -338,10 +340,11 @@ function ServerList({list, updateList, favoriteList, changeFavs, reloadCb, recen
     // --------------------------------------------------------- //
 
     const [passwordModal, setPasswordModal] = useState(false);
+    const [launchProgress, setLaunchProgress] = useState('');
 
     const actLaunchRequested = useCallback(() => {
         setPasswordModal(false);
-
+        setLaunchProgress('updater');
     }, [selected]);
 
     // --------------------------------------------------------- //
@@ -376,7 +379,7 @@ function ServerList({list, updateList, favoriteList, changeFavs, reloadCb, recen
 
         switch(key) {
             case 1:
-                actLaunchPassword();
+                selected.password ? actLaunchPassword() : actLaunchRequested();
                 break;
 
             case 2: {
@@ -497,6 +500,7 @@ function ServerList({list, updateList, favoriteList, changeFavs, reloadCb, recen
 
             <ServerInfoDrawer open={drawerOpen} handleClose={handleDrawerClose} data={selected} handleFavorite={actHandleFavorite} handleCopy={actCopyInfo} handleLaunch={selected?.password ? actLaunchPassword : actLaunchRequested}/>
             <PasswordModal open={passwordModal} setOpen={setPasswordModal} selected={selected} next={actLaunchRequested}/>
+            <LaunchModal progress={launchProgress} setProgress={setLaunchProgress} selected={selected} />
 
         </React.Fragment>
     );
