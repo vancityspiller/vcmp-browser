@@ -40,6 +40,11 @@ function App() {
 
         // run either on first mount or when manually checking for updates
         if(isInitialMount.current || update > 0) {
+
+            document.addEventListener('contextmenu', event => {
+                event.preventDefault();
+            });
+
             effect();
         }
 

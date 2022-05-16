@@ -1,8 +1,9 @@
 import React, { useState, useCallback, useMemo, useEffect, useRef } from 'react';
-import { Input, InputGroup } from 'rsuite';
+import { Dropdown, Input, InputGroup, Popover, Whisper } from 'rsuite';
 
 import AddFav from './AddFav';
 import ServerInfoDrawer from '../ServerInfoDrawer/ServerInfoDrawer';
+import { clipboard } from '@tauri-apps/api';
 import { performUDP } from '../../utils/server.util';
 
 // ========================================================= //
@@ -270,10 +271,110 @@ function ServerList({list, updateList, favoriteList, changeFavs, reloadCb, recen
 
         document.addEventListener('keydown', listener);
 
+        // --------------------------------------------------------- //
+
+        const contextListener = () => {
+            triggerRef.current.style.opacity = 0;
+            triggerRef.current.style["z-index"] = -1;
+        }
+
+        document.addEventListener('click', contextListener);
+
         return () => {
-            document.removeEventListener('keydown', listener)
+            document.removeEventListener('keydown', listener);
+            document.removeEventListener('click', contextListener);
         }
     }, [drawerOpen, selected]);
+
+    // ========================================================= //
+    // callbacks for performing actions
+
+    const actHandleFavorite = useCallback(() => {
+
+        if(selected.isFavorite) {
+            
+            changeFavs(p => {
+                return p.filter(v => {
+                    return selected.ip !== (v.ip + ':' + v.port);
+                })
+            })
+
+        } else {
+
+            const [ip, port] = selected.ip.split(':');
+            const newFav = {ip: ip, port: parseInt(port), addedAt: Date.now()};
+
+            changeFavs(p => {
+                return [...p, newFav];
+            });
+        }
+
+        selected.isFavorite = !selected.isFavorite;
+
+    }, [selected, changeFavs]);
+
+    // --------------------------------------------------------- //
+
+    const actCopyInfo = useCallback((mode) => {
+        
+        if(mode === 'ip') {
+            clipboard.writeText(selected.ip)
+                .catch(() => console.log('ERR: clipboard.writeText failed!'));
+        } 
+
+        else if(mode === 'info') {
+            clipboard.writeText(`Server Name: ${selected.serverName}\nIP: ${selected.ip}\nGamemode: ${selected.gameMode}\nVersion: ${selected.version}`)
+                .catch(() => console.log('ERR: clipboard.writeText failed!'));
+        }
+
+    }, [selected]);
+
+    // --------------------------------------------------------- //
+
+    const triggerRef = useRef();
+
+    const handleContextMenuOpen = (idx, event) => {
+
+        event.preventDefault();
+        setSelected({...rows[idx]});
+
+        triggerRef.current.style.opacity = 100;
+        triggerRef.current.style.width = '200px';
+        triggerRef.current.style["z-index"] = 1;
+
+        if(event.clientY > srvList.current.clientHeight) {
+            triggerRef.current.style.top = (event.clientY - 130 - (event.clientY - srvList.current.clientHeight) + srvList.current.scrollTop) + 'px';
+        } else {
+            triggerRef.current.style.top = (event.clientY - 130 + srvList.current.scrollTop) + 'px';
+        }
+
+        triggerRef.current.style.left = (event.clientX > 800 ? 800 : event.clientX) - 110 + 'px';
+    }
+
+    const handleContextMenuSelect = (key) => {
+
+        switch(key) {
+            case 1:
+                break;
+
+            case 2: {
+                actHandleFavorite();
+                break;
+            }
+
+            case 3: {
+                actCopyInfo('ip');
+                break;
+            }
+
+            case 4: {
+                actCopyInfo('info');
+                break;
+            }
+        }
+
+        triggerRef.current.style.opacity = 0;
+    }
 
     // --------------------------------------------------------- //
 
@@ -315,9 +416,26 @@ function ServerList({list, updateList, favoriteList, changeFavs, reloadCb, recen
                     </div>
                 :
                 <div className='srvList' ref={srvList}>
+
+                    <Popover full ref={triggerRef}>
+                        <Dropdown.Menu
+                            onSelect={handleContextMenuSelect}
+                        >
+                            <Dropdown.Item eventKey={1}>Launch</Dropdown.Item>
+                            <Dropdown.Item eventKey={2}>{selected?.isFavorite ? 'Remove Favorite' : 'Set Favorite'}</Dropdown.Item>
+                            <Dropdown.Item eventKey={3}>Copy IP</Dropdown.Item>
+                            <Dropdown.Item eventKey={4}>Copy Info</Dropdown.Item>
+                        </Dropdown.Menu>
+                    </Popover>
+
                     {rows.map((element, idx) => {
                         return (
-                            <div className={`srvItem ${drawerOpen && selected?.ip === element.ip ? 'srvItem-selected' : ''}`} key={element.ip} onClick={() => handleSelect(idx)}>
+                            <div 
+                                className={`srvItem ${drawerOpen && selected?.ip === element.ip ? 'srvItem-selected' : ''}`} 
+                                key={element.ip} 
+                                onClick={() => handleSelect(idx)}
+                                onContextMenu={(event) => handleContextMenuOpen(idx, event)}                                
+                            >
                                 <span className='srvItemLocked'>{element.password ? <LockIcon /> : ''}</span>
                                 <span className='srvItemName'>
                                     {element.serverName.length > 55 
@@ -355,7 +473,7 @@ function ServerList({list, updateList, favoriteList, changeFavs, reloadCb, recen
                 </InputGroup>
             </div>
 
-            <ServerInfoDrawer open={drawerOpen} handleClose={handleDrawerClose} data={selected} setFavs={changeFavs}/>
+            <ServerInfoDrawer open={drawerOpen} handleClose={handleDrawerClose} data={selected} handleFavorite={actHandleFavorite} handleCopy={actCopyInfo}/>
         </React.Fragment>
     );
 }

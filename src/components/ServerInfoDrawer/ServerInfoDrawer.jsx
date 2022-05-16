@@ -1,7 +1,6 @@
-import React, { useCallback, useMemo } from 'react';
+import React, { useMemo } from 'react';
 import { Button, ButtonToolbar, Drawer, IconButton, Panel, Tag, Tooltip, Whisper } from 'rsuite';
 import { Cell, Column, HeaderCell, Table } from 'rsuite-table';
-import { clipboard } from '@tauri-apps/api';
 
 // ========================================================= //
 
@@ -16,25 +15,7 @@ import './serverinfodrawer.less';
 
 // ========================================================= //
 
-function ServerInfoDrawer({open, handleClose, data, setFavs}) {
-
-    // --------------------------------------------------------- //
-
-    const copyClick = useCallback((mode) => {
-        
-        if(mode === 'ip') {
-            clipboard.writeText(data.ip)
-                .catch(() => console.log('ERR: clipboard.writeText failed!'));
-        } 
-
-        else if(mode === 'info') {
-            clipboard.writeText(`Server Name: ${data.serverName}\nIP: ${data.ip}\nGamemode: ${data.gameMode}\nVersion: ${data.version}`)
-                .catch(() => console.log('ERR: clipboard.writeText failed!'));
-        }
-
-    }, [data]);
-
-    // --------------------------------------------------------- //
+function ServerInfoDrawer({open, handleClose, data, handleFavorite, handleCopy}) {
 
     const getPlayersObj = useMemo(() => {
 
@@ -46,30 +27,6 @@ function ServerInfoDrawer({open, handleClose, data, setFavs}) {
             };
         });
     }, [data]);
-
-    // --------------------------------------------------------- //
-
-    const handleFavorite = () => {
-        if(data.isFavorite) {
-            
-            setFavs(p => {
-                return p.filter(v => {
-                    return data.ip !== (v.ip + ':' + v.port);
-                })
-            })
-
-        } else {
-
-            const [ip, port] = data.ip.split(':');
-            const newFav = {ip: ip, port: parseInt(port), addedAt: Date.now()};
-
-            setFavs(p => {
-                return [...p, newFav];
-            });
-        }
-
-        data.isFavorite = !data.isFavorite;
-    }
 
     // --------------------------------------------------------- //
 
@@ -96,13 +53,13 @@ function ServerInfoDrawer({open, handleClose, data, setFavs}) {
 
                         <ButtonToolbar className='srvDrawerInfoButtons'>
                             <Whisper placement="top" trigger="click" speaker={<Tooltip>Copied!</Tooltip>}>
-                                <Button appearance='subtle' size='xs' onClick={() => copyClick('ip')}>
+                                <Button appearance='subtle' size='xs' onClick={() => handleCopy('ip')}>
                                     Copy IP
                                 </Button>
                             </Whisper>
 
                             <Whisper placement="top" trigger="click" speaker={<Tooltip>Copied!</Tooltip>}>
-                                <Button appearance='subtle' size='xs' onClick={() => copyClick('info')}>
+                                <Button appearance='subtle' size='xs' onClick={() => handleCopy('info')}>
                                     Copy Info
                                 </Button>
                             </Whisper>
