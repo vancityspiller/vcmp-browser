@@ -1,0 +1,14 @@
+{
+  "updater": {
+    "url": "http://v4.vcmp.net/updater/",
+    "password": "",
+    "checkOnStartup": true
+  },
+  "master": {
+    "url": "http://master.vc-mp.org/",
+    "useLegacy": false,
+    "defaultTab": "Masterlist"
+  },
+  "playerName": "",
+  "gameDir": ""
+}
