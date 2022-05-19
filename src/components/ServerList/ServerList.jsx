@@ -340,6 +340,7 @@ function ServerList({list, updateList, favoriteList, changeFavs, reloadCb, recen
     // --------------------------------------------------------- //
 
     const [passwordModal, setPasswordModal] = useState(false);
+    const [enteredPassword, setEnteredPassword] = useState('');
     const [launchProgress, setLaunchProgress] = useState('');
 
     const actLaunchRequested = useCallback(() => {
@@ -379,7 +380,7 @@ function ServerList({list, updateList, favoriteList, changeFavs, reloadCb, recen
 
         switch(key) {
             case 1:
-                selected.password ? actLaunchPassword() : actLaunchRequested();
+                selected?.password ? actLaunchPassword() : actLaunchRequested();
                 break;
 
             case 2: {
@@ -499,8 +500,8 @@ function ServerList({list, updateList, favoriteList, changeFavs, reloadCb, recen
             </div>
 
             <ServerInfoDrawer open={drawerOpen} handleClose={handleDrawerClose} data={selected} handleFavorite={actHandleFavorite} handleCopy={actCopyInfo} handleLaunch={selected?.password ? actLaunchPassword : actLaunchRequested}/>
-            <PasswordModal open={passwordModal} setOpen={setPasswordModal} selected={selected} next={actLaunchRequested}/>
-            <LaunchModal progress={launchProgress} setProgress={setLaunchProgress} selected={selected} />
+            <PasswordModal open={passwordModal} setOpen={setPasswordModal} selected={selected} next={actLaunchRequested} password={enteredPassword} setPassword={setEnteredPassword}/>
+            <LaunchModal progress={launchProgress} setProgress={setLaunchProgress} selected={selected} password={enteredPassword}/>
 
         </React.Fragment>
     );

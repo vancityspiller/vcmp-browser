@@ -4,16 +4,14 @@ import { loadFile, saveFile } from '../../utils/resfile.util';
 
 // ========================================================= //
 
-function PasswordModal({open, setOpen, selected, next}) {
+function PasswordModal({open, setOpen, selected, next, password, setPassword}) {
 
-    const [password, setPassword] = useState('');
     const [savePass, setSavePass] = useState(false);
     const [loading, setLoading] = useState(true);
 
     // --------------------------------------------------------- //
 
     const handleClose = () => {
-        setPassword('');
         setSavePass(false);
         setOpen(false);
     }
@@ -61,6 +59,8 @@ function PasswordModal({open, setOpen, selected, next}) {
             if(idx !== -1) {
                 setPassword(passwords[idx].password);
                 setSavePass(true);
+            } else {
+                setPassword('');
             }
 
             setLoading(false);
