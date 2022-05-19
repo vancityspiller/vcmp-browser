@@ -449,7 +449,7 @@ function ServerList({list, updateList, favoriteList, changeFavs, reloadCb, recen
                             <Dropdown.Item disabled={selected?.ping === 9999} eventKey={1}>Launch</Dropdown.Item>
                             <Dropdown.Item eventKey={2}>{selected?.isFavorite ? 'Remove Favorite' : 'Set Favorite'}</Dropdown.Item>
                             <Dropdown.Item eventKey={3}>Copy IP</Dropdown.Item>
-                            <Dropdown.Item eventKey={4}>Copy Info</Dropdown.Item>
+                            <Dropdown.Item disabled={selected?.ping === 9999} eventKey={4}>Copy Info</Dropdown.Item>
                         </Dropdown.Menu>
                     </Popover>
 
