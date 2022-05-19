@@ -5,10 +5,11 @@
 
 mod server;
 mod extract;
+mod launch;
 
 fn main() {
   tauri::Builder::default()
-    .invoke_handler(tauri::generate_handler![server::info, extract::extract7z])
+    .invoke_handler(tauri::generate_handler![server::info, extract::extract7z, launch::launch_game])
     .run(tauri::generate_context!())
     .expect("error while running tauri application");
 }

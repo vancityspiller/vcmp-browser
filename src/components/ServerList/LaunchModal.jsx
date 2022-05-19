@@ -1,3 +1,4 @@
+import { invoke, path } from '@tauri-apps/api';
 import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { Button, Loader, Modal } from 'rsuite';
 
@@ -74,6 +75,23 @@ function LaunchModal({progress, setProgress, selected}) {
                 }
 
                 case 'launch': {
+                    try {
+                        let resDirPath = await path.resourceDir();
+                        const [ip, port] = selected.ip.split(":");
+
+                        if(resDirPath.startsWith('\\\\?\\')) {
+                            resDirPath = resDirPath.slice(4);
+                        }
+
+                        await invoke("launch_game", {dllPath: `${resDirPath}versions\\${selected.version}\\vcmp-game.dll`, gameDir: settings.current.gameDir, commandLine: `-c -h ${ip} -c -p ${port} -n Spiller`})
+                    } catch (error) {
+
+                        console.log(error);
+                        setError(error);
+                        setProgress('errored');
+                        break;
+                    }
+
                     setProgress('');
                     handleClose();
                     break;
@@ -122,7 +140,7 @@ function LaunchModal({progress, setProgress, selected}) {
             <Modal.Body className={error.length > 0 ? '' : 'launchModalBody'}>
                 {error.length > 0 
                 ?   <div className='launchError'>ERR: {error}</div>
-                :   <Loader vertical size='md' content={step + '...'} className='launchLoader' />
+                :   <Loader vertical size='md' content={step + '...'} className='launchLoader' /> 
                 }
             </Modal.Body>
 

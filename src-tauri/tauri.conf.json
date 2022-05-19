@@ -45,7 +45,7 @@
         "providerShortName": null,
         "signingIdentity": null
       },
-      "resources": [],
+      "resources": ["./injector.exe"],
       "shortDescription": "",
       "targets": "all",
       "windows": {
