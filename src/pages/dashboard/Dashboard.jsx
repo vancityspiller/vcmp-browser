@@ -144,6 +144,8 @@ function Dashboard() {
             history.forEach(async (v) => {
                 performUDP(v.ip, v.port)
                     .then(async r => {
+
+                        r["addedAt"] = v.addedAt;
                         setRecentList(p => {
                             return [...p, r];
                         });
@@ -154,6 +156,46 @@ function Dashboard() {
 
         effect();
     }, [reload]);
+
+    // --------------------------------------------------------- //
+
+    useEffect(() => {
+        
+        if(recents.length === 0) return;
+
+        const effect = async() => {
+
+            let v, fetched;
+            if(recents.length > 0) {
+
+                // extract last element
+                v = recents.at(-1); 
+                fetched = await performUDP(v.ip, v.port);
+                fetched["addedAt"] = v.addedAt;
+            }
+
+            // carefully check what to add or remove
+            setRecentList(p => {
+
+                if(!p) return p;
+          
+                // its more than likely that there is gonna be more recents if state is changed
+                if(p.length < recents.length) {
+                    return [...p, fetched];
+
+                } else {
+                    return p;
+                }
+            });
+
+            // save our changes
+            const servers = await loadFile('servers.json');
+            saveFile('servers.json', {...servers, history: recents});
+        }
+
+        if(!isInitialMount) effect();
+
+    }, [recents]);
 
     // --------------------------------------------------------- //
 
@@ -203,32 +245,6 @@ function Dashboard() {
         }
 
     }, [favs]);
-
-    // --------------------------------------------------------- //
-
-    useEffect(() => {
-        
-        if(recents.length === 0) return;
-        const effect = async () => {
-
-            // its more than likely that there is gonna be more recents if state is changed
-            const v = recents.at(-1);
-            performUDP(v.ip, v.port)
-                .then(r => {
-                    setRecentList(p => {
-                        return [...p, r];
-                    });
-                })
-                .catch();
-
-            // save our changes
-            const servers = await loadFile('servers.json');
-            saveFile('servers.json', {...servers, history: recents});
-        }
-
-        effect();
-
-    }, [recents]);
 
     // --------------------------------------------------------- //
 
@@ -300,10 +316,10 @@ function Dashboard() {
                             : <Loader className='dashLoader' vertical content='Fetching masterlist...' size='md'/>
                 :
                     <Content>
-                        { tab === 'Masterlist' && <ServerList list={serverList} updateList={setServerList} favoriteList={favs} changeFavs={setFavs} reloadCb={forceReload}/> }
-                        { tab === 'Featured' && <ServerList list={featuredList} updateList={setFeaturedList} favoriteList={favs} changeFavs={setFavs} reloadCb={forceReload}/> }
-                        { tab === 'Recent' && <ServerList list={recentList} updateList={setRecentList} favoriteList={favs} changeFavs={setFavs} recentsTab /> }
-                        { tab === 'Favorites' && <ServerList list={favList} updateList={setFavList} favoriteList={favs} changeFavs={setFavs} favoritesTab /> }
+                        { tab === 'Masterlist' && <ServerList list={serverList} updateList={setServerList} favoriteList={favs} changeFavs={setFavs} changeRecents={setRecents} reloadCb={forceReload}/> }
+                        { tab === 'Featured' && <ServerList list={featuredList} updateList={setFeaturedList} favoriteList={favs} changeFavs={setFavs} changeRecents={setRecents} reloadCb={forceReload}/> }
+                        { tab === 'Recent' && <ServerList list={recentList} updateList={setRecentList} favoriteList={favs} changeFavs={setFavs} changeRecents={setRecents} recentsTab /> }
+                        { tab === 'Favorites' && <ServerList list={favList} updateList={setFavList} favoriteList={favs} changeFavs={setFavs} changeRecents={setRecents} favoritesTab /> }
                     </Content>
                 }
             </Container>

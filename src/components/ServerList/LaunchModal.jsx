@@ -7,7 +7,7 @@ import { buildVersions, checkVersions, downloadVersion } from '../../utils/updat
 
 // ========================================================= //
 
-function LaunchModal({progress, setProgress, selected, password}) {
+function LaunchModal({progress, setProgress, selected, password, setRecents}) {
 
     const [open, setOpen] = useState(false);
     const [error, setError] = useState('');
@@ -82,6 +82,17 @@ function LaunchModal({progress, setProgress, selected, password}) {
                         if(resDirPath.startsWith('\\\\?\\')) {
                             resDirPath = resDirPath.slice(4);
                         }
+
+                        const newRecent = {ip: ip, port: parseInt(port), addedAt: Date.now()};
+
+                        setRecents(p => {
+
+                            if(p.findIndex(v => (v.ip === ip && v.port == port)) === -1) {
+                                return [...p, newRecent];
+                            } else {
+                                return p;
+                            }
+                        });
 
                         const commandLine = !selected.password ? `-c -h ${ip} -c -p ${port} -n ${settings.current.playerName}` : `-c -h ${ip} -c -p ${port} -n ${settings.current.playerName} -z ${password}`;
                         await invoke("launch_game", {dllPath: `${resDirPath}versions\\${selected.version}\\vcmp-game.dll`, gameDir: settings.current.gameDir, commandLine: commandLine})

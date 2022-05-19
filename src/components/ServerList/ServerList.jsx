@@ -23,14 +23,14 @@ import './serverlist.less';
 import LaunchModal from './LaunchModal';
 // --------------------------------------------------------- //
 
-function ServerList({list, updateList, favoriteList, changeFavs, reloadCb, recentsTab, favoritesTab}) {
+function ServerList({list, updateList, favoriteList, changeFavs, changeRecents, reloadCb, recentsTab, favoritesTab}) {
 
     const [selected, setSelected] = useState(null);
 
     const [search, setSearch] = useState('');
     const [sort, setSort] = useState({
-        column: favoritesTab ? 'addedAt' : '',
-        mode: favoritesTab ? 'des' : ''
+        column: favoritesTab || recentsTab ? 'addedAt' : '',
+        mode: favoritesTab ? 'des' : (recentsTab ? 'asc' : '')
     });
 
     // --------------------------------------------------------- //
@@ -55,8 +55,8 @@ function ServerList({list, updateList, favoriteList, changeFavs, reloadCb, recen
             } else {
                 // otherwise, unset it
                 setSort({
-                    column: favoritesTab ? 'addedAt' : '',
-                    mode: favoritesTab ? 'des' : ''
+                    column: favoritesTab || recentsTab ? 'addedAt' : '',
+                    mode: favoritesTab ? 'des' : (recentsTab ? 'asc' : '')
                 });
             }
         }
@@ -120,6 +120,10 @@ function ServerList({list, updateList, favoriteList, changeFavs, reloadCb, recen
 
             if(fIdx === -1) {
                 return v;
+            }
+
+            if(recentsTab) {
+                return {...v, isFavorite: true};
             }
 
             return {...v, isFavorite: true, addedAt: favoriteList[fIdx].addedAt};
@@ -213,6 +217,8 @@ function ServerList({list, updateList, favoriteList, changeFavs, reloadCb, recen
     
             const [ip, port] = rows[idx].ip.split(':');
             const newData = await performUDP(ip, parseInt(port));
+
+            if(recentsTab) newData["addedAt"] = v.addedAt;
     
             updateList(p => {
                 const n = [...p];
@@ -438,7 +444,7 @@ function ServerList({list, updateList, favoriteList, changeFavs, reloadCb, recen
                     <div className='srvEmptyFallback'>
                         <ExcIcon />
                         <h5>No servers found</h5>
-                        <span>{ search.length > 0 ? 'refine your search' : 'check a different tab' }</span>
+                        <span>{ search.length > 0 ? 'refine your search' : 'might still be loading' }</span>
                     </div>
                 :
                 <div className='srvList' ref={srvList}>
@@ -471,7 +477,13 @@ function ServerList({list, updateList, favoriteList, changeFavs, reloadCb, recen
                                 <span className='srvItemFav'>{element.isFavorite ? <FavoriteIcon /> : ''}</span>
                                 <span className='srvItemPing'>{element.ping}</span>
                                 <span className='srvItemPlayers'>{element.numPlayers}<span>/{element.maxPlayers}</span></span>
-                                <span className='srvItemMode'>{element.gameMode.length > 20 ? (element.gameMode.slice(0, 20) + '...') : element.gameMode}</span>
+                                
+                                <span className='srvItemMode'>
+                                    {recentsTab 
+                                        ? (element.addedAt)
+                                        : (element.gameMode.length > 20 ? (element.gameMode.slice(0, 20) + '...') : element.gameMode)
+                                    }
+                                </span>
                             </div>
                         )
                     })}
@@ -501,7 +513,7 @@ function ServerList({list, updateList, favoriteList, changeFavs, reloadCb, recen
 
             <ServerInfoDrawer open={drawerOpen} handleClose={handleDrawerClose} data={selected} handleFavorite={actHandleFavorite} handleCopy={actCopyInfo} handleLaunch={selected?.password ? actLaunchPassword : actLaunchRequested}/>
             <PasswordModal open={passwordModal} setOpen={setPasswordModal} selected={selected} next={actLaunchRequested} password={enteredPassword} setPassword={setEnteredPassword}/>
-            <LaunchModal progress={launchProgress} setProgress={setLaunchProgress} selected={selected} password={enteredPassword}/>
+            <LaunchModal progress={launchProgress} setProgress={setLaunchProgress} selected={selected} password={enteredPassword} setRecents={changeRecents}/>
 
         </React.Fragment>
     );
