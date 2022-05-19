@@ -13,7 +13,8 @@
     "@tauri-apps/api": "^1.0.0-rc.5",
     "react": "^18.0.0",
     "react-dom": "^18.0.0",
-    "rsuite": "^5.11.0"
+    "rsuite": "^5.11.0",
+    "timeago-react": "^3.0.4"
   },
   "devDependencies": {
     "@tauri-apps/cli": "^1.0.0-rc.10",
