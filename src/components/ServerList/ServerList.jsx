@@ -4,6 +4,7 @@ import TimeAgo from 'timeago-react';
 
 import AddFav from './AddFav';
 import PasswordModal from './PasswordModal';
+import LaunchModal from './LaunchModal';
 
 import ServerInfoDrawer from '../ServerInfoDrawer/ServerInfoDrawer';
 
@@ -21,7 +22,8 @@ import FavoriteIcon from '@rsuite/icons/legacy/Star';
 import ExcIcon from '@rsuite/icons/legacy/ExclamationTriangle';
 
 import './serverlist.less';
-import LaunchModal from './LaunchModal';
+import { NavStateProvider } from '../Navbar/Nav.context';
+
 // --------------------------------------------------------- //
 
 function ServerList({list, updateList, favoriteList, changeFavs, changeRecents, reloadCb, recentsTab, favoritesTab}) {
@@ -514,8 +516,11 @@ function ServerList({list, updateList, favoriteList, changeFavs, changeRecents, 
 
             <ServerInfoDrawer open={drawerOpen} handleClose={handleDrawerClose} data={selected} handleFavorite={actHandleFavorite} handleCopy={actCopyInfo} handleLaunch={selected?.password ? actLaunchPassword : actLaunchRequested}/>
             <PasswordModal open={passwordModal} setOpen={setPasswordModal} selected={selected} next={actLaunchRequested} password={enteredPassword} setPassword={setEnteredPassword}/>
-            <LaunchModal progress={launchProgress} setProgress={setLaunchProgress} selected={selected} password={enteredPassword} setRecents={changeRecents}/>
-
+            
+            <NavStateProvider>
+                <LaunchModal progress={launchProgress} setProgress={setLaunchProgress} selected={selected} password={enteredPassword} setRecents={changeRecents}/>
+            </NavStateProvider>
+                
         </React.Fragment>
     );
 }

@@ -2,12 +2,15 @@ import { invoke, path } from '@tauri-apps/api';
 import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { Button, Loader, Modal } from 'rsuite';
 
+import { useNavState } from '../../components/Navbar/Nav.context';
 import { loadFile } from '../../utils/resfile.util';
 import { buildVersions, checkVersions, downloadVersion } from '../../utils/update.util';
 
 // ========================================================= //
 
 function LaunchModal({progress, setProgress, selected, password, setRecents}) {
+
+    const {disableNavSwitching} = useNavState();
 
     const [open, setOpen] = useState(false);
     const [error, setError] = useState('');
@@ -30,6 +33,7 @@ function LaunchModal({progress, setProgress, selected, password, setRecents}) {
 
             switch(progress) {
                 case 'updater': {
+                    disableNavSwitching.current = true;
                     settings.current = await loadFile('settings.json');
                     setProgress('builds');
                     break;
@@ -56,6 +60,7 @@ function LaunchModal({progress, setProgress, selected, password, setRecents}) {
                     } catch (e) {
                         setError(`Version ${selected.version} is not available locally or on updater!`);
                         setProgress('errored');
+                        disableNavSwitching.current = false;
                         break;
                     }
                     break;
@@ -69,6 +74,7 @@ function LaunchModal({progress, setProgress, selected, password, setRecents}) {
                     } catch (e) {
                         setError(`Version ${selected.version} could not be downloaded successfully!`);
                         setProgress('errored');
+                        disableNavSwitching.current = false;
                         break;
                     }
                     break;
@@ -100,8 +106,12 @@ function LaunchModal({progress, setProgress, selected, password, setRecents}) {
 
                         setError(error);
                         setProgress('errored');
+                        disableNavSwitching.current = false;
+
                         break;
                     }
+
+                    disableNavSwitching.current = false;
 
                     setProgress('');
                     handleClose();

@@ -13,7 +13,7 @@ const fallback = {
         master: {
             url: 'http://master.vc-mp.org/',
             useLegacy: false,
-            defaultTab: 'Masterlist'
+            defaultTab: 'Favorites'
         },
         playerName: '',
         gameDir: ''

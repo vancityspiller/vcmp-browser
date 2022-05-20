@@ -3,6 +3,8 @@ import React, { useEffect } from 'react';
 import { Sidebar } from 'rsuite';
 import { appWindow } from '@tauri-apps/api/window';
 
+import { useNavState } from './Nav.context';
+
 import CustomIcon from './CustomIcon';
 
 import './navbar.less';
@@ -44,11 +46,17 @@ const iconList = [
 
 function SideNavbar({address, setAddress}) {
 
+    const {disableNavSwitching} = useNavState();
+
+    // --------------------------------------------------------- //
+
     const isSelected = (title) => {
         return title === address;
     }
 
     const clickCb = (title) => {
+
+        if(disableNavSwitching.current) return;
 
         if(title !== address)
         setAddress(title);
@@ -77,10 +85,10 @@ function SideNavbar({address, setAddress}) {
             }
         };
 
-        document.addEventListener('keydown', listener);
+        document.addEventListener('keyup', listener);
 
         return () => {
-            document.removeEventListener('keydown', listener)
+            document.removeEventListener('keyup', listener)
         }
     }, [address]);
     
