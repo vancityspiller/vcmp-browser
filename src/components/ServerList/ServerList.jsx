@@ -220,6 +220,8 @@ function ServerList({list, updateList, favoriteList, changeFavs, changeRecents, 
             const [ip, port] = rows[idx].ip.split(':');
             const newData = await performUDP(ip, parseInt(port));
 
+            setSelected(newData);
+
             if(recentsTab) newData["addedAt"] = v.addedAt;
     
             updateList(p => {
