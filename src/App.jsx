@@ -50,6 +50,7 @@ function App() {
         }
 
         if(isInitialMount.current) {
+            localStorage.clear();
             isInitialMount.current = false;
         }
 

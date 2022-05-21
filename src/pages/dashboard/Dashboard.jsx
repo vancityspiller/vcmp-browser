@@ -33,8 +33,10 @@ function Dashboard() {
     const [featuredList, setFeaturedList] = useState([]);
     const [recentList, setRecentList] = useState([]);
 
-    // track initial render
+    // track renders
     const isInitialMount = useRef(true);
+    const isFinalUnmount = useRef(false);
+    const lastUpdate = useRef(Date.now());
 
     // --------------------------------------------------------- //
 
@@ -57,6 +59,43 @@ function Dashboard() {
     // --------------------------------------------------------- //
 
     useEffect(() => {
+        return () => {
+
+            if(!isFinalUnmount.current) {
+                isFinalUnmount.current = true;
+            }
+        }
+    }, []);
+
+    useEffect(() => {
+
+            return () => {
+
+                if(!isFinalUnmount.current) return;              
+
+                // do we even have anything to save?
+                if(serverList.length === 0) return;
+
+                // check if the last update in serverlists was recent
+                if(Date.now() - lastUpdate.current < 1500) return;
+    
+                const storeObj = {
+                    favs: favs,
+                    recents: recents,
+                    serverList: serverList,
+                    favList: favList,
+                    featuredList: featuredList,
+                    recentList: recentList
+                };
+    
+                localStorage.setItem('servers', JSON.stringify(storeObj));
+            }
+        
+    }, [favs, recents, serverList, favList, featuredList, recentList]);
+
+    // --------------------------------------------------------- //
+
+    useEffect(() => {
 
         const effect = async () => {
             setLoading(true);
@@ -66,17 +105,39 @@ function Dashboard() {
             setFeaturedList([]);
 
             // --------------------------------------------------------- //
-
+            
             const settingsFile = await loadFile('settings.json');
+
+            if(reload === 0) {
+                
+                const storedData = localStorage.getItem('servers');
+                const storedTab = localStorage.getItem('lastTab');
+                
+                // set the tab to last opened one or default if not available
+                setTab(storedTab === null ? settingsFile.master.defaultTab : storedTab);
+
+                if(storedData !== null) {
+                    const storedServers = JSON.parse(storedData);
+                    
+                    setFavs(storedServers.favs);
+                    setRecents(storedServers.recents);
+                    
+                    setServerList(storedServers.serverList);
+                    setFeaturedList(storedServers.featuredList);
+                    setRecentList(storedServers.recentList);
+                    setFavList(storedServers.favList);
+                    
+                    setLoading(false);
+                    return;
+                }
+            }
+
+            // --------------------------------------------------------- //
+
             const {favorites, history} = await loadFile('servers.json');
 
             setFavs(favorites); setRecents(history); 
 
-            if(reload === 0) {
-                // only change tabs if first render
-                setTab(settingsFile.master.defaultTab);
-            }
-            
             let masterServers, featServers, failed = false;
 
             try {
@@ -89,6 +150,7 @@ function Dashboard() {
                 }
 
             } catch (error) {
+                console.log(error);
                 failed = true;
                 setFailed(true);
             }
@@ -104,6 +166,9 @@ function Dashboard() {
                 favorites.forEach(async (v) => {
                     performUDP(v.ip, v.port)
                         .then(async r => {
+
+                            lastUpdate.current = Date.now();
+
                             setFavList(p => {
                                 return [...p, r];
                             });
@@ -118,6 +183,9 @@ function Dashboard() {
                 featServers.data.servers.forEach(async (v) => {
                     performUDP(v.ip, v.port)
                         .then(async r => {
+
+                            lastUpdate.current = Date.now();
+
                             setFeaturedList(p => {
                                 return [...p, r];
                             });
@@ -128,6 +196,9 @@ function Dashboard() {
                 masterServers.data.servers.forEach(async (v) => {
                     performUDP(v.ip, v.port)
                         .then(async r => {
+
+                            lastUpdate.current = Date.now();
+
                             setServerList(p => {
                                 return [...p, r];
                             });
@@ -144,6 +215,8 @@ function Dashboard() {
             history.forEach(async (v) => {
                 performUDP(v.ip, v.port)
                     .then(async r => {
+
+                        lastUpdate.current = Date.now();
 
                         r["addedAt"] = v.addedAt;
                         setRecentList(p => {
@@ -280,6 +353,9 @@ function Dashboard() {
                 }
             }
         };
+
+        // save the current tab to restore it later on
+        if(tab) localStorage.setItem('lastTab', tab);
 
         document.addEventListener('keydown', listener);
 
