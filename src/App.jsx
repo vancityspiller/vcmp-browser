@@ -2,7 +2,6 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Container, Loader } from 'rsuite';
 
 import DraggableHeader from './components/DraggableHeader';
-import { NavStateProvider } from './components/Navbar/Nav.context';
 import SideNavbar from './components/Navbar/Navbar';
 import Dashboard from './pages/dashboard/Dashboard';
 
@@ -60,12 +59,8 @@ function App() {
 
     function NavElement() {
         if(navAddress === 'Dashboard') 
+        return ( <Dashboard /> );
 
-        return ( 
-            <NavStateProvider>
-                <Dashboard /> 
-            </NavStateProvider>
-        );
         return (<React.Fragment />);
     }
 
@@ -76,10 +71,8 @@ function App() {
             <Container>
                 <DraggableHeader />
 
-                <NavStateProvider>
-                    <SideNavbar address={navAddress} setAddress={setNavAddress} />
-                </NavStateProvider>
-                
+                <SideNavbar address={navAddress} setAddress={setNavAddress} />
+             
                 {updating 
                     ? <Loader className='updateLoader' vertical content='Updating...' size='md'/>
                     : <NavElement />
