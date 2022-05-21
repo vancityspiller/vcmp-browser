@@ -24,6 +24,13 @@ function App() {
     // --------------------------------------------------------- //
 
     useEffect(() => {
+        // only on the first mount
+        if(isInitialMount.current) {
+            localStorage.clear();
+        }
+    }, []);
+
+    useEffect(() => {
 
         const effect = async () => {
 
@@ -33,24 +40,30 @@ function App() {
             const settings = await loadFile('settings.json');
 
             if(settings.updater.checkOnStartup) {
-                // await runUpdater(settings.updater);
+                await runUpdater(settings.updater);
+            }
+
+            if(settings.gameDir === '' || settings.playerName === '') {
+                localStorage.setItem('navSwitching', 'false');
+                setNavAddress('Customize');
             }
 
             setUpdating(false);
         }
 
-        // run either on first mount or when manually checking for updates
-        if(isInitialMount.current || update > 0) {
-
+        // only on the first mount
+        if(isInitialMount.current) {
             document.addEventListener('contextmenu', event => {
                 event.preventDefault();
             });
+        }
 
+        // run either on first mount or when manually checking for updates
+        if(isInitialMount.current || update > 0) {
             effect();
         }
 
         if(isInitialMount.current) {
-            localStorage.clear();
             isInitialMount.current = false;
         }
 

@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { Button, Content, Input, InputGroup, InputPicker, Loader, Tooltip } from 'rsuite';
+import { dialog } from '@tauri-apps/api';
+
 import { loadFile, saveFile } from '../../utils/resfile.util';
 
 import OpenIcon from '@rsuite/icons/legacy/FolderOpen';
 import './customize.less';
-import { dialog } from '@tauri-apps/api';
 
 // ========================================================= //
 
@@ -36,8 +37,6 @@ function Customize() {
     
     const [saveEnabled, setSaveEnabled] = useState(false);
     const [inputState, setInputState] = useState({});
-
-    const [onChangesSaved, setChangesSaved] = useState(0);
 
     // --------------------------------------------------------- //
 
@@ -96,6 +95,10 @@ function Customize() {
         n.playerName = inputState.playerName;
         n.gameDir = inputState.gameDir;
         n.master.defaultTab = inputState.defaultTab;
+
+        if((settings.playerName === '' || settings.gameDir === '') && (n.playerName !== '' && n.gameDir !== '')) {
+            localStorage.setItem('navSwitching', 'true');
+        }
 
         saveFile('settings.json', n);
         setSaveEnabled(false);
@@ -156,7 +159,7 @@ function Customize() {
 
         effect();
         
-    }, [onChangesSaved]);
+    }, []);
 
     // --------------------------------------------------------- //
 
