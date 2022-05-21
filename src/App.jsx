@@ -3,6 +3,7 @@ import { Container, Loader } from 'rsuite';
 
 import DraggableHeader from './components/DraggableHeader';
 import SideNavbar from './components/Navbar/Navbar';
+import Customize from './pages/customize/Customize';
 import Dashboard from './pages/dashboard/Dashboard';
 
 import { checkConfig } from './utils/config.utils';
@@ -32,7 +33,7 @@ function App() {
             const settings = await loadFile('settings.json');
 
             if(settings.updater.checkOnStartup) {
-                await runUpdater(settings.updater);
+                // await runUpdater(settings.updater);
             }
 
             setUpdating(false);
@@ -58,8 +59,13 @@ function App() {
     // ========================================================= //
 
     function NavElement() {
-        if(navAddress === 'Dashboard') 
-        return ( <Dashboard /> );
+        if(navAddress === 'Dashboard') {
+            return ( <Dashboard /> );
+        }
+
+        if(navAddress === 'Customize') {
+            return ( <Customize/> );
+        }
 
         return (<React.Fragment />);
     }
