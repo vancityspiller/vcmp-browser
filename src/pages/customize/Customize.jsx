@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { Button, Content, Input, InputGroup, InputPicker, Loader, Tooltip } from 'rsuite';
-import { loadFile } from '../../utils/resfile.util';
+import { loadFile, saveFile } from '../../utils/resfile.util';
 
 import OpenIcon from '@rsuite/icons/legacy/FolderOpen';
 import './customize.less';
+import { dialog } from '@tauri-apps/api';
 
 // ========================================================= //
 
@@ -24,7 +25,7 @@ const listTabs = [
         "label": "Recent",
         "value": "Recent"
     }
-]
+];
 
 // ========================================================= //
 
@@ -32,8 +33,108 @@ function Customize() {
 
     const [settings, setSettings] = useState({});
     const [loading, setLoading] = useState(true);
+    
+    const [saveEnabled, setSaveEnabled] = useState(false);
+    const [inputState, setInputState] = useState({});
+
+    const [onChangesSaved, setChangesSaved] = useState(0);
 
     // --------------------------------------------------------- //
+
+    const handleInputChange = (type, value) => {
+
+        let enableSave = false;
+
+        if(type === 'gamedir') {
+
+            if(value !== settings.gameDir) {
+                enableSave = true;
+            }
+
+            setInputState(p => {
+                const n = {...p};
+                n.gameDir = value;
+                return n;
+            });
+
+        } else if (type === 'playername') {
+            value = value.trim();
+
+            if (value.length > 24) {
+                return;
+            }
+
+            if(value !== settings.playerName && value.length > 0) {
+                enableSave = true;
+            }
+
+            setInputState(p => {
+                const n = {...p};
+                n.playerName = value;
+                return n;
+            });
+        } else if (type === 'defaulttab') {
+            if(value !== settings.master.defaultTab) {
+                enableSave = true;
+            }
+
+            setInputState(p => {
+                const n = {...p};
+                n.defaultTab = value;
+                return n;
+            });
+        }
+
+        setSaveEnabled(enableSave);
+    }
+
+    // --------------------------------------------------------- //
+
+    const handleSave = () => {
+
+        const n = {...settings};
+        n.playerName = inputState.playerName;
+        n.gameDir = inputState.gameDir;
+        n.master.defaultTab = inputState.defaultTab;
+
+        saveFile('settings.json', n);
+        setSaveEnabled(false);
+        setSettings(n);
+    }
+
+    const handleRevert = () => {
+
+        setSaveEnabled(false);
+        setInputState({
+            playerName: settings.playerName,
+            gameDir: settings.gameDir,
+            defaultTab: settings.master.defaultTab
+        });
+    }
+
+    const selectGameDir = () => {
+        dialog.open({
+            directory: false,
+            multiple: false,
+            defaultPath: settings.gameDir ? settings.gameDir : undefined,
+            title: 'Locate gta-vc.exe...',
+            filters: [
+                {
+                    extensions: ['exe'],
+                    name: 'gta-vc.exe'
+                }
+            ]
+        })
+        .then(gamePath => {
+            if(gamePath) {
+                if(gamePath.endsWith('\\gta-vc.exe')) 
+                handleInputChange('gamedir', gamePath.slice(0, gamePath.length - 11));
+            }
+        })
+        .catch(() => {});
+    }
+
+    // ========================================================= //
 
     useEffect(() => {
 
@@ -43,13 +144,19 @@ function Customize() {
 
             const settingsFile = await loadFile('settings.json');
 
-            setSettings(settingsFile);
+            setSettings({...settingsFile});
+            setInputState({
+                playerName: settingsFile.playerName,
+                gameDir: settingsFile.gameDir,
+                defaultTab: settingsFile.master.defaultTab
+            });
+
             setLoading(false);
         }
 
         effect();
         
-    }, []);
+    }, [onChangesSaved]);
 
     // --------------------------------------------------------- //
 
@@ -62,6 +169,8 @@ function Customize() {
     }
 
     const fieldsNotSet = settings.gameDir.length === 0 || settings.playerName.length === 0;
+
+    // --------------------------------------------------------- //
 
     return (
         <React.Fragment>
@@ -81,7 +190,11 @@ function Customize() {
                             </Tooltip>
                             }
 
-                            <Input defaultValue={settings.playerName} className='cszIpt'/>
+                            <Input
+                                value={inputState.playerName} 
+                                className='cszIpt'
+                                onChange={(value) => handleInputChange('playername', value)}
+                            />
                         </div>
 
                         <div className='cszField'>
@@ -94,9 +207,9 @@ function Customize() {
                             }
 
                             <InputGroup className='cszIpt'>
-                                <Input defaultValue={settings.gameDir} readOnly/>
+                                <Input value={inputState.gameDir} readOnly/>
                                 <InputGroup.Button 
-                                    
+                                    onClick={selectGameDir}
                                 >
                                     <OpenIcon />
                                 </InputGroup.Button>
@@ -109,13 +222,27 @@ function Customize() {
 
                         <div className='cszField'>
                             <span>Default dashboard tab:</span>
-                            <InputPicker className='cszIpt cszIptP' data={listTabs} defaultValue={settings.master.defaultTab} cleanable={false}/>
+                            <InputPicker 
+                                className='cszIpt cszIptP' 
+                                data={listTabs} 
+                                value={inputState.defaultTab} 
+                                cleanable={false}
+                                onChange={(value) => handleInputChange('defaulttab', value)}
+                            />
                         </div>
                     </div>
 
                     <div className='cszActions'>
-                        <Button appearance='primary'>Save Changes</Button>
-                        <Button>Revert</Button>
+
+                        <Button 
+                            appearance='primary' 
+                            disabled={!saveEnabled}
+                            onClick={handleSave}
+                        >
+                            Save Changes
+                        </Button>
+
+                        <Button onClick={handleRevert}>Revert</Button>
                     </div>
                 </div>
 

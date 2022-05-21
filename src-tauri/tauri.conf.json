@@ -19,6 +19,9 @@
       "http": {
         "all": true,
         "scope": ["http://master.vc-mp.org/*", "http://v4.vcmp.net/*", "https://dns.google.com/*"]
+      },
+      "dialog": {
+        "open": true
       }
     },
     "bundle": {
