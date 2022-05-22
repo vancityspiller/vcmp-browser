@@ -1,8 +1,7 @@
 extern crate windows;
-extern crate discord_rpc_client;
+use discord_rich_presence::{activity, DiscordIpc, DiscordIpcClient};
 
 use std::net::UdpSocket;
-use discord_rpc_client::Client;
 use std::{thread, time};
 use chrono;
 
@@ -27,8 +26,8 @@ fn discord_presence_init(pid: u32, ip: String, sendString: String, serverName: S
     };
 
     // create a new discord client
-    let mut drpc = Client::new(977909248187052072);
-    drpc.start();
+    let mut client = DiscordIpcClient::new("977909248187052072").unwrap();
+    client.connect().unwrap();
 
     // get timestamp at which we started the game
     let start_at = chrono::Utc::now().timestamp().try_into().unwrap();
@@ -37,14 +36,15 @@ fn discord_presence_init(pid: u32, ip: String, sendString: String, serverName: S
     let plr_str = get_plr_str(ip.to_owned(), sendString.to_owned());
 
     // set initial activity
-    drpc.set_activity(|a| a
+    client.set_activity(
+        activity::Activity::new()
+        .state(&plr_str)
         .details(&serverName)
-        .state(plr_str)
-        .timestamps(|ts| ts
-            .start(start_at)
-        )
-        .assets(|asse| asse
-            .large_image("logo"))).unwrap();
+        .assets(activity::Assets::new()
+            .large_image("logo"))
+        .timestamps(activity::Timestamps::new()
+            .start(start_at))
+    ).unwrap();
 
     loop {
         unsafe {
@@ -58,18 +58,19 @@ fn discord_presence_init(pid: u32, ip: String, sendString: String, serverName: S
             // if process is still running ; update activity
             if exit_code == 259 {
                 let plr_str = get_plr_str(ip.to_owned(), sendString.to_owned());
-                drpc.set_activity(|a| a
+                client.set_activity(
+                    activity::Activity::new()
+                    .state(&plr_str)
                     .details(&serverName)
-                    .state(plr_str)
-                    .timestamps(|ts| ts
-                        .start(start_at)
-                    )
-                    .assets(|asse| asse
-                        .large_image("logo"))).unwrap();
+                    .assets(activity::Assets::new()
+                        .large_image("logo"))
+                    .timestamps(activity::Timestamps::new()
+                        .start(start_at))
+                ).unwrap();
                 
             // if process has exited ; close handle and clear activity
             } else if exit_code != 100  {
-                drpc.clear_activity().unwrap();
+                client.close().unwrap();
                 windows::Win32::Foundation::CloseHandle(p_handle);
 
                 break;     

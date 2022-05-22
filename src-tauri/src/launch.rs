@@ -108,7 +108,7 @@ pub async fn launch_game(dllPath: String, gameDir: String, commandLine: String) 
                 Some(std::mem::transmute(load_lib_addr)), 
                 lp_mem, 
                 0,
-                std::ptr::null()
+                std::ptr::null_mut()
             ).unwrap();
 
             println!("{:?}", windows::Win32::System::Threading::WaitForSingleObject(inject_thread, 100000) == windows::Win32::System::Threading::WAIT_OBJECT_0);
