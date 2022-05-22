@@ -266,7 +266,7 @@ function Dashboard() {
             saveFile('servers.json', {...servers, history: recents});
         }
 
-        if(!isInitialMount) effect();
+        if(!isInitialMount.current) effect();
 
     }, [recents]);
 

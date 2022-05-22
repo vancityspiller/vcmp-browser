@@ -90,7 +90,7 @@ function LaunchModal({progress, setProgress, selected, password, setRecents}) {
 
                         setRecents(p => {
 
-                            if(p.findIndex(v => (v.ip === ip && v.port == port)) === -1) {
+                            if(p.findIndex(v => (v.ip === ip && v.port === port)) === -1) {
                                 return [...p, newRecent];
                             } else {
                                 return p;
