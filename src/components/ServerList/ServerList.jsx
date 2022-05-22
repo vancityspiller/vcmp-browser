@@ -216,14 +216,20 @@ function ServerList({list, updateList, favoriteList, changeFavs, changeRecents, 
             const rawIndex = list.findIndex(v => {
                 return rows[idx].ip === v.ip;
             });
+
+            const current = rows[idx];
     
             const [ip, port] = rows[idx].ip.split(':');
-            const newData = await performUDP(ip, parseInt(port));
+            let newData = await performUDP(ip, parseInt(port));
 
+            if(recentsTab) newData["addedAt"] = current.addedAt;
+
+            if(newData.ping === null)
+            newData = {...newData, ping: 9999, serverName: 'Waiting for server data...', gameMode: '', numPlayer: 0, version: '', password: false, isFavorite: false, players: []};
+            newData.isFavorite = current.isFavorite;
+            
             setSelected(newData);
 
-            if(recentsTab) newData["addedAt"] = v.addedAt;
-    
             updateList(p => {
                 const n = [...p];
                 n[rawIndex] = newData;
