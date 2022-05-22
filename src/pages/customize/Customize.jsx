@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Button, Content, Input, InputGroup, InputPicker, Loader, Tooltip } from 'rsuite';
+import { Button, Content, Input, InputGroup, InputPicker, Loader, Toggle, Tooltip } from 'rsuite';
 import { dialog } from '@tauri-apps/api';
 
 import { loadFile, saveFile } from '../../utils/resfile.util';
@@ -82,6 +82,16 @@ function Customize() {
                 n.defaultTab = value;
                 return n;
             });
+        } else if (type === 'rpc') {
+            if(value !== settings.enableRichPresence) {
+                enableSave = true;
+            }
+
+            setInputState(p => {
+                const n = {...p};
+                n.discordRP = value;
+                return n;
+            });
         }
 
         setSaveEnabled(enableSave);
@@ -95,6 +105,7 @@ function Customize() {
         n.playerName = inputState.playerName;
         n.gameDir = inputState.gameDir;
         n.master.defaultTab = inputState.defaultTab;
+        n.enableRichPresence = inputState.discordRP;
 
         if((settings.playerName === '' || settings.gameDir === '') && (n.playerName !== '' && n.gameDir !== '')) {
             localStorage.setItem('navSwitching', 'true');
@@ -111,7 +122,8 @@ function Customize() {
         setInputState({
             playerName: settings.playerName,
             gameDir: settings.gameDir,
-            defaultTab: settings.master.defaultTab
+            defaultTab: settings.master.defaultTab,
+            discordRP: settings.enableRichPresence
         });
     }
 
@@ -151,7 +163,8 @@ function Customize() {
             setInputState({
                 playerName: settingsFile.playerName,
                 gameDir: settingsFile.gameDir,
-                defaultTab: settingsFile.master.defaultTab
+                defaultTab: settingsFile.master.defaultTab,
+                discordRP: settingsFile.enableRichPresence
             });
 
             setLoading(false);
@@ -200,7 +213,7 @@ function Customize() {
                             />
                         </div>
 
-                        <div className='cszField'>
+                        <div className='cszField cszFieldMargin'>
                             <span>Game Directory:</span> 
 
                             {fieldsNotSet &&
@@ -231,6 +244,15 @@ function Customize() {
                                 value={inputState.defaultTab} 
                                 cleanable={false}
                                 onChange={(value) => handleInputChange('defaulttab', value)}
+                            />
+                        </div>
+
+                        <div className='cszField cszFieldMargin'>
+                            <span>Discord Rich Presence:</span>
+                            <Toggle 
+                                className='cszIptT'
+                                checked={inputState.discordRP}
+                                onChange={(value) => handleInputChange('rpc', value)}
                             />
                         </div>
                     </div>
