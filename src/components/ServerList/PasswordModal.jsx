@@ -41,6 +41,9 @@ function PasswordModal({open, setOpen, selected, next, password, setPassword}) {
     }
 
     const handleLaunch = () => {
+
+        if(password.trim().length === 0) return;
+
         savePassword(password);
         handleClose();
         next();
@@ -86,11 +89,11 @@ function PasswordModal({open, setOpen, selected, next, password, setPassword}) {
             <Modal.Body>
 
                 <Input
+                    autoFocus
                     placeholder={loading ? 'Checking saved passwords...' : 'Server Password'}
                     value={password}
-                    disabled={loading}
                     onChange={(value) => setPassword(value)}
-                    autoFocus
+                    onPressEnter={handleLaunch}
                     type='password'
                 >
                 </Input>
