@@ -10,5 +10,6 @@
     "defaultTab": "Favorites"
   },
   "playerName": "",
-  "gameDir": ""
+  "gameDir": "",
+  "enableRichPresence": true
 }

@@ -2,6 +2,8 @@ extern crate windows;
 use widestring::WideCString;
 use std::process::Command;
 
+// ------------------------------------------------------------------------------------------------ //
+
 #[tauri::command]
 #[allow(non_snake_case)]
 pub async fn launch_game(dllPath: String, gameDir: String, commandLine: String) -> Result<String, String>
@@ -33,6 +35,8 @@ pub async fn launch_game(dllPath: String, gameDir: String, commandLine: String) 
         }
 
     }
+
+    // ------------------------------------------------------------------------------------------------ //
     
     // build DLL path
     let dll_file_path = std::path::Path::new(&dllPath);
@@ -87,6 +91,7 @@ pub async fn launch_game(dllPath: String, gameDir: String, commandLine: String) 
         return Err("Failed to write memory".to_string());
     }
     
+    // ------------------------------------------------------------------------------------------------ //
     /*
     ** I could not find a way to load dll through rust ; I tried both windows-rs and winapi-rs crates 
     ** Matter of fact, no implementation of rust dll injectors from the web work ; I believe the issue is trying to inject into 32bit process from 64bit, so need to use a external 32bit injector
@@ -111,14 +116,17 @@ pub async fn launch_game(dllPath: String, gameDir: String, commandLine: String) 
     ** So the only alternative was to bundle an .exe injector with the application
     ** https://github.com/nefarius/Injector
     */
+    // ------------------------------------------------------------------------------------------------ //
 
     Command::new("injector.exe")
         .args(["-p", &pi.dwProcessId.to_string(), "--inject", &dllPath])
-        .spawn()
+        .status()
         .unwrap();
 
     unsafe { windows::Win32::System::Threading::ResumeThread(pi.hThread); }
 
     // all done
-    return Ok("".into());
+    return Ok(pi.dwProcessId.to_string().into());
 }
+
+// ------------------------------------------------------------------------------------------------ //
