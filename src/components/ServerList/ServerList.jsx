@@ -121,7 +121,7 @@ function ServerList({list, updateList, favoriteList, changeFavs, changeRecents, 
             });
 
             if(fIdx === -1) {
-                return v;
+                return {...v, isFavorite: false};
             }
 
             if(recentsTab) {
