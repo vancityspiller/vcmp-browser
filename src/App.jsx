@@ -3,6 +3,7 @@ import { Container, Loader } from 'rsuite';
 
 import DraggableHeader from './components/DraggableHeader';
 import SideNavbar from './components/Navbar/Navbar';
+import About from './pages/about/About';
 import Customize from './pages/customize/Customize';
 import Dashboard from './pages/dashboard/Dashboard';
 
@@ -78,6 +79,10 @@ function App() {
 
         if(navAddress === 'Customize') {
             return ( <Customize/> );
+        }
+
+        if(navAddress === 'About') {
+            return ( <About /> );
         }
 
         return (<React.Fragment />);
