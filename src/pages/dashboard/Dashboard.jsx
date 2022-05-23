@@ -142,7 +142,9 @@ function Dashboard() {
 
             try {
                 masterServers = await http.fetch(`${settingsFile.master.url}servers`);
-                featServers = await http.fetch(`${settingsFile.master.url}official`);    
+
+                const featuredUrl = settingsFile.master.useLegacy ? `${settingsFile.master.url}official` : 'https://v4.vcmp.net/featured';
+                featServers = await http.fetch(featuredUrl);    
 
                 if(!masterServers.data.hasOwnProperty('servers') || !featServers.data.hasOwnProperty('servers')) {
                     failed = true;
