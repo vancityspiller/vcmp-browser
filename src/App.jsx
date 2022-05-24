@@ -1,5 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Container, Loader } from 'rsuite';
+import { Container, Loader, Notification } from 'rsuite';
+
+import { dialog } from '@tauri-apps/api';
+import { appWindow } from '@tauri-apps/api/window';
 
 import DraggableHeader from './components/DraggableHeader';
 import SideNavbar from './components/Navbar/Navbar';
@@ -20,6 +23,7 @@ function App() {
 
     const [update, setUpdate] = useState(0);
     const [updating, setUpdating] = useState(true);
+    const [updFailed, setUpdFailed] = useState(false);
 
     const isInitialMount = useRef(true);
 
@@ -37,12 +41,25 @@ function App() {
         const effect = async () => {
 
             setUpdating(true);
+            setUpdFailed(false);
 
-            await checkConfig();
+            // try-catch for any fatal errors
+            try {
+                await checkConfig();
+            } catch (e) {
+                dialog.message(`Fatal Error: ${e}! Program will exit.`)
+                .then(() => appWindow.close());
+            }
+
             const settings = await loadFile('settings.json');
 
             if(settings.updater.checkOnStartup) {
-                await runUpdater(settings.updater);
+                try {
+                    await runUpdater(settings.updater);
+                    throw new Error("a");
+                } catch (e) {
+                    setUpdFailed(true);
+                }
             }
 
             if(settings.gameDir === '' || settings.playerName === '') {
@@ -101,11 +118,18 @@ function App() {
                 <DraggableHeader />
 
                 <SideNavbar address={navAddress} setAddress={setNavAddress} />
+
+                {updFailed &&
+                    <Notification closable type='error' className='notificationDiv' header='Error'>
+                        Failed to fetch update!
+                    </Notification>
+                }
              
                 {updating 
                     ? <Loader className='updateLoader' vertical content='Updating...' size='md'/>
                     : <NavElement />
                 }
+                
             </Container>
         </React.Fragment>
     );
