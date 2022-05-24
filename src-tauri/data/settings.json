@@ -1,6 +1,6 @@
 {
   "updater": {
-    "url": "http://v4.vcmp.net/updater/",
+    "url": "https://v4.vcmp.net/updater/",
     "password": "",
     "checkOnStartup": true
   },

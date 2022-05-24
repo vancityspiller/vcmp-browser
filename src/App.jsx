@@ -6,6 +6,7 @@ import SideNavbar from './components/Navbar/Navbar';
 import About from './pages/about/About';
 import Customize from './pages/customize/Customize';
 import Dashboard from './pages/dashboard/Dashboard';
+import Settings from './pages/settings/Settings';
 
 import { checkConfig } from './utils/config.utils';
 import { loadFile } from './utils/resfile.util';
@@ -83,6 +84,10 @@ function App() {
 
         if(navAddress === 'About') {
             return ( <About /> );
+        }
+
+        if(navAddress === 'Settings') {
+            return ( <Settings /> );
         }
 
         return (<React.Fragment />);

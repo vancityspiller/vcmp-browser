@@ -18,7 +18,14 @@
       },
       "http": {
         "all": true,
-        "scope": ["http://master.vc-mp.org/*", "http://v4.vcmp.net/*", "https://v4.vcmp.net/*", "https://dns.google.com/*"]
+        "scope": [
+          "http://master.vc-mp.org/*", 
+          "https://u04.vc-mp.org/*", 
+          "https://v4.vcmp.net/*", 
+          "https://master.thijn.ovh/*",
+          "https://u04.thijn.ovh/*",
+          "https://dns.google.com/*"
+        ]
       },
       "dialog": {
         "open": true
