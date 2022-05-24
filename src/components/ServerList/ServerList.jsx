@@ -493,7 +493,7 @@ function ServerList({list, updateList, favoriteList, changeFavs, changeRecents, 
                                 
                                 <span className='srvItemMode'>
                                     {recentsTab 
-                                        ? <TimeAgo datetime={element.addedAt} />
+                                        ? <TimeAgo datetime={element.addedAt} opts={{minInterval: 15}}/>
                                         : (element.gameMode.length > 20 ? (element.gameMode.slice(0, 20) + '...') : element.gameMode)
                                     }
                                 </span>

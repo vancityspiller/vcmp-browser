@@ -259,7 +259,20 @@ function Dashboard() {
                     return [...p, fetched];
 
                 } else {
-                    return p;
+
+                    const n = [...p];
+
+                    // if its the same number, check if something has changed
+                    recents.forEach(r => {
+                        const at = n.findIndex(v1 => {
+                            const [ip, port] = v1.ip.split(':');
+                            return r.ip === ip && r.port === parseInt(port);
+                        });
+
+                        n[at].addedAt = r.addedAt;
+                    });
+
+                    return n;
                 }
             });
 

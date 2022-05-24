@@ -90,10 +90,15 @@ function LaunchModal({progress, setProgress, selected, password, setRecents}) {
 
                         setRecents(p => {
 
-                            if(p.findIndex(v => (v.ip === ip && v.port === port)) === -1) {
+                            const found = p.findIndex(v => (v.ip === ip && v.port === parseInt(port)));
+                            if(found === -1) {
                                 return [...p, newRecent];
+
                             } else {
-                                return p;
+                                
+                                const n = [...p];
+                                n[found] = newRecent;
+                                return n;
                             }
                         });
 
