@@ -42,7 +42,7 @@ function Customize() {
 
     const handleInputChange = (type, value) => {
 
-        let enableSave = false;
+        let enableSave = saveEnabled;
 
         if(type === 'gamedir') {
 

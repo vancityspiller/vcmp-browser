@@ -54,7 +54,7 @@ function Settings({setUpdate}) {
 
     const handleInputChange = (type, value) => {
 
-        let enableSave = false;
+        let enableSave = saveEnabled;
 
         if(type === 'masterurl') {
 
