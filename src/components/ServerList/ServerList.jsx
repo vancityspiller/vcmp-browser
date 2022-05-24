@@ -244,6 +244,12 @@ function ServerList({list, updateList, favoriteList, changeFavs, changeRecents, 
 
     }, [rows]);
 
+    const handleDirectLaunch = useCallback((idx) => {
+        setSelected({...rows[idx]});
+        rows[idx]?.password ? actLaunchPassword() : actLaunchRequested();
+
+    }, [selected]);
+
     // --------------------------------------------------------- //
 
     const srvList = useRef();
@@ -487,7 +493,10 @@ function ServerList({list, updateList, favoriteList, changeFavs, changeRecents, 
                             <div 
                                 className={`srvItem ${drawerOpen && selected?.ip === element.ip ? 'srvItem-selected' : ''}`} 
                                 key={element.ip} 
-                                onClick={() => handleSelect(idx)}
+                                onClick={(e) => {
+                                    e.ctrlKey ? handleDirectLaunch(idx) : handleSelect(idx)
+                                }}
+                                onAuxClick={() => handleDirectLaunch(idx)}
                                 onContextMenu={(event) => handleContextMenuOpen(idx, event)}                                
                             >
                                 <span className='srvItemLocked'>{element.password ? <LockIcon /> : ''}</span>
