@@ -1,9 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { Button, Content, Input, InputGroup, InputPicker, Loader, Toggle } from 'rsuite';
+import { Button, Content, Input, InputPicker, Loader, Toggle } from 'rsuite';
 
 import { loadFile, saveFile } from '../../utils/resfile.util';
 
-import OpenIcon from '@rsuite/icons/legacy/FolderOpen';
 import './settings.less';
 
 // ========================================================= //
@@ -35,20 +34,15 @@ const listMasters = [
 ];
 
 const defaultValues = {
-    "updater": {
-        "url": "https://v4.vcmp.net/updater/",
-        "password": "",
-        "checkOnStartup": true
-    },
-    "master": {
-        "url": "http://master.vc-mp.org/",
-        "useLegacy": false
-    }
+    masterUrl: "http://master.vc-mp.org/",
+    useLegacy: false,
+    updaterUrl: "https://v4.vcmp.net/updater/",
+    checkOnStartup: true
 };
 
 // ========================================================= //
 
-function Settings() {
+function Settings({setUpdate}) {
 
     const [settings, setSettings] = useState({});
     const [loading, setLoading] = useState(true);
@@ -162,6 +156,23 @@ function Settings() {
 
     // --------------------------------------------------------- //
 
+    const handleRestore = () => {
+        
+        setInputState({...defaultValues});
+
+        const n = {...settings};
+        n.master.url = defaultValues.masterUrl;
+        n.master.useLegacy = defaultValues.useLegacy;
+        n.updater.url = defaultValues.updaterUrl;
+        n.updater.checkOnStartup = defaultValues.checkOnStartup;
+
+        saveFile('settings.json', n);
+        setSaveEnabled(false);
+        setSettings(n);
+    }
+
+    // --------------------------------------------------------- //
+
     if(loading) {
         return (
             <Content>
@@ -190,6 +201,16 @@ function Settings() {
                                 value={inputState.updaterUrl} 
                                 cleanable={false}
                                 onChange={(value) => handleInputChange('updaterurl', value)}
+                            />
+                        </div>
+
+                        <div className='sttField sttFieldRight'>
+                            <span>Password:</span>
+
+                            <Input
+                                className='sttIpt' 
+                                placeholder='Currently obsolete'
+                                disabled
                             />
                         </div>
 
@@ -239,6 +260,15 @@ function Settings() {
                         </Button>
 
                         <Button onClick={handleRevert}>Revert</Button>
+                    </div>
+
+                    <div className='sttActionsRight'>
+
+                        <Button onClick={() => setUpdate(p => p + 1)}>
+                            Check for updates
+                        </Button>
+
+                        <Button onClick={handleRestore}>Restore Defaults</Button>
                     </div>
                 </div>
                 

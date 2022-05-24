@@ -87,7 +87,7 @@ function App() {
         }
 
         if(navAddress === 'Settings') {
-            return ( <Settings /> );
+            return ( <Settings setUpdate={setUpdate}/> );
         }
 
         return (<React.Fragment />);
