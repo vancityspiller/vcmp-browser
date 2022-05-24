@@ -206,12 +206,15 @@ function ServerList({list, updateList, favoriteList, changeFavs, changeRecents, 
 
     // --------------------------------------------------------- //
 
-    const handleSelect = useCallback((idx) => {
+    const handleSelect = useCallback((idx, dontUpdate = false) => {
 
         const cb = async () => {
 
             setSelected({...rows[idx]});
             setDrawerOpen(true);
+
+            // if changing via arrow keys, don't update server info or will cause sync issues
+            if(dontUpdate) return;
 
             const rawIndex = list.findIndex(v => {
                 return rows[idx].ip === v.ip;
@@ -260,7 +263,7 @@ function ServerList({list, updateList, favoriteList, changeFavs, changeRecents, 
                         const next = current + 1;
 
                         srvList.current.scrollTop += 15;
-                        handleSelect(next);
+                        handleSelect(next, true);
 
                     } else if(event.key === 'ArrowUp') {
 
@@ -270,7 +273,7 @@ function ServerList({list, updateList, favoriteList, changeFavs, changeRecents, 
                         const next = current - 1;
 
                         srvList.current.scrollTop -= 15;
-                        handleSelect(next);
+                        handleSelect(next, true);
                     }
                 }
             }
