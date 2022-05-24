@@ -7,7 +7,7 @@ import { buildVersions, checkVersions, downloadVersion } from '../../utils/updat
 
 // ========================================================= //
 
-function LaunchModal({progress, setProgress, selected, password, setRecents}) {
+function LaunchModal({progress, setProgress, selected, password, setRecents, buildMode}) {
 
     const [open, setOpen] = useState(false);
     const [error, setError] = useState('');
@@ -102,7 +102,9 @@ function LaunchModal({progress, setProgress, selected, password, setRecents}) {
                             }
                         });
 
-                        const commandLine = !selected.password ? `-c -h ${ip} -c -p ${port} -n ${settings.current.playerName}` : `-c -h ${ip} -c -p ${port} -n ${settings.current.playerName} -z ${password}`;
+                        let commandLine = !selected.password ? `-c -h ${ip} -c -p ${port} -n ${settings.current.playerName}` : `-c -h ${ip} -c -p ${port} -n ${settings.current.playerName} -z ${password}`;
+                        if(buildMode.current) commandLine += ' -d';
+
                         const pid = await invoke("launch_game", {dllPath: `${resDirPath}versions\\${selected.version}\\vcmp-game.dll`, gameDir: settings.current.gameDir, commandLine: commandLine});
                         
                         if(settings.current.enableRichPresence === true) { 

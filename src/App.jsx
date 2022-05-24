@@ -56,7 +56,6 @@ function App() {
             if(settings.updater.checkOnStartup) {
                 try {
                     await runUpdater(settings.updater);
-                    throw new Error("a");
                 } catch (e) {
                     setUpdFailed(true);
                 }

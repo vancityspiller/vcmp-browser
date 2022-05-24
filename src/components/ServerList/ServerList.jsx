@@ -361,6 +361,7 @@ function ServerList({list, updateList, favoriteList, changeFavs, changeRecents, 
     const [passwordModal, setPasswordModal] = useState(false);
     const [enteredPassword, setEnteredPassword] = useState('');
     const [launchProgress, setLaunchProgress] = useState('');
+    const buildMode = useRef(false);
 
     const actLaunchRequested = useCallback(() => {
         setPasswordModal(false);
@@ -399,6 +400,7 @@ function ServerList({list, updateList, favoriteList, changeFavs, changeRecents, 
 
         switch(key) {
             case 1:
+                buildMode.current = false;
                 selected?.password ? actLaunchPassword() : actLaunchRequested();
                 break;
 
@@ -414,6 +416,12 @@ function ServerList({list, updateList, favoriteList, changeFavs, changeRecents, 
 
             case 4: {
                 actCopyInfo('info');
+                break;
+            }
+
+            case 5: {
+                buildMode.current = true;
+                selected?.password ? actLaunchPassword() : actLaunchRequested();
                 break;
             }
         }
@@ -470,6 +478,7 @@ function ServerList({list, updateList, favoriteList, changeFavs, changeRecents, 
                             <Dropdown.Item eventKey={2}>{selected?.isFavorite ? 'Remove Favorite' : 'Set Favorite'}</Dropdown.Item>
                             <Dropdown.Item eventKey={3}>Copy IP</Dropdown.Item>
                             <Dropdown.Item disabled={selected?.ping === 9999} eventKey={4}>Copy Info</Dropdown.Item>
+                            <Dropdown.Item disabled={selected?.ping === 9999} eventKey={5}>Build Mode</Dropdown.Item>
                         </Dropdown.Menu>
                     </Popover>
 
@@ -527,7 +536,7 @@ function ServerList({list, updateList, favoriteList, changeFavs, changeRecents, 
             <ServerInfoDrawer open={drawerOpen} handleClose={handleDrawerClose} data={selected} handleFavorite={actHandleFavorite} handleCopy={actCopyInfo} handleLaunch={selected?.password ? actLaunchPassword : actLaunchRequested}/>
             <PasswordModal open={passwordModal} setOpen={setPasswordModal} selected={selected} next={actLaunchRequested} password={enteredPassword} setPassword={setEnteredPassword}/>
 
-            <LaunchModal progress={launchProgress} setProgress={setLaunchProgress} selected={selected} password={enteredPassword} setRecents={changeRecents}/>
+            <LaunchModal progress={launchProgress} setProgress={setLaunchProgress} selected={selected} password={enteredPassword} setRecents={changeRecents} buildMode={buildMode}/>
                 
         </React.Fragment>
     );
