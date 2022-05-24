@@ -10,7 +10,7 @@ function CustomIcon({title, icon, clickCb, selected, exClass}) {
                 speaker={<Tooltip>{title}</Tooltip>}
             >
                 <div className={`nvIconHolder ${selected ? 'nvIconHolderSelected' : (exClass ? '' : 'nvIconHolder-unselected')}${exClass ? exClass : ''}`} onClick={clickCb}>
-                    <img src={icon} className={`nvIcon ${selected ? 'nvIconSelected' : ''}`}/>
+                    <img src={icon} className={`nvIcon ${selected ? 'nvIconSelected' : ''} ${exClass ? '' : 'nvIcon2'}`}/>
                 </div>
             </Whisper>
         </React.Fragment>

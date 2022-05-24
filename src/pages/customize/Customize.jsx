@@ -224,7 +224,7 @@ function Customize() {
 
                             <InputGroup className='cszIpt'>
                                 <Input value={inputState.gameDir} readOnly/>
-                                <InputGroup.Button 
+                                <InputGroup.Button appearance='primary'
                                     onClick={selectGameDir}
                                 >
                                     <OpenIcon />

@@ -8,14 +8,15 @@
 .nvWrapper {
     position: absolute;
     top: 30vh;
-    left: 30px;
 }
 
+// --------------------------------------------------------- //
+
 .nvIconHolder {
-    margin-top: 20px;
+    width: 80px;
+    margin-top: 10px;
     padding: 2px 4px;
-    border: 2px solid rgba(255, 255, 255, 0);
-    border-radius: 5px;
+    height: 40px;
 }
 
 .nvIconHolder-unselected {
@@ -26,17 +27,27 @@
 }
 
 .nvIconHolderSelected {
-    border: 2px #c04ce4a8 solid;
+    background: rgb(134,8,134);
+    background: linear-gradient(260deg, rgba(134, 8, 134, 0.247) 0%, rgba(250, 154, 255, 0.288) 100%);
 }
+
+// --------------------------------------------------------- //
 
 .nvIcon {
     filter: invert(54%) sepia(15%) saturate(269%) hue-rotate(243deg) brightness(97%) contrast(94%);
     width: 15px;
 }
 
+.nvIcon2 {
+    margin-top: 11px;
+    margin-left: 29px;
+}
+
 .nvIconSelected {
     filter: invert(50%) sepia(92%) saturate(4121%) hue-rotate(259deg) brightness(93%) contrast(92%);
 }
+
+// --------------------------------------------------------- //
 
 .nvLogo {
     width: 50px;
@@ -46,6 +57,11 @@
 }
 
 .nvClose {
+    margin-top: 20px;
+    padding: 2px 4px;
+    border: 2px solid rgba(255, 255, 255, 0);
+    border-radius: 5px;
+
     bottom: 20px;
     left: 20px;
 
@@ -61,3 +77,5 @@
 
     position: absolute;
 }
+
+// --------------------------------------------------------- //
