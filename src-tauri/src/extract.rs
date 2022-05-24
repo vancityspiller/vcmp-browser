@@ -5,6 +5,7 @@ use std::os::windows::ffi::{OsStrExt, OsStringExt};
 use std::io::prelude::*;
 use std::io::BufWriter;
 use std::fs::File;
+use std::fs::create_dir;
 
 // ------------------------------------------------------------------------------------------------ //
 
@@ -38,6 +39,8 @@ pub async fn extract7z(path: String, dest: String) -> Result<String, String>{
 			let fname = w2u(file.path);
 
             if file.size == 0 {
+
+				create_dir(format!("{}\\{}", &dest, &fname)).unwrap();
                 continue;
             }
 

@@ -496,7 +496,6 @@ function ServerList({list, updateList, favoriteList, changeFavs, changeRecents, 
                                 onClick={(e) => {
                                     e.ctrlKey ? handleDirectLaunch(idx) : handleSelect(idx)
                                 }}
-                                onAuxClick={() => handleDirectLaunch(idx)}
                                 onContextMenu={(event) => handleContextMenuOpen(idx, event)}                                
                             >
                                 <span className='srvItemLocked'>{element.password ? <LockIcon /> : ''}</span>

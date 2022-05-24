@@ -20,6 +20,7 @@ function ServerInfoDrawer({open, handleClose, data, handleFavorite, handleCopy, 
     const getPlayersObj = useMemo(() => {
 
         if(!data) return [];
+        if(!data.players) return [];
 
         return data.players.map(v => {
             return {
@@ -39,7 +40,7 @@ function ServerInfoDrawer({open, handleClose, data, handleFavorite, handleCopy, 
                 onClose={handleClose}
             >
             
-            {data &&
+            {data && open &&
             <React.Fragment>
                 <Drawer.Header>
                     <Drawer.Title>{data.serverName}</Drawer.Title>

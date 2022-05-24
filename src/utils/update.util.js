@@ -85,6 +85,11 @@ export async function downloadVersion(updater, version) {
                         .then(async entries => {
 
                             const savePath = `${resDirPath}versions\\${version}\\`;
+                            
+                            let savePathAlt = savePath;
+                            if(savePath.startsWith('\\\\?\\')) {
+                                savePathAlt = savePath.slice(4);
+                            }
 
                             if(entries.findIndex(entry => entry.name === version) === -1) {
                                 await fs.createDir(savePath);
@@ -93,11 +98,9 @@ export async function downloadVersion(updater, version) {
                                 await fs.createDir(savePath);
                             }
 
-                            fs.createDir(`${savePath}images`);
-
                             fs.writeBinaryFile({contents: r.data, path: `${savePath}version.7z`})
                                 .then(() => {
-                                    invoke("extract7z", {path: `${savePath}version.7z`, dest: savePath})
+                                    invoke("extract7z", {path: `${savePathAlt}version.7z`, dest: savePathAlt})
                                         .then(() => {
                                             fs.removeFile(`${savePath}version.7z`)
                                                 .then(() => resolve())
@@ -119,18 +122,24 @@ export async function buildVersions() {
     
         path.resourceDir()
             .then(resDirPath => {
-                fs.readDir(`${resDirPath}versions`)
+                fs.readDir(`${resDirPath}versions`, {recursive: true})
                     .then(async entries => {
 
                         const versionList = await Promise.all(entries.map(entry => {
-                            return fs.readTextFile(`${resDirPath}versions\\${entry.name}\\version.txt`);
-                        }));
+
+                            if(entry.children && (entry.children.findIndex(v => v.name === 'version.txt') !== -1)) {
+                                 return fs.readTextFile(`${resDirPath}versions\\${entry.name}\\version.txt`);
+                            } else {
+                                return new Promise(resolve => resolve(null));
+                            }
+                        }));                    
 
                         versionList.forEach((v, i) => {
+                            if(v === null) return;
                             versions[entries[i].name] = v;
                         });
-
-                        resolve(versions);      
+                        
+                        resolve(versions);
                     });
             });
     });
