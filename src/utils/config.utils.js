@@ -1,4 +1,4 @@
-import { fs, path } from "@tauri-apps/api";
+import { fs, os, path } from "@tauri-apps/api";
 
 // ======================================================= //
 
@@ -30,7 +30,7 @@ const fallback = {
 
 export async function checkConfig() {
 
-    return new Promise((resolve) => {
+    return new Promise((resolve, reject) => {
         path.resourceDir()
         .then(resDirPath => {
 
@@ -44,6 +44,22 @@ export async function checkConfig() {
 
                     if(entries.findIndex(entry => entry.name === 'versions') === -1) {
                         await fs.createDir(resDirPath + 'versions');
+                    }
+
+                    // is there 7zip dll
+                    if(entries.findIndex(entry => entry.name === '7z.dll') === -1) {
+
+                        // if not, is there a directory with those
+                        if(entries.findIndex(entry => entry.name === '7z') === -1) {
+                            reject('7zip resources not found');
+                            return;
+
+                        } else {
+                            const arch = await os.arch();
+                            const dllV = arch === 'x86' ? 32 : 64;
+
+                            await fs.copyFile(`${resDirPath}7z\\7z${dllV}.dll`, `${resDirPath}7z.dll`);
+                        }
                     }
 
                     fs  .readDir(resDirPath + 'data')
@@ -61,10 +77,10 @@ export async function checkConfig() {
                         })
                         .catch();
                 })
-                .catch();
+                .catch(() => reject('Could not read resource directory'));
         })
-        .catch();
+        .catch(() => reject('Could not read path to resource directory'));
     })
 }
 
-// ======================================================= //
+// ------------------------------------------------------- //
