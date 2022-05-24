@@ -47,7 +47,7 @@ function About() {
                 <span className='abtSubTitle'>vcmp-browser v{version} <span>[tauri]</span></span>
 
                 <div className='abtTeam abtDev'>
-                    <Avatar src={SpiAvatar} circle size='lg'/>
+                    <Avatar src={SpiAvatar} circle size='lg'>S</Avatar>
                     <div className='abtTeamHolder'>
                         <div className='abtRole'>development</div>
                         <div className='abtName'>Spiller</div>
@@ -55,7 +55,7 @@ function About() {
                 </div>
 
                 <div className='abtTeam abtTest'>
-                    <Avatar src={OvAvatar} circle size='lg'/>
+                    <Avatar src={OvAvatar} circle size='lg'>O</Avatar>
                     <div className='abtTeamHolder'>
                         <div className='abtRole'>testing</div>
                         <div className='abtName'>OneVice Staff</div>
