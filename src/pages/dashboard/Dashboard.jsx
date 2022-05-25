@@ -152,7 +152,6 @@ function Dashboard() {
                 }
 
             } catch (error) {
-                console.log(error);
                 failed = true;
                 setFailed(true);
             }
@@ -288,6 +287,8 @@ function Dashboard() {
     // --------------------------------------------------------- //
 
     useEffect(() => {
+
+        if(favs.length === 0) return;
       
         const effect = async() => {
 
