@@ -74,6 +74,36 @@ export async function checkConfig() {
                         }
                     }
 
+                    // ------------------------------------------------------- //
+
+                    // is there VCMP folder
+                    const appDataPath = await path.dataDir();
+                    const appDataEntries = await fs.readDir(appDataPath);
+
+                    // if not, create it and all subdirectories
+                    if(appDataEntries.findIndex(v => v.name === 'VCMP') === -1) {
+                        await fs.createDir(appDataPath + 'VCMP');
+                        await fs.createDir(appDataPath + 'VCMP\\04beta');
+                        await fs.createDir(appDataPath + 'VCMP\\04beta\\store');
+                    } else {
+
+                        // otherwise check if subdirs exist
+                        const VCMPEntries = await fs.readDir(appDataPath + 'VCMP');
+
+                        if(VCMPEntries.findIndex(v => v.name === '04beta') === -1) {
+                            await fs.createDir(appDataPath + 'VCMP\\04beta');
+                            await fs.createDir(appDataPath + 'VCMP\\04beta\\store');
+                        } else {
+
+                            const BetaEntries = await fs.readDir(appDataPath + 'VCMP\\04beta');
+                            if(BetaEntries.findIndex(v => v.name === 'store') === -1) {
+                                await fs.createDir(appDataPath + 'VCMP\\04beta\\store');
+                            }
+                        }
+                    }
+
+                    // ------------------------------------------------------- //
+
                     fs  .readDir(resDirPath + 'data')
                         .then(async entries => {
 
