@@ -1,6 +1,7 @@
 import { invoke, path } from '@tauri-apps/api';
 import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { Button, Loader, Modal } from 'rsuite';
+import { downloadFiles } from '../../utils/httpd.utils';
 
 import { loadFile } from '../../utils/resfile.util';
 import { buildVersions, checkVersions, downloadVersion } from '../../utils/update.util';
@@ -38,7 +39,7 @@ function LaunchModal({progress, setProgress, selected, password, setRecents, bui
 
                 case 'builds': {
                     const downloadedVersions = await buildVersions();
-                    setProgress(downloadedVersions.hasOwnProperty(selected.version) ? 'launch' : 'check');
+                    setProgress(downloadedVersions.hasOwnProperty(selected.version) ? 'httpd' : 'check');
                     break;
                 }
 
@@ -66,7 +67,7 @@ function LaunchModal({progress, setProgress, selected, password, setRecents, bui
                 case 'download': {
                     try {
                         await downloadVersion(settings.current.updater, selected.version);
-                        setProgress('launch');
+                        setProgress('httpd');
 
                     } catch (e) {
                         setError(`Version ${selected.version} could not be downloaded successfully!`);
@@ -74,6 +75,12 @@ function LaunchModal({progress, setProgress, selected, password, setRecents, bui
                         localStorage.setItem('navSwitching', 'true');
                         break;
                     }
+                    break;
+                }
+
+                case 'httpd': {
+                    await downloadFiles(selected.ip);
+                    setProgress('launch');
                     break;
                 }
 
@@ -147,6 +154,8 @@ function LaunchModal({progress, setProgress, selected, password, setRecents, bui
                 return `Checking updater`;
             case 'download':
                 return `Downloading version ${selected.version}`;
+            case 'httpd':
+                return 'Downloading server store files';
             case 'launch':
                 return 'Launching game';
             default: return '';

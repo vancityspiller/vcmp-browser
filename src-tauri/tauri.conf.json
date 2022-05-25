@@ -14,7 +14,7 @@
     "allowlist": {
       "all": true,
       "fs": {
-        "scope": ["$RESOURCE", "$RESOURCE/*"]
+        "scope": ["$RESOURCE", "$RESOURCE/*", "$DATA", "$DATA/*"]
       },
       "http": {
         "all": true,
@@ -24,6 +24,7 @@
           "https://v4.vcmp.net/*", 
           "https://master.thijn.ovh/*",
           "https://u04.thijn.ovh/*",
+          "https://serverfiles.vcmp.net/uploads/*",
           "https://dns.google.com/*"
         ]
       },

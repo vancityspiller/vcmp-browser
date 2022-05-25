@@ -11,5 +11,6 @@
   },
   "playerName": "",
   "gameDir": "",
-  "enableRichPresence": true
+  "enableRichPresence": true,
+  "httpDownloads": true
 }

@@ -1,4 +1,4 @@
-import { fs, os, path } from "@tauri-apps/api";
+import { fs, http, os, path } from "@tauri-apps/api";
 
 // ======================================================= //
 
@@ -31,6 +31,18 @@ const fallback = {
 export async function checkConfig() {
 
     return new Promise((resolve, reject) => {
+
+        // put http download links in storage (don't need to wait for it)
+        http.fetch("https://v4.vcmp.net/httpdownloads")
+            .then(r => {
+                localStorage.setItem('httpd', JSON.stringify(r.data));
+            })
+            .catch(() => {
+                localStorage.setItem('httpd', '[]');
+            });
+
+        // ------------------------------------------------------- //
+
         path.resourceDir()
         .then(resDirPath => {
 
