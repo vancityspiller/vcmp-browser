@@ -6,7 +6,7 @@ use std::process::Command;
 
 #[tauri::command]
 #[allow(non_snake_case)]
-pub async fn launch_game(dllPath: String, gameDir: String, commandLine: String) -> Result<String, String>
+pub async fn launch_game(dllPath: String, gameDir: String, commandLine: String, isSteam: bool) -> Result<String, String>
 {
     // store our process information
     let pi = &mut windows::Win32::System::Threading::PROCESS_INFORMATION::default();
@@ -14,7 +14,10 @@ pub async fn launch_game(dllPath: String, gameDir: String, commandLine: String) 
     unsafe 
     {
         // build path to gta-vc.exe
-        let game_exe: String = format!("{}\\gta-vc.exe", gameDir);
+        let mut game_exe: String = format!("{}\\gta-vc.exe", gameDir);
+        if isSteam {
+            game_exe = format!("{}\\testapp.exe", gameDir);
+        }
 
         // spawn a suspended state game instance
         if windows::Win32::System::Threading::CreateProcessW(

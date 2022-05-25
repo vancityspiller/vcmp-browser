@@ -115,7 +115,7 @@ function LaunchModal({progress, setProgress, selected, password, setRecents, bui
                         let commandLine = !selected.password ? `-c -h ${ip} -c -p ${port} -n ${settings.current.playerName}` : `-c -h ${ip} -c -p ${port} -n ${settings.current.playerName} -z ${password}`;
                         if(buildMode.current) commandLine += ' -d';
 
-                        const pid = await invoke("launch_game", {dllPath: `${resDirPath}versions\\${selected.version}\\vcmp-game.dll`, gameDir: settings.current.gameDir, commandLine: commandLine});
+                        const pid = await invoke("launch_game", {dllPath: `${resDirPath}versions\\${selected.version}\\${settings.current.isSteam ? 'vcmp-steam.dll' : 'vcmp-game.dll'}`, gameDir: settings.current.gameDir, commandLine: commandLine, isSteam: settings.current.isSteam});
                         
                         if(settings.current.enableRichPresence === true) { 
                             invoke("discord_presence", {pid: parseInt(pid), ip: selected.ip, sendString: `VCMP${ip.slice(0, 4)}${port.toString().slice(0, 2)}i`, serverName: selected.serverName});
