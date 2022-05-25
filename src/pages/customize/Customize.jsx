@@ -92,6 +92,16 @@ function Customize() {
                 n.discordRP = value;
                 return n;
             });
+        } else if (type === 'steam') {
+            if(value !== settings.isSteam) {
+                enableSave = true;
+            }
+
+            setInputState(p => {
+                const n = {...p};
+                n.isSteam = value;
+                return n;
+            });
         }
 
         setSaveEnabled(enableSave);
@@ -104,6 +114,7 @@ function Customize() {
         const n = {...settings};
         n.playerName = inputState.playerName;
         n.gameDir = inputState.gameDir;
+        n.isSteam = inputState.isSteam;
         n.master.defaultTab = inputState.defaultTab;
         n.enableRichPresence = inputState.discordRP;
 
@@ -123,7 +134,8 @@ function Customize() {
             playerName: settings.playerName,
             gameDir: settings.gameDir,
             defaultTab: settings.master.defaultTab,
-            discordRP: settings.enableRichPresence
+            discordRP: settings.enableRichPresence,
+            isSteam: settings.isSteam
         });
     }
 
@@ -142,8 +154,15 @@ function Customize() {
         })
         .then(gamePath => {
             if(gamePath) {
-                if(gamePath.endsWith('\\gta-vc.exe')) 
-                handleInputChange('gamedir', gamePath.slice(0, gamePath.length - 11));
+                if(gamePath.endsWith('\\gta-vc.exe'))  {
+                    handleInputChange('gamedir', gamePath.slice(0, gamePath.length - 11));
+                    handleInputChange('steam', false);
+                }
+
+                if(gamePath.endsWith('\\testapp.exe')) {
+                    handleInputChange('gamedir', gamePath.slice(0, gamePath.length - 12));
+                    handleInputChange('steam', true);
+                }
             }
         })
         .catch(() => {});
@@ -164,7 +183,8 @@ function Customize() {
                 playerName: settingsFile.playerName,
                 gameDir: settingsFile.gameDir,
                 defaultTab: settingsFile.master.defaultTab,
-                discordRP: settingsFile.enableRichPresence
+                discordRP: settingsFile.enableRichPresence,
+                isSteam: settingsFile.isSteam
             });
 
             setLoading(false);

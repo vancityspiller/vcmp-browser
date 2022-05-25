@@ -18,7 +18,8 @@ const fallback = {
         playerName: '',
         gameDir: '',
         enableRichPresence: true,
-        httpDownloads: true
+        httpDownloads: true,
+        isSteam: false
     },
 
     servers: {
