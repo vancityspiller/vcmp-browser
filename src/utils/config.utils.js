@@ -6,7 +6,7 @@ const fallback = {
 
     settings: {
         updater: {
-            url: 'http://v4.vcmp.net/updater/',
+            url: 'https://v4.vcmp.net/updater/',
             password: '',
             checkOnStartup: true
         },
@@ -16,7 +16,9 @@ const fallback = {
             defaultTab: 'Favorites'
         },
         playerName: '',
-        gameDir: ''
+        gameDir: '',
+        enableRichPresence: true,
+        httpDownloads: true
     },
 
     servers: {

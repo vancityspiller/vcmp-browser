@@ -79,7 +79,10 @@ function LaunchModal({progress, setProgress, selected, password, setRecents, bui
                 }
 
                 case 'httpd': {
-                    await downloadFiles(selected.ip);
+                    if(settings.current.httpDownloads) {
+                        await downloadFiles(selected.ip);
+                    }
+                    
                     setProgress('launch');
                     break;
                 }

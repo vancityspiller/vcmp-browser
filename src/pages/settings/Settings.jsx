@@ -37,7 +37,8 @@ const defaultValues = {
     masterUrl: "http://master.vc-mp.org/",
     useLegacy: false,
     updaterUrl: "https://v4.vcmp.net/updater/",
-    checkOnStartup: true
+    checkOnStartup: true,
+    httpDownloads: true
 };
 
 // ========================================================= //
@@ -98,6 +99,16 @@ function Settings({setUpdate}) {
                 n.checkOnStartup = value;
                 return n;
             });
+        } else if(type === 'httpd') {
+            if(value !== settings.httpDownloads) {
+                enableSave = true;
+            }
+
+            setInputState(p => {
+                const n = {...p};
+                n.httpDownloads = value;
+                return n;
+            });
         }
 
         setSaveEnabled(enableSave);
@@ -118,7 +129,8 @@ function Settings({setUpdate}) {
                 masterUrl: settingsFile.master.url,
                 useLegacy: settingsFile.master.useLegacy,
                 updaterUrl: settingsFile.updater.url,
-                checkOnStartup: settingsFile.updater.checkOnStartup
+                checkOnStartup: settingsFile.updater.checkOnStartup,
+                httpDownloads: settingsFile.httpDownloads
             });
 
             setLoading(false);
@@ -137,6 +149,7 @@ function Settings({setUpdate}) {
         n.master.useLegacy = inputState.useLegacy;
         n.updater.url = inputState.updaterUrl;
         n.updater.checkOnStartup = inputState.checkOnStartup;
+        n.httpDownloads = inputState.httpDownloads;
 
         saveFile('settings.json', n);
         setSaveEnabled(false);
@@ -150,7 +163,8 @@ function Settings({setUpdate}) {
             masterUrl: settings.master.url,
             useLegacy: settings.master.useLegacy,
             updaterUrl: settings.updater.url,
-            checkOnStartup: settings.updater.checkOnStartup
+            checkOnStartup: settings.updater.checkOnStartup,
+            httpDownloads: settings.httpDownloads
         });
     }
 
@@ -165,6 +179,7 @@ function Settings({setUpdate}) {
         n.master.useLegacy = defaultValues.useLegacy;
         n.updater.url = defaultValues.updaterUrl;
         n.updater.checkOnStartup = defaultValues.checkOnStartup;
+        n.httpDownloads = defaultValues.httpDownloads;
 
         saveFile('settings.json', n);
         setSaveEnabled(false);
@@ -211,6 +226,16 @@ function Settings({setUpdate}) {
                                 className='sttIpt' 
                                 placeholder='Currently obsolete'
                                 disabled
+                            />
+                        </div>
+
+                        <div className='sttField sttFieldRight sttFieldRightBottom'>
+                            <span>Enable HTTP downloads:</span>
+
+                            <Toggle 
+                                className='sttIptT'
+                                checked={inputState.httpDownloads}
+                                onChange={(value) => handleInputChange('httpd', value)}
                             />
                         </div>
 

@@ -288,7 +288,10 @@ function Dashboard() {
 
     useEffect(() => {
 
-        if(favs.length === 0) return;
+        if(favs.length === 0) {
+            setFavList([]);
+            return;
+        }
       
         const effect = async() => {
 
