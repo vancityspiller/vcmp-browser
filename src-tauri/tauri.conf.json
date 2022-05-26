@@ -8,13 +8,13 @@
   },
   "package": {
     "productName": "vcmp-browser",
-    "version": "0.1.0"
+    "version": "1.0.0"
   },
   "tauri": {
     "allowlist": {
       "all": true,
       "fs": {
-        "scope": ["$RESOURCE", "$RESOURCE/*", "$DATA", "$DATA/*"]
+        "scope": ["$RESOURCE", "$RESOURCE/*", "$DATA", "$DATA/*", "$APP", "$APP/*"]
       },
       "http": {
         "all": true,
@@ -34,7 +34,7 @@
     },
     "bundle": {
       "active": true,
-      "category": "DeveloperTool",
+      "category": "Game",
       "copyright": "",
       "deb": {
         "depends": []
@@ -47,7 +47,7 @@
         "icons/icon.icns",
         "icons/icon.ico"
       ],
-      "identifier": "com.tauri.dev",
+      "identifier": "vcmp.browser",
       "longDescription": "",
       "macOS": {
         "entitlements": null,
@@ -56,9 +56,9 @@
         "providerShortName": null,
         "signingIdentity": null
       },
-      "resources": ["./injector.exe", "./data", "./7z"],
+      "resources": ["./injector.exe", "./data", "./7z.dll"],
       "shortDescription": "",
-      "targets": "all",
+      "targets": "msi",
       "windows": {
         "certificateThumbprint": null,
         "digestAlgorithm": "sha256",
