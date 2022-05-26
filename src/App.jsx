@@ -19,7 +19,7 @@ import { runUpdater } from './utils/update.util';
 
 function App() {
 
-    const [navAddress, setNavAddress] = useState('Customize');
+    const [navAddress, setNavAddress] = useState('Dashboard');
 
     const [update, setUpdate] = useState(0);
     const [updating, setUpdating] = useState(true);

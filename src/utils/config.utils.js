@@ -114,7 +114,7 @@ export async function checkConfig() {
                         })
                         .catch();
                 })
-                .catch((e) => reject('Could not read app directory ' + e));
+                .catch(() => reject('Could not read app directory'));
         })
         .catch(() => reject('Could not read path to app directory'));
     })
