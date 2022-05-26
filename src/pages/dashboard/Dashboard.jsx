@@ -24,8 +24,8 @@ function Dashboard() {
     const [reload, setReload] = useState(0);
 
     // read file values
-    const [favs, setFavs] = useState([]);
-    const [recents, setRecents] = useState([]);
+    const [favs, setFavs] = useState(null);
+    const [recents, setRecents] = useState(null);
 
     // server lists
     const [serverList, setServerList] = useState([]);
@@ -34,7 +34,9 @@ function Dashboard() {
     const [recentList, setRecentList] = useState([]);
 
     // track renders
-    const isInitialMount = useRef(true);
+    const isInitialMountFav = useRef(true);
+    const isInitialMountRec = useRef(true);
+
     const isFinalUnmount = useRef(false);
     const lastUpdate = useRef(Date.now());
 
@@ -235,7 +237,7 @@ function Dashboard() {
 
     useEffect(() => {
         
-        if(recents.length === 0) return;
+        if(recents === null) return;
 
         const effect = async() => {
 
@@ -257,6 +259,8 @@ function Dashboard() {
                 if(p.length < recents.length) {
                     return [...p, fetched];
 
+                } else if(recents.length === 0) {
+                    return p;
                 } else {
 
                     const n = [...p];
@@ -280,7 +284,11 @@ function Dashboard() {
             saveFile('servers.json', {...servers, history: recents});
         }
 
-        if(!isInitialMount.current) effect();
+        if(isInitialMountRec.current) {
+            isInitialMountRec.current = false;
+        } else {
+            effect();
+        }
 
     }, [recents]);
 
@@ -288,10 +296,7 @@ function Dashboard() {
 
     useEffect(() => {
 
-        if(favs.length === 0) {
-            setFavList([]);
-            return;
-        }
+        if(favs === null) return;
       
         const effect = async() => {
 
@@ -330,8 +335,8 @@ function Dashboard() {
             saveFile('servers.json', {...servers, favorites: favs});
         }
 
-        if(isInitialMount.current) {
-            isInitialMount.current = false;
+        if(isInitialMountFav.current) {
+            isInitialMountFav.current = false;
         } else {
             effect();
         }
