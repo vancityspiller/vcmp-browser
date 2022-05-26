@@ -46,8 +46,16 @@ export async function checkConfig() {
 
         // ------------------------------------------------------- //
 
-        path.resourceDir()
-        .then(resDirPath => {
+        path.appDir()
+        .then(async resDirPath => {
+
+            try {
+                await fs.createDir(resDirPath);
+            } catch (error) {
+                // must already exist
+            }
+
+            // ------------------------------------------------------- //
 
             fs  .readDir(resDirPath)
                 .then(async entries => {
@@ -59,22 +67,6 @@ export async function checkConfig() {
 
                     if(entries.findIndex(entry => entry.name === 'versions') === -1) {
                         await fs.createDir(resDirPath + 'versions');
-                    }
-
-                    // is there 7zip dll
-                    if(entries.findIndex(entry => entry.name === '7z.dll') === -1) {
-
-                        // if not, is there a directory with those
-                        if(entries.findIndex(entry => entry.name === '7z') === -1) {
-                            reject('7zip resources not found');
-                            return;
-
-                        } else {
-                            const arch = await os.arch();
-                            const dllV = arch === 'x86' ? 32 : 64;
-
-                            await fs.copyFile(`${resDirPath}7z\\7z${dllV}.dll`, `${resDirPath}7z.dll`);
-                        }
                     }
 
                     // ------------------------------------------------------- //
@@ -122,9 +114,9 @@ export async function checkConfig() {
                         })
                         .catch();
                 })
-                .catch(() => reject('Could not read resource directory'));
+                .catch((e) => reject('Could not read app directory ' + e));
         })
-        .catch(() => reject('Could not read path to resource directory'));
+        .catch(() => reject('Could not read path to app directory'));
     })
 }
 

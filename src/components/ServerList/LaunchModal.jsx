@@ -89,7 +89,7 @@ function LaunchModal({progress, setProgress, selected, password, setRecents, bui
 
                 case 'launch': {
                     try {
-                        let resDirPath = await path.resourceDir();
+                        let resDirPath = await path.appDir();
                         const [ip, port] = selected.ip.split(":");
 
                         if(resDirPath.startsWith('\\\\?\\')) {

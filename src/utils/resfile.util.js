@@ -3,7 +3,7 @@ import { fs, path } from "@tauri-apps/api";
 export async function loadFile(fileName) {
 
     return new Promise((resolve, reject) => {
-        path.resourceDir()
+        path.appDir()
             .then(resDirPath => {
                 fs.readTextFile(`${resDirPath}data\\${fileName}`)
                     .then(file => resolve(JSON.parse(file)))
@@ -18,7 +18,7 @@ export async function loadFile(fileName) {
 export async function saveFile(fileName, contents) {
 
     return new Promise((resolve, reject) => {
-        path.resourceDir()
+        path.appDir()
             .then(resDirPath => {
                 fs.writeFile({path: `${resDirPath}data\\${fileName}`, contents: JSON.stringify(contents, null, 2)})
                 .then(() => resolve())

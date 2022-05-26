@@ -78,7 +78,7 @@ export async function downloadVersion(updater, version) {
         })
         .then(async r => {
 
-            path.resourceDir()
+            path.appDir()
                 .then(resDirPath => {
 
                     fs.readDir(`${resDirPath}versions`)
@@ -120,7 +120,7 @@ export async function buildVersions() {
     return new Promise(resolve => {
         const versions = {};
     
-        path.resourceDir()
+        path.appDir()
             .then(resDirPath => {
                 fs.readDir(`${resDirPath}versions`, {recursive: true})
                     .then(async entries => {

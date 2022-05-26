@@ -27,7 +27,11 @@ fn discord_presence_init(pid: u32, ip: String, sendString: String, serverName: S
 
     // create a new discord client
     let mut client = DiscordIpcClient::new("977909248187052072").unwrap();
-    client.connect().unwrap();
+
+    match client.connect() {
+        Ok(_) => (),
+        Err(_) => return
+    }
 
     // get timestamp at which we started the game
     let start_at = chrono::Utc::now().timestamp().try_into().unwrap();
