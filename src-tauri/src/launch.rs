@@ -1,6 +1,5 @@
 extern crate windows;
 use widestring::WideCString;
-use std::process::Command;
 
 // ------------------------------------------------------------------------------------------------ //
 
@@ -21,7 +20,7 @@ pub async fn launch_game(dllPath: String, gameDir: String, commandLine: String, 
 
         // spawn a suspended state game instance
         if windows::Win32::System::Threading::CreateProcessW(
-            game_exe, 
+            game_exe,
             windows::core::PWSTR(WideCString::from_str(&commandLine).unwrap().as_mut_ptr()), 
             &windows::Win32::Security::SECURITY_ATTRIBUTES::default(), 
             &windows::Win32::Security::SECURITY_ATTRIBUTES::default(), 
@@ -36,7 +35,6 @@ pub async fn launch_game(dllPath: String, gameDir: String, commandLine: String, 
             // if failed to spawn, return an Error
             return Err("Failed to launch game".into());
         }
-
     }
 
     // ------------------------------------------------------------------------------------------------ //
@@ -49,7 +47,7 @@ pub async fn launch_game(dllPath: String, gameDir: String, commandLine: String, 
         return Err("vcmp-game.dll doesn't exist".into());
     }
 
-    let dll_path = std::ffi::CString::new(dll_file_path.canonicalize().unwrap().to_str().unwrap()).unwrap();
+    let dll_path = std::ffi::CString::new(dllPath.to_owned()).unwrap();
     let dll_path_size = dll_path.as_bytes_with_nul().len();
 
     // store allocated memory address
@@ -95,38 +93,30 @@ pub async fn launch_game(dllPath: String, gameDir: String, commandLine: String, 
     }
     
     // ------------------------------------------------------------------------------------------------ //
-    /*
-    ** I could not find a way to load dll through rust ; I tried both windows-rs and winapi-rs crates 
-    ** Matter of fact, no implementation of rust dll injectors from the web work ; I believe the issue is trying to inject into 32bit process from 64bit, so need to use a external 32bit injector
 
-    ** The below code gives no errors but fails to load dll
-            let h_kernel: windows::Win32::Foundation::HINSTANCE = windows::Win32::System::LibraryLoader::GetModuleHandleW("kernel32.dll").unwrap();
+    unsafe 
+    {
+        let h_kernel: windows::Win32::Foundation::HINSTANCE = windows::Win32::System::LibraryLoader::GetModuleHandleA("kernel32.dll").unwrap();
 
-            let load_lib_addr: windows::Win32::Foundation::FARPROC = windows::Win32::System::LibraryLoader::GetProcAddress(h_kernel, "LoadLibraryW");
+        let load_lib_addr: windows::Win32::Foundation::FARPROC = windows::Win32::System::LibraryLoader::GetProcAddress(h_kernel, "LoadLibraryA");
 
-            let inject_thread: windows::Win32::Foundation::HANDLE = windows::Win32::System::Threading::CreateRemoteThread(
-                pi.hProcess, 
-                &windows::Win32::Security::SECURITY_ATTRIBUTES::default(), 
-                0, 
-                Some(std::mem::transmute(load_lib_addr)), 
-                lp_mem, 
-                0,
-                std::ptr::null_mut()
-            ).unwrap();
+        let thread_id = 0 as u32;
+        let thread_id_ptr = thread_id as *mut u32;
 
-            println!("{:?}", windows::Win32::System::Threading::WaitForSingleObject(inject_thread, 100000) == windows::Win32::System::Threading::WAIT_OBJECT_0);
-    
-    ** So the only alternative was to bundle an .exe injector with the application
-    ** https://github.com/nefarius/Injector
-    */
-    // ------------------------------------------------------------------------------------------------ //
-
-    Command::new("injector.exe")
-        .args(["-p", &pi.dwProcessId.to_string(), "--inject", &dllPath])
-        .status()
-        .unwrap();
-
-    unsafe { windows::Win32::System::Threading::ResumeThread(pi.hThread); }
+        let inject_thread: windows::Win32::Foundation::HANDLE = windows::Win32::System::Threading::CreateRemoteThread(
+            pi.hProcess, 
+            &windows::Win32::Security::SECURITY_ATTRIBUTES::default(), 
+            0, 
+            Some(std::mem::transmute(load_lib_addr)), 
+            lp_mem, 
+            0,
+            thread_id_ptr
+        ).unwrap();
+ 
+        if windows::Win32::System::Threading::WaitForSingleObject(inject_thread, 100000) == windows::Win32::System::Threading::WAIT_OBJECT_0 {
+            windows::Win32::System::Threading::ResumeThread(pi.hThread); 
+        }
+    }
 
     // all done
     return Ok(pi.dwProcessId.to_string().into());

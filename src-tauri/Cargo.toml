@@ -23,7 +23,7 @@ tauri = { version = "1.0.0-rc.9", features = ["api-all", "http-multipart"] }
 rust7z = "0.2.0"
 
 # for launching game [injecting dll doesn't work somehow]
-windows = {version= "0.36.1", features= ["alloc", "Win32_System_Threading", "Win32_Foundation", "Win32_Security", "Win32_System_Memory", "Win32_System_Diagnostics_Debug"] }
+windows = {version= "0.36.1", features= ["alloc", "Win32_System_Threading", "Win32_Foundation", "Win32_Security", "Win32_System_Memory", "Win32_System_Diagnostics_Debug", "Win32_System_LibraryLoader"] }
 widestring = "0.5.1"
 discord-rich-presence = "0.2.0"
 chrono = "0.4.19"

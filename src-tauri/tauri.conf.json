@@ -56,7 +56,7 @@
         "providerShortName": null,
         "signingIdentity": null
       },
-      "resources": ["./injector.exe", "./data", "./7z.dll"],
+      "resources": ["./7z.dll"],
       "shortDescription": "",
       "targets": "msi",
       "windows": {
