@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useMemo, useEffect, useRef } from 'react';
-import { Dropdown, Input, InputGroup, Popover } from 'rsuite';
+import { Dropdown, Popover } from 'rsuite';
 import TimeAgo from 'timeago-react';
 
 import AddFav from './AddFav';
@@ -13,15 +13,13 @@ import { performUDP } from '../../utils/server.util';
 
 // ========================================================= //
 
-import ReloadIcon from '@rsuite/icons/legacy/Refresh';
-import CloseIcon from '@rsuite/icons/legacy/Close';
-import SortDownIcon from '@rsuite/icons/SortDown';
-import SortUpIcon from '@rsuite/icons/SortUp';
 import LockIcon from '@rsuite/icons/legacy/Lock';
 import FavoriteIcon from '@rsuite/icons/legacy/Star';
 import ExcIcon from '@rsuite/icons/legacy/ExclamationTriangle';
 
 import './serverlist.less';
+import Searchbar from './Searchbar';
+import ServerlistHeader from './Header';
 
 // --------------------------------------------------------- //
 
@@ -37,58 +35,8 @@ function ServerList({list, updateList, favoriteList, changeFavs, changeRecents, 
 
     // --------------------------------------------------------- //
 
-    const handleSort = (value) => {
-
-        // if no sort mode set, set this one!
-        if(sort.column !== value) {
-            setSort({
-                column: value,
-                mode: 'asc'
-            });
-
-        } else {
-            if(sort.mode === 'asc') {
-                // if mode is ascending, switch it to descending
-                setSort({
-                    column: value,
-                    mode: 'des'
-                });
-            
-            } else {
-                // otherwise, unset it
-                setSort({
-                    column: favoritesTab || recentsTab ? 'addedAt' : '',
-                    mode: favoritesTab ? 'des' : (recentsTab ? 'asc' : '')
-                });
-            }
-        }
-    };
-
     const handleSearch = (value) => {
         setSearch(value);
-    }
-
-    // --------------------------------------------------------- //
-
-    const isSorted = useCallback((column) => {
-        if(column === sort.column) {
-            return sort.mode;
-        }
-
-        return false;
-    }, [sort]);
-
-    function SortedIcon(column) {
-        
-        const mode = isSorted(column);
-
-        if(mode === 'asc') {
-            return <SortDownIcon />
-        } else if(mode === 'des') {
-            return <SortUpIcon />
-        } else {
-            return <React.Fragment />
-        }
     }
     
     // --------------------------------------------------------- //
@@ -439,31 +387,9 @@ function ServerList({list, updateList, favoriteList, changeFavs, changeRecents, 
 
     return (
         <React.Fragment>
-            <div className='srvHeader'>
-                <span 
-                    className='srvHeaderName srvHeaderSortable'
-                    onClick={() => handleSort('serverName')}
-                >
-                    Server { SortedIcon('serverName') }
-                </span>
-
-                <span 
-                    className='srvHeaderPing srvHeaderSortable' 
-                    onClick={() => handleSort('ping')}
-                >
-                    Ping { SortedIcon('ping') }
-                </span>
-
-                <span 
-                    className='srvHeaderPlayers srvHeaderSortable' 
-                    onClick={() => handleSort('numPlayers')}
-                >
-                    Players { SortedIcon('numPlayers') }
-                </span>
-
-                <span className='srvHeaderMode'>{recentsTab ? 'Played At' : 'Gamemode'}</span>
-                {favoritesTab && <AddFav setFavorites={changeFavs} />}
-            </div>
+            
+            <ServerlistHeader sort={sort} setSort={setSort} recentsTab={recentsTab} favoritesTab={favoritesTab}/>
+            {favoritesTab && <AddFav setFavorites={changeFavs} />}
 
             {
                 rows.length === 0 
@@ -520,26 +446,7 @@ function ServerList({list, updateList, favoriteList, changeFavs, changeRecents, 
                 </div>
             }
             
-            <div className='srvBarWrapper'>
-                <InputGroup>
-                    { reloadCb !== undefined && 
-                        <InputGroup.Button appearance='primary' onClick={reloadCb}>
-                            <ReloadIcon />
-                        </InputGroup.Button>
-                    }
-
-                    <Input 
-                        placeholder='Search' 
-                        size='md' 
-                        value={search}
-                        onChange={handleSearch}
-                    />
-
-                    <InputGroup.Button appearance='primary' onClick={() => handleSearch('')}>
-                        <CloseIcon />
-                    </InputGroup.Button>
-                </InputGroup>
-            </div>
+            <Searchbar search={search} handleSearch={handleSearch} reloadCb={reloadCb} />
 
             <ServerInfoDrawer open={drawerOpen} handleClose={handleDrawerClose} data={selected} handleFavorite={actHandleFavorite} handleCopy={actCopyInfo} handleLaunch={selected?.password ? actLaunchPassword : actLaunchRequested}/>
             <PasswordModal open={passwordModal} setOpen={setPasswordModal} selected={selected} next={actLaunchRequested} password={enteredPassword} setPassword={setEnteredPassword}/>

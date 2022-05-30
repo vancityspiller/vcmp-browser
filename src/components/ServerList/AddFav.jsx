@@ -4,10 +4,12 @@ import { Button, Input, Modal } from 'rsuite';
 
 // --------------------------------------------------------- //
 
-function AddFav({setFavorites}) {
+const matchIpPort = new RegExp(/^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5]):[0-9]+$/);
+const matchHostPort = new RegExp(/^.*:[0-9]+$/);
 
-    const matchIpPort = new RegExp(/^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5]):[0-9]+$/);
-    const matchHostPort = new RegExp(/^.*:[0-9]+$/);
+// --------------------------------------------------------- //
+
+function AddFav({setFavorites}) {
 
     const [open, setOpen] = useState(false);
     const [ip, setIp] = useState(''); 
