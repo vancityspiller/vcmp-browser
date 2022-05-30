@@ -110,6 +110,14 @@ export async function checkConfig() {
                                 }
                             }));
 
+                            const serversFile = JSON.parse(await fs.readTextFile(`${resDirPath}data\\servers.json`));
+
+                            // store a maximum of 20 recents
+                            if(serversFile.history.length > 20) {
+                                serversFile.history = serversFile.history.slice(-20);
+                                await fs.writeFile({contents: JSON.stringify(serversFile, null, 2), path: `${resDirPath}data\\servers.json`});
+                            }
+
                             resolve();
                         })
                         .catch();
