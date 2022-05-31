@@ -10,12 +10,43 @@ pub async fn launch_game(dllPath: String, gameDir: String, commandLine: String, 
 {
     // build path to gta-vc.exe
     let mut game_exe: String = format!("{}\\gta-vc.exe", gameDir);
-    if isSteam {
-        game_exe = format!("{}\\testapp.exe", gameDir);
-    }
 
     // need to spawn external exe for steam vcmp
     if isSteam {
+
+        // check if steam is running
+        // steam needs to be running before launching ; otherwise, the game exhibits unoridinary behaviour
+        let mut steam_running = false;
+
+        unsafe 
+        {
+            // snapshot including processes
+            let snap_shot = windows::Win32::System::Diagnostics::ToolHelp::CreateToolhelp32Snapshot(windows::Win32::System::Diagnostics::ToolHelp::TH32CS_SNAPPROCESS, 0).unwrap();
+
+            // to hold our process details
+            let process_entry = &mut windows::Win32::System::Diagnostics::ToolHelp::PROCESSENTRY32W::default();
+            process_entry.dwSize = std::mem::size_of::<windows::Win32::System::Diagnostics::ToolHelp::PROCESSENTRY32W>() as u32;
+
+            // loop until found
+            while windows::Win32::System::Diagnostics::ToolHelp::Process32NextW(snap_shot, process_entry).as_bool() == true {
+
+                let mut exe_name = std::string::String::from_utf16(&process_entry.szExeFile).unwrap();
+                let offset = exe_name.find('\0');
+
+                if &exe_name[0..offset.unwrap()] == "steam.exe" {
+                    steam_running = true;
+                    break;
+                }
+            }
+
+            if steam_running == false {
+                return Err("Steam is not running, please run steam first!".into());
+            }
+        }
+
+        // ------------------------------------------------------------------------------------------------ //
+
+        game_exe = format!("{}\\testapp.exe", gameDir);
 
         let output = Command::new("./launcher.steam.exe")
         .args([&commandLine, &game_exe, &dllPath])
@@ -35,6 +66,8 @@ pub async fn launch_game(dllPath: String, gameDir: String, commandLine: String, 
             return Err("Failed to launch steam game".into());
         }
     }
+
+    // ------------------------------------------------------------------------------------------------ //
 
     // store our process information
     let pi = &mut windows::Win32::System::Threading::PROCESS_INFORMATION::default();
@@ -88,6 +121,8 @@ pub async fn launch_game(dllPath: String, gameDir: String, commandLine: String, 
             windows::Win32::System::Memory::PAGE_READWRITE
         );
     }
+
+    // ------------------------------------------------------------------------------------------------ //
 
     // store bytes written
     let mut bytes_written: usize = 0;
