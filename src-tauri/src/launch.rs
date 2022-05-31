@@ -1,5 +1,6 @@
 extern crate windows;
 use widestring::WideCString;
+use std::process::Command;
 
 // ------------------------------------------------------------------------------------------------ //
 
@@ -7,17 +8,39 @@ use widestring::WideCString;
 #[allow(non_snake_case)]
 pub async fn launch_game(dllPath: String, gameDir: String, commandLine: String, isSteam: bool) -> Result<String, String>
 {
+    // build path to gta-vc.exe
+    let mut game_exe: String = format!("{}\\gta-vc.exe", gameDir);
+    if isSteam {
+        game_exe = format!("{}\\testapp.exe", gameDir);
+    }
+
+    // need to spawn external exe for steam vcmp
+    if isSteam {
+
+        let output = Command::new("./launcher.steam.exe")
+        .args([&commandLine, &game_exe, &dllPath])
+        .current_dir("./")
+        .output()
+        .unwrap();
+
+        if output.status.success() {
+
+            // return process id if succeeded
+            let pid = std::str::from_utf8(&output.stdout).unwrap();
+            return Ok(pid.into());
+            
+        } else {
+
+            // failed to launch the game
+            return Err("Failed to launch steam game".into());
+        }
+    }
+
     // store our process information
     let pi = &mut windows::Win32::System::Threading::PROCESS_INFORMATION::default();
 
     unsafe 
     {
-        // build path to gta-vc.exe
-        let mut game_exe: String = format!("{}\\gta-vc.exe", gameDir);
-        if isSteam {
-            game_exe = format!("{}\\testapp.exe", gameDir);
-        }
-
         // spawn a suspended state game instance
         if windows::Win32::System::Threading::CreateProcessW(
             game_exe,
@@ -116,6 +139,10 @@ pub async fn launch_game(dllPath: String, gameDir: String, commandLine: String, 
         if windows::Win32::System::Threading::WaitForSingleObject(inject_thread, 100000) == windows::Win32::System::Threading::WAIT_OBJECT_0 {
             windows::Win32::System::Threading::ResumeThread(pi.hThread); 
         }
+
+        // close handles
+        windows::Win32::Foundation::CloseHandle(inject_thread);
+        windows::Win32::Foundation::CloseHandle(pi.hProcess);
     }
 
     // all done

@@ -56,7 +56,7 @@
         "providerShortName": null,
         "signingIdentity": null
       },
-      "resources": ["./7z.dll"],
+      "resources": ["./7z.dll", "./launcher.steam.exe"],
       "shortDescription": "",
       "targets": "msi",
       "windows": {

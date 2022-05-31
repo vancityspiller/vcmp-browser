@@ -11,6 +11,9 @@
     [2] gtaExe: path to 'testapp.exe'
     [3] dllPath: path to vcmp-steam.dll
 
+    Returns:
+    processId to newly created process if succeeded
+
 ==================================================================================================== */
 
 #include<cstring>
@@ -18,6 +21,7 @@
 #include<Windows.h>
 #include<stdint.h>
 #include<wchar.h>
+#include<iostream>
 
 // ====================================================================================================
 
@@ -138,7 +142,11 @@ int main(int argc, char** argv)
                                         success = WriteProcessMemory(pi.hProcess, (LPVOID)0xA41298, code2, sizeof(code2), nullptr);
                                         VirtualProtectEx(pi.hProcess, (LPVOID)0xA41298, 6, oldProtect, &oldProtect);
 
-                                        if(success) ResumeThread(pi.hThread);
+                                        if(success) 
+                                        {
+                                            ResumeThread(pi.hThread);
+                                            std::cout<<pi.dwProcessId;
+                                        }
 
     // ====================================================================================================
 
