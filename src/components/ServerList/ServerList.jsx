@@ -33,6 +33,8 @@ function ServerList({list, updateList, favoriteList, changeFavs, changeRecents, 
         mode: favoritesTab ? 'des' : (recentsTab ? 'asc' : '')
     });
 
+    const [displayLocked, setDisplayLocked] = useState(true);
+
     // --------------------------------------------------------- //
 
     const handleSearch = (value) => {
@@ -58,6 +60,15 @@ function ServerList({list, updateList, favoriteList, changeFavs, changeRecents, 
                 if(v.ping === null) {
                     return {...v, ping: 9999, serverName: 'Waiting for server data...', gameMode: '', numPlayer: 0, version: '', password: false, isFavorite: false, players: []}
                 } else return v;
+            });
+        }
+
+        // --------------------------------------------------------- //
+
+        // remove locked servers
+        if(displayLocked === false) {
+            borrowed = borrowed.filter(v => {
+                return !v.password;
             });
         }
 
@@ -141,7 +152,7 @@ function ServerList({list, updateList, favoriteList, changeFavs, changeRecents, 
         }
 
         return borrowed;
-    }, [list, search, sort, favoriteList]);
+    }, [list, search, sort, favoriteList, displayLocked]);
 
     // --------------------------------------------------------- //
     // for drawer
@@ -446,7 +457,7 @@ function ServerList({list, updateList, favoriteList, changeFavs, changeRecents, 
                 </div>
             }
             
-            <Searchbar search={search} handleSearch={handleSearch} reloadCb={reloadCb} />
+            <Searchbar search={search} handleSearch={handleSearch} reloadCb={reloadCb} locked={displayLocked} setLocked={setDisplayLocked} />
 
             <ServerInfoDrawer open={drawerOpen} handleClose={handleDrawerClose} data={selected} handleFavorite={actHandleFavorite} handleCopy={actCopyInfo} handleLaunch={selected?.password ? actLaunchPassword : actLaunchRequested}/>
             <PasswordModal open={passwordModal} setOpen={setPasswordModal} selected={selected} next={actLaunchRequested} password={enteredPassword} setPassword={setEnteredPassword}/>

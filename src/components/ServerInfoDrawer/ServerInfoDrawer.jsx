@@ -60,7 +60,7 @@ function ServerInfoDrawer({open, handleClose, data, handleFavorite, handleCopy, 
                             </Whisper>
 
                             <Whisper placement="top" trigger="click" speaker={<Tooltip>Copied!</Tooltip>}>
-                                <Button appearance='subtle' size='xs' onClick={() => handleCopy('info')}>
+                                <Button appearance='subtle' size='xs' onClick={() => handleCopy('info')} disabled={data.ping === 9999}>
                                     Copy Info
                                 </Button>
                             </Whisper>
