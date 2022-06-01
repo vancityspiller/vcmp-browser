@@ -117,8 +117,8 @@ function LaunchModal({progress, setProgress, selected, password, setRecents, bui
 
                         const pid = await invoke("launch_game", {dllPath: `${resDirPath}versions\\${selected.version}\\${settings.current.isSteam ? 'vcmp-steam.dll' : 'vcmp-game.dll'}`, gameDir: settings.current.gameDir, commandLine: commandLine, isSteam: settings.current.isSteam});
                         
-                        if(settings.current.enableRichPresence === true) { 
-                            invoke("discord_presence", {pid: parseInt(pid), ip: selected.ip, sendString: `VCMP${ip.slice(0, 4)}${port.toString().slice(0, 2)}i`, serverName: selected.serverName});
+                        if(settings.current.richPresence.enabled === true) { 
+                            invoke("discord_presence", {pid: parseInt(pid), ip: selected.ip, sendString: `VCMP${ip.slice(0, 4)}${port.toString().slice(0, 2)}i`, serverName: selected.serverName, minimal: settings.current.richPresence.minimal});
                         }
 
                     } catch (error) {

@@ -30,7 +30,7 @@ pub async fn launch_game(dllPath: String, gameDir: String, commandLine: String, 
             // loop until found
             while windows::Win32::System::Diagnostics::ToolHelp::Process32NextW(snap_shot, process_entry).as_bool() == true {
 
-                let mut exe_name = std::string::String::from_utf16(&process_entry.szExeFile).unwrap();
+                let exe_name = std::string::String::from_utf16(&process_entry.szExeFile).unwrap();
                 let offset = exe_name.find('\0');
 
                 if &exe_name[0..offset.unwrap()] == "steam.exe" {

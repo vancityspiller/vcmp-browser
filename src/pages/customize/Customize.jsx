@@ -83,7 +83,7 @@ function Customize() {
                 return n;
             });
         } else if (type === 'rpc') {
-            if(value !== settings.enableRichPresence) {
+            if(value !== settings.richPresence.enabled) {
                 enableSave = true;
             }
 
@@ -92,14 +92,14 @@ function Customize() {
                 n.discordRP = value;
                 return n;
             });
-        } else if (type === 'steam') {
-            if(value !== settings.isSteam) {
+        } else if (type === 'rpcminimal') {
+            if(value !== settings.richPresence.minimal) {
                 enableSave = true;
             }
 
             setInputState(p => {
                 const n = {...p};
-                n.isSteam = value;
+                n.minimalRP = value;
                 return n;
             });
         }
@@ -116,7 +116,8 @@ function Customize() {
         n.gameDir = inputState.gameDir;
         n.isSteam = inputState.isSteam;
         n.master.defaultTab = inputState.defaultTab;
-        n.enableRichPresence = inputState.discordRP;
+        n.richPresence.enabled = inputState.discordRP;
+        n.richPresence.minimal = inputState.minimalRP;
 
         if((settings.playerName === '' || settings.gameDir === '') && (n.playerName !== '' && n.gameDir !== '')) {
             localStorage.setItem('navSwitching', 'true');
@@ -134,7 +135,8 @@ function Customize() {
             playerName: settings.playerName,
             gameDir: settings.gameDir,
             defaultTab: settings.master.defaultTab,
-            discordRP: settings.enableRichPresence,
+            discordRP: settings.richPresence.enabled,
+            minimalRP: settings.richPresence.minimal,
             isSteam: settings.isSteam
         });
     }
@@ -154,15 +156,23 @@ function Customize() {
         })
         .then(gamePath => {
             if(gamePath) {
+                let isSteam = false;
                 if(gamePath.endsWith('\\gta-vc.exe'))  {
                     handleInputChange('gamedir', gamePath.slice(0, gamePath.length - 11));
-                    handleInputChange('steam', false);
                 }
 
                 if(gamePath.endsWith('\\testapp.exe')) {
                     handleInputChange('gamedir', gamePath.slice(0, gamePath.length - 12));
-                    handleInputChange('steam', true);
+                    isSteam = true;
                 }
+
+                setInputState(p => {
+                    const n = {...p};
+                    n.isSteam = isSteam;
+
+                    if(p.isSteam !== isSteam) setSaveEnabled(true);
+                    return n;
+                });
             }
         })
         .catch(() => {});
@@ -183,7 +193,8 @@ function Customize() {
                 playerName: settingsFile.playerName,
                 gameDir: settingsFile.gameDir,
                 defaultTab: settingsFile.master.defaultTab,
-                discordRP: settingsFile.enableRichPresence,
+                discordRP: settingsFile.richPresence.enabled,
+                minimalRP: settingsFile.richPresence.minimal,
                 isSteam: settingsFile.isSteam
             });
 
@@ -273,6 +284,15 @@ function Customize() {
                                 className='cszIptT'
                                 checked={inputState.discordRP}
                                 onChange={(value) => handleInputChange('rpc', value)}
+                            />
+                        </div>
+
+                        <div className='cszField cszFieldMargin cszHideRP'>
+                            <span>Hide server from Rich Presence:</span>
+                            <Toggle 
+                                className='cszIptT'
+                                checked={inputState.minimalRP}
+                                onChange={(value) => handleInputChange('rpcminimal', value)}
                             />
                         </div>
                     </div>

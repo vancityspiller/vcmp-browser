@@ -15,9 +15,12 @@ const fallback = {
             useLegacy: false,
             defaultTab: 'Favorites'
         },
+        richPresence: {
+            enabled: true,
+            minimal: false
+        },
         playerName: '',
         gameDir: '',
-        enableRichPresence: true,
         httpDownloads: true,
         isSteam: false
     },

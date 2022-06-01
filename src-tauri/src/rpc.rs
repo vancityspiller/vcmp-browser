@@ -9,12 +9,12 @@ use chrono;
 
 #[tauri::command]
 #[allow(non_snake_case)]
-pub async fn discord_presence(pid: u32, ip: String, sendString: String, serverName: String) {
-    discord_presence_init(pid, ip, sendString, serverName);
+pub async fn discord_presence(pid: u32, ip: String, sendString: String, serverName: String, minimal: bool) {
+    discord_presence_init(pid, ip, sendString, serverName, minimal);
 }
 
 #[allow(non_snake_case)]
-fn discord_presence_init(pid: u32, ip: String, sendString: String, serverName: String) {
+fn discord_presence_init(pid: u32, ip: String, sendString: String, serverName: String, minimal: bool) {
 
     // open our process
     let p_handle: windows::Win32::Foundation::HANDLE = unsafe {
@@ -36,19 +36,32 @@ fn discord_presence_init(pid: u32, ip: String, sendString: String, serverName: S
     // get timestamp at which we started the game
     let start_at = chrono::Utc::now().timestamp().try_into().unwrap();
 
-    // get player information with UDP
-    let plr_str = get_plr_str(ip.to_owned(), sendString.to_owned());
-
     // set initial activity
-    client.set_activity(
-        activity::Activity::new()
-        .state(&plr_str)
-        .details(&serverName)
-        .assets(activity::Assets::new()
-            .large_image("logo"))
-        .timestamps(activity::Timestamps::new()
-            .start(start_at))
-    ).unwrap();
+    if !minimal {
+        // get player information with UDP
+        let plr_str = get_plr_str(ip.to_owned(), sendString.to_owned());
+
+        client.set_activity(
+            activity::Activity::new()
+            .state(&plr_str)
+            .details(&serverName)
+            .assets(activity::Assets::new()
+                .large_image("logo"))
+            .timestamps(activity::Timestamps::new()
+                .start(start_at))
+        ).unwrap();
+    } else {
+
+        // we don't want to display server name and players
+        client.set_activity(
+            activity::Activity::new()
+            .assets(activity::Assets::new()
+                .large_image("logo"))
+            .timestamps(activity::Timestamps::new()
+                .start(start_at))
+        ).unwrap()
+    }
+    
 
     loop {
         unsafe {
@@ -61,16 +74,28 @@ fn discord_presence_init(pid: u32, ip: String, sendString: String, serverName: S
 
             // if process is still running ; update activity
             if exit_code == 259 {
-                let plr_str = get_plr_str(ip.to_owned(), sendString.to_owned());
-                client.set_activity(
-                    activity::Activity::new()
-                    .state(&plr_str)
-                    .details(&serverName)
-                    .assets(activity::Assets::new()
-                        .large_image("logo"))
-                    .timestamps(activity::Timestamps::new()
-                        .start(start_at))
-                ).unwrap();
+
+                if !minimal {
+                    let plr_str = get_plr_str(ip.to_owned(), sendString.to_owned());
+                    client.set_activity(
+                        activity::Activity::new()
+                        .state(&plr_str)
+                        .details(&serverName)
+                        .assets(activity::Assets::new()
+                            .large_image("logo"))
+                        .timestamps(activity::Timestamps::new()
+                            .start(start_at))
+                    ).unwrap();
+                } else {
+
+                    client.set_activity(
+                        activity::Activity::new()
+                        .assets(activity::Assets::new()
+                            .large_image("logo"))
+                        .timestamps(activity::Timestamps::new()
+                            .start(start_at))
+                    ).unwrap();
+                }
                 
             // if process has exited ; close handle and clear activity
             } else if exit_code != 100  {
