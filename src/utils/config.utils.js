@@ -112,6 +112,10 @@ export async function checkConfig() {
                                     return fs.writeFile({contents: JSON.stringify(fallback[file], null, 2), path: `${resDirPath}data\\${file}.json`});
                                 }
                             }));
+                            
+                            // compatibility for older versions
+                            const settingsFile = JSON.parse(await fs.readTextFile(`${resDirPath}data\\settings.json`));
+                            await fs.writeFile({contents: JSON.stringify({...fallback.settings, ...settingsFile}, null, 2), path: `${resDirPath}data\\settings.json`});                       
 
                             const serversFile = JSON.parse(await fs.readTextFile(`${resDirPath}data\\servers.json`));
 
