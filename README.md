@@ -1,7 +1,5 @@
 <img src=".github/banner.png" alt="banner" />
 
-<br>
-
 [![license](https://img.shields.io/badge/license-GNU%20GPLv3-green)](https://github.com/vancityspiller/vcmp-browser/blob/master/LICENSE) [![discord](https://img.shields.io/discord/793510128362979369?color=5865F2&label=discord)](https://discord.gg/g8dK8DhYSg) <a href="#steam-support"><img src="https://img.shields.io/badge/steam-supported-blue?logo=steam" alt="steam" /></a>
 
 ## Introduction
@@ -13,6 +11,8 @@ Even though the sole motivation behind this project was to try hands at [Tauri](
 <img src=".github/preview.png" alt="preview" />
 
 More screenshots on [Imgur Gallery](https://imgur.com/gallery/GKaAMb8).
+
+---
 
 ## Features
 
@@ -37,12 +37,16 @@ Store files are provided for all servers in the featured list.
 ### Discord Rich Presence
 Displays the details of the server you're currently playing. 
 
+---
+
 ## Should you use this browser?
 Even though Tauri has a much lighter footprint than Electron, it still is much more than the Official or Xmair's browser. 
 
 Considering that, you can use this browser if you do prefer a beautiful interface over about 100 MBs of RAM. Otherwise I'd recommend you to use [Xmair's browser](https://forum.vc-mp.org/?topic=8398).
 
 In other words, if you like the idea of <u>brand new Aston Martin with no mileage</u>, yeah. 
+
+---
 
 ## Download
 Head over to [releases](https://github.com/vancityspiller/vcmp-browser/releases).
