@@ -154,6 +154,18 @@ function ServerList({list, updateList, favoriteList, changeFavs, changeRecents, 
         return borrowed;
     }, [list, search, sort, favoriteList, displayLocked]);
 
+    const searchPlaceholder = useMemo(() => {
+
+        let players = 0;
+        rows.forEach(v => {
+
+            if(v.players)
+            players += v.players.length;
+        });
+
+        return `Search in ${rows.length} servers and ${players} players`;
+    }, [rows]);
+
     // --------------------------------------------------------- //
     // for drawer
 
@@ -457,7 +469,7 @@ function ServerList({list, updateList, favoriteList, changeFavs, changeRecents, 
                 </div>
             }
             
-            <Searchbar search={search} handleSearch={handleSearch} reloadCb={reloadCb} locked={displayLocked} setLocked={setDisplayLocked} />
+            <Searchbar search={search} handleSearch={handleSearch} reloadCb={reloadCb} locked={displayLocked} setLocked={setDisplayLocked} placeholder={searchPlaceholder} />
 
             <ServerInfoDrawer open={drawerOpen} handleClose={handleDrawerClose} data={selected} handleFavorite={actHandleFavorite} handleCopy={actCopyInfo} handleLaunch={selected?.password ? actLaunchPassword : actLaunchRequested}/>
             <PasswordModal open={passwordModal} setOpen={setPasswordModal} selected={selected} next={actLaunchRequested} password={enteredPassword} setPassword={setEnteredPassword}/>

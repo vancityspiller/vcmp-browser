@@ -7,7 +7,7 @@ import UnlockIcon from '@rsuite/icons/legacy/UnlockAlt';
 
 // ========================================================= //
 
-function Searchbar({search, handleSearch, reloadCb, locked, setLocked}) {
+function Searchbar({search, handleSearch, reloadCb, locked, setLocked, placeholder}) {
 
     const handleLocked = () => {
         setLocked(p => !p);
@@ -25,7 +25,7 @@ function Searchbar({search, handleSearch, reloadCb, locked, setLocked}) {
                 }
 
                 <Input 
-                    placeholder='Search' 
+                    placeholder={placeholder} 
                     size='md' 
                     value={search}
                     onChange={handleSearch}
