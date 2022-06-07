@@ -1,5 +1,12 @@
 import { fs, path } from "@tauri-apps/api";
 
+// ======================================================= //
+
+/**
+ * Reads a resource text file from %APP%
+ * @param {String} fileName Name of the resource file
+ * @returns {Promise<Object>} Resolves with the contents of file after JSON parsing
+ */
 export async function loadFile(fileName) {
 
     return new Promise((resolve, reject) => {
@@ -15,6 +22,12 @@ export async function loadFile(fileName) {
 
 // ------------------------------------------------------- //
 
+/**
+ * Writes a resource text file to %APP%
+ * @param {String} fileName Name of the resource file
+ * @param {Object} contents Contents to write, stringified as JSON
+ * @returns {Promise} Resolves after writing
+ */
 export async function saveFile(fileName, contents) {
 
     return new Promise((resolve, reject) => {

@@ -1,7 +1,8 @@
-import { fs, http, os, path } from "@tauri-apps/api";
+import { fs, http, path } from "@tauri-apps/api";
 
 // ======================================================= //
 
+// default settings for the browser
 const fallback = {
 
     settings: {
@@ -34,6 +35,10 @@ const fallback = {
 
 // ------------------------------------------------------- //
 
+/**
+ * Verifies browser config and resources, creates them if they do not exist
+ * @returns {Promise<|String>} Resolves after verifying, rejects otherwise.
+ */
 export async function checkConfig() {
 
     return new Promise((resolve, reject) => {

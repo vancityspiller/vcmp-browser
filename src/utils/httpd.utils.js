@@ -2,6 +2,12 @@ import { fs, invoke, path } from "@tauri-apps/api";
 
 // ======================================================= //
 
+/**
+ * Downloads store files from serverfiles.vcmp.net over HTTPS
+ * @param {String} serverIp IP address of the server in ip:port format
+ * @param {boolean} force [false] Whether to write on top of existing files
+ * @returns {Promise}
+ */
 export function downloadFiles(serverIp, force = false) {
 
     return new Promise(async resolve => {

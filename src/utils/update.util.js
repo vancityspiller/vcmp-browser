@@ -3,6 +3,17 @@ import { Body, ResponseType } from "@tauri-apps/api/http";
 
 // ======================================================= //
 
+/**
+ * @typedef UpdaterSettings
+ * @property {string} url Updater URL.
+ * @property {string} password Updater Password - Currently obsolete.
+ */
+
+/**
+ * Checks for VC:MP version updates
+ * @param {UpdaterSettings} updater 
+ * @returns 
+ */
 export async function runUpdater(updater) {
     
     const currentVersions = await buildVersions();
@@ -28,6 +39,12 @@ export async function runUpdater(updater) {
 
 // ======================================================= //
 
+/**
+ * Checks for versions available to download
+ * @param {UpdaterSettings} updater 
+ * @param {Object} versions 
+ * @returns {Promise<String[]>} Resolves with an array of versions available for update
+ */
 export async function checkVersions(updater, versions) {
 
     return new Promise((resolve, reject) => {
@@ -60,6 +77,12 @@ export async function checkVersions(updater, versions) {
 
 // ======================================================= //
 
+/**
+ * Downloads a version from the updater
+ * @param {UpdaterSettings} updater 
+ * @param {String} version The version to download
+ * @returns {Promise} Resolves after downloading the version from updater
+ */
 export async function downloadVersion(updater, version) {
 
     return new Promise((resolve, reject) => {
@@ -115,6 +138,10 @@ export async function downloadVersion(updater, version) {
 
 // ======================================================= //
 
+/**
+ * Returns a list of locally available versions
+ * @returns {Promise<Object>}
+ */
 export async function buildVersions() {
 
     return new Promise(resolve => {
