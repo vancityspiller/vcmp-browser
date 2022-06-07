@@ -1,6 +1,6 @@
 <img src=".github/banner.png" alt="banner" />
 
-[![license](https://img.shields.io/badge/license-GNU%20GPLv3-green)](https://github.com/vancityspiller/vcmp-browser/blob/master/LICENSE) [![discord](https://img.shields.io/discord/793510128362979369?color=5865F2&label=discord)](https://discord.gg/g8dK8DhYSg) <a href="#steam-support"><img src="https://img.shields.io/badge/steam-supported-blue?logo=steam" alt="steam" /></a> <a href="https://github.com/vancityspiller/vcmp-browser/releases"><img src="https://img.shields.io/github/downloads/vancityspiller/vcmp-browser/total?color=orange" /></a>
+[![license](https://img.shields.io/badge/license-GNU%20GPLv3-green)](https://github.com/vancityspiller/vcmp-browser/blob/master/LICENSE) [![discord](https://img.shields.io/discord/793510128362979369?color=5865F2&label=discord)](https://discord.gg/g8dK8DhYSg) <a href="#steam-support"><img src="https://img.shields.io/badge/steam-supported-blue?logo=steam" alt="steam" /></a> [![downloads](https://img.shields.io/github/downloads/vancityspiller/vcmp-browser/total?color=orange)](https://github.com/vancityspiller/vcmp-browser/releases)
 
 ## Introduction
 Even though the sole motivation behind this project was to try hands at [Tauri](https://tauri.studio), this project aims to provide a modern, feature rich and accessibility oriented <u>unofficial</u> [VC:MP](https://vc-mp.org) browser. 
