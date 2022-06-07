@@ -3,10 +3,28 @@ import { http, invoke } from "@tauri-apps/api";
 // ======================================================= //
 
 /**
+ * @typedef ServerData
+ * @property {String} ip IP address, ip:port format.
+ * @property {String} version Server version.
+ * @property {boolean} password Whether the server is password
+ * @property {Number} numPlayers The number of players in the server
+ * @property {Number} maxPlayers Maximum player slots in the server
+ * @property {String} serverName Name of the server
+ * @property {String} gameMode Gamemode string
+ * @property {String} mapName [Vice City]
+ * @property {String[]} players Array of player names
+ * @property {Number} ping Ping (in ms)
+ * @property {boolean} isFavorite [false]
+ */
+
+// ------------------------------------------------------- //
+
+/**
  * Fetches server info using Rust UDPSocket
  * @param {Object[]} serverList 
  * @param {String} serverList.ip
  * @param {Number} serverList.port
+ * @returns {Promise<ServerData>}
  */
 export const performUDP = async (ip, port) => {
     return new Promise(async (resolve, reject) => {
@@ -30,6 +48,7 @@ export const performUDP = async (ip, port) => {
  * @param {Uint8Array} serverInfo.info list of server parameters
  * @param {Uint8Array} serverInfo.players list of players 
  * @param {String} serverInfo.ping
+ * @returns {Promise<ServerData>}
  */
 const parseServerData = async (serverInfo) => {
 
@@ -49,7 +68,7 @@ const parseServerData = async (serverInfo) => {
             ip: serverInfo.ip,
 
             // doesn't occupy whole 12 bytes alloted to it
-            version: await Utf8ArrayToStr(serverInfo.info.slice(11, 19)),
+            version: Utf8ArrayToStr(serverInfo.info.slice(11, 19)),
 
             // single byte alloted to password
             password: serverInfo.info[23] === 0 ? false : true,
@@ -59,9 +78,9 @@ const parseServerData = async (serverInfo) => {
             maxPlayers: serverInfo.info.slice(26, 27).reduce((p, n) => p + n),
             
             // strlen is provided for following values
-            serverName: await Utf8ArrayToStr(serverInfo.info.slice(32, len_server)),
-            gameMode: await Utf8ArrayToStr(serverInfo.info.slice(len_server + 4, len_gamemode)),
-            mapName: await Utf8ArrayToStr(serverInfo.info.slice(len_gamemode + 4, len_map)),
+            serverName: Utf8ArrayToStr(serverInfo.info.slice(32, len_server)),
+            gameMode: Utf8ArrayToStr(serverInfo.info.slice(len_server + 4, len_gamemode)),
+            mapName: Utf8ArrayToStr(serverInfo.info.slice(len_gamemode + 4, len_map)),
 
             players: [],
             ping: parseInt(serverInfo.ping),
@@ -75,7 +94,7 @@ const parseServerData = async (serverInfo) => {
         for(let i = 0 ; i < parsedData.numPlayers ; i++) {
 
             const len_player = serverInfo.players[lastLen];        
-            parsedData.players.push(await Utf8ArrayToStr(serverInfo.players.slice(lastLen + 1, lastLen + 1 + len_player)));
+            parsedData.players.push(Utf8ArrayToStr(serverInfo.players.slice(lastLen + 1, lastLen + 1 + len_player)));
 
             lastLen += len_player + 1;
         }
@@ -90,10 +109,11 @@ const parseServerData = async (serverInfo) => {
  * Copyright (C) 1999 Masanao Izumo <iz@onicos.co.jp>
  * Version: 1.0
  * LastModified: Dec 25 1999
- * This library is free.  You can redistribute it and/or modify it.
+ * This library is free. You can redistribute it and/or modify it.
  * @param {Uint8Array} array
+ * @returns {String}
  */
-async function Utf8ArrayToStr(array) {
+function Utf8ArrayToStr(array) {
 
     var out, i, len, c;
     var char2, char3;
