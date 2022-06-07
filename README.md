@@ -1,6 +1,6 @@
 <img src=".github/banner.png" alt="banner" />
 
-[![license](https://img.shields.io/badge/license-GNU%20GPLv3-green)](https://github.com/vancityspiller/vcmp-browser/blob/master/LICENSE) [![discord](https://img.shields.io/discord/793510128362979369?color=5865F2&label=discord)](https://discord.gg/g8dK8DhYSg) <a href="#steam-support"><img src="https://img.shields.io/badge/steam-supported-blue?logo=steam" alt="steam" /></a>
+[![license](https://img.shields.io/badge/license-GNU%20GPLv3-green)](https://github.com/vancityspiller/vcmp-browser/blob/master/LICENSE) [![discord](https://img.shields.io/discord/793510128362979369?color=5865F2&label=discord)](https://discord.gg/g8dK8DhYSg) <a href="#steam-support"><img src="https://img.shields.io/badge/steam-supported-blue?logo=steam" alt="steam" /></a> <a href="https://github.com/vancityspiller/vcmp-browser/releases"><img src="https://img.shields.io/github/downloads/vancityspiller/vcmp-browser/total?color=orange" /></a>
 
 ## Introduction
 Even though the sole motivation behind this project was to try hands at [Tauri](https://tauri.studio), this project aims to provide a modern, feature rich and accessibility oriented <u>unofficial</u> [VC:MP](https://vc-mp.org) browser. 
@@ -44,12 +44,16 @@ Even though Tauri has a much lighter footprint than Electron, it still is much m
 
 Considering that, you can use this browser if you do prefer a beautiful interface over about 100 MBs of RAM. Otherwise I'd recommend you to use [Xmair's browser](https://forum.vc-mp.org/?topic=8398), from which this project is heavly inspired.
 
-In other words, if you like the idea of <u>brand new Aston Martin with no mileage</u>, yeah. 
+In other words, if you like the idea of **brand new Aston Martin with no mileage**, yeah. 
 
 ---
 
 ## Download
 Head over to [releases](https://github.com/vancityspiller/vcmp-browser/releases).
+
+## TODO
+- [ ] Ability to hide certain servers.
+- [ ] Refactor CSS to make the app responsive and resizable.
 
 ---
 
@@ -60,4 +64,4 @@ In that case you can download [Evergreen Bootstraper](https://developer.microsof
 
 ---
 
-Thanks to <u>Sebastian</u>, <u>Riddler</u> and <u>D4rKR420R</u> for beta testing alongside [OneVice](https://forum.vcmp.net/) staff. 
+Thanks to **Sebastian**, **Riddler** and **D4rKR420R** for beta testing alongside [OneVice](https://forum.vcmp.net/) staff. 
