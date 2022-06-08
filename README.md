@@ -57,6 +57,22 @@ Head over to [releases](https://github.com/vancityspiller/vcmp-browser/releases)
 
 ---
 
+## Building
+
+### Prerequisites
+- Node.js
+- Tauri [prerequisites](https://tauri.studio/v1/guides/getting-started/prerequisites).
+- x86 toolchains for Rust: Run `rustup target add i686-pc-windows-msvc` after installing Rust.
+
+### Cloning
+1. Clone this repository
+2. Run `npm i` into the cloned directory.
+
+- Run `npm run dev` to spawn a development window.
+- Run `npm run build` to bundle everything into an msi installer
+
+---
+
 ### Webview2 Error
 On earlier Windows versions, the installer may fail with the error `A program run as part of the setup did not finish as expected`.
 
