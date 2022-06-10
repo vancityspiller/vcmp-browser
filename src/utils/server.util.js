@@ -1,4 +1,4 @@
-import { http, invoke } from "@tauri-apps/api";
+import { invoke } from "@tauri-apps/api";
 
 // ======================================================= //
 
@@ -58,35 +58,59 @@ const parseServerData = async (serverInfo) => {
             return;
         }
 
-        // we know server, gamemode and map name are not fixed at indexes
-        const   len_server = 32 + serverInfo.info.slice(28, 31).reduce((p, n) => p + n),
-                len_gamemode = len_server + 4 + serverInfo.info.slice(len_server, len_server + 3).reduce((p, n) => p + n),
-                len_map = len_gamemode + 4 + serverInfo.info.slice(len_gamemode, len_gamemode + 3).reduce((p, n) => p + n);
+        // get offsets
+        const isR2 = Utf8ArrayToStr(serverInfo.info.slice(0, 4)) === 'VCMP';
+        const offsets = getOffsets(isR2);
+
+        // ------------------------------------------------------- //
+
+        // we know server, gamemode and map name do not have fixed indexes
+        const   len_server = offsets.extraData + serverInfo.info.slice(offsets.extraDataLen, offsets.extraDataLen + 3)
+                            .reduce((p, n) => p + n),
+
+                len_gamemode = len_server + 4 + serverInfo.info.slice(len_server, len_server + 3)
+                            .reduce((p, n) => p + n),
+
+                len_map = isR2 ? 0 : len_gamemode + 4 + serverInfo.info.slice(len_gamemode, len_gamemode + 3)
+                            .reduce((p, n) => p + n);
+
+        // ------------------------------------------------------- //
 
         const parsedData = {
 
             ip: serverInfo.ip,
 
             // doesn't occupy whole 12 bytes alloted to it
-            version: Utf8ArrayToStr(serverInfo.info.slice(11, 19)),
+            version: isR2 ? 'R2' : Utf8ArrayToStr(serverInfo.info.slice(11, 19)),
 
             // single byte alloted to password
-            password: serverInfo.info[23] === 0 ? false : true,
+            password: serverInfo.info[offsets.password] === 0 ? false : true,
 
             // need to treat these differently, multiple bytes for single integer
-            numPlayers: parseInt(serverInfo.info.slice(24, 25).reduce((p, n) => p + n)), 
-            maxPlayers: serverInfo.info.slice(26, 27).reduce((p, n) => p + n),
+            numPlayers: parseInt(serverInfo.info.slice(offsets.numPlayers, offsets.numPlayers + 1)
+                            .reduce((p, n) => p + n)), 
+
+            maxPlayers: serverInfo.info.slice(offsets.maxPlayers, offsets.maxPlayers + 1)
+                            .reduce((p, n) => p + n),
             
             // strlen is provided for following values
-            serverName: Utf8ArrayToStr(serverInfo.info.slice(32, len_server)),
-            gameMode: Utf8ArrayToStr(serverInfo.info.slice(len_server + 4, len_gamemode)),
-            mapName: Utf8ArrayToStr(serverInfo.info.slice(len_gamemode + 4, len_map)),
+            serverName: Utf8ArrayToStr(serverInfo.info.slice(offsets.extraData, len_server + (isR2 ? 1 : 0))),    // need to add extra byte for 0.3
+            gameMode: Utf8ArrayToStr(serverInfo.info.slice(len_server + 4, len_gamemode + (isR2 ? 1 : 0))),       // same here
+            mapName: isR2 ? 'Vice City' : Utf8ArrayToStr(serverInfo.info.slice(len_gamemode + 4, len_map)),       // obsolete for 0.3
 
             players: [],
             ping: parseInt(serverInfo.ping),
 
             // will map this later with our favorites
             isFavorite: false
+        }
+
+        // ------------------------------------------------------- //
+
+        // seems like map name is sent alongwith game mode for 0.3
+        if(isR2) {
+            const [actGameMode] = parsedData.gameMode.split('Vice-City');
+            parsedData.gameMode = actGameMode;
         }
 
         // players are in a continuous fashion of strlen followed by name
@@ -96,11 +120,40 @@ const parseServerData = async (serverInfo) => {
             const len_player = serverInfo.players[lastLen];        
             parsedData.players.push(Utf8ArrayToStr(serverInfo.players.slice(lastLen + 1, lastLen + 1 + len_player)));
 
-            lastLen += len_player + 1;
+            // player's score is also broadcasted in 0.3 R2
+            lastLen += len_player + (isR2 ? 2 : 1); 
         }
     
         resolve(parsedData);
     })
+}
+
+// ======================================================= //
+
+/**
+ * Returns data offsets depending on VCMP version
+ * @param {boolean} isR2 are we dealing with 0.3 R2?
+ */
+function getOffsets(isR2) {
+
+    const offsets = {
+        password: 23,
+        numPlayers: 24,
+        maxPlayers: 26,
+        extraDataLen: 28,
+        extraData: 32
+    };
+
+    // for 0.3 R2
+    if(isR2) {
+        offsets.password = 11;
+        offsets.numPlayers = 12;
+        offsets.maxPlayers = 14;
+        offsets.extraDataLen = 15;
+        offsets.extraData = 19;
+    }
+
+    return offsets;
 }
 
 // ------------------------------------------------------- //
