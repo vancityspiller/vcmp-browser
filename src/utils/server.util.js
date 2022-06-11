@@ -81,7 +81,7 @@ const parseServerData = async (serverInfo) => {
             ip: serverInfo.ip,
 
             // doesn't occupy whole 12 bytes alloted to it
-            version: isR2 ? 'R2' : Utf8ArrayToStr(serverInfo.info.slice(11, 19)),
+            version: isR2 ? '03zR2' : Utf8ArrayToStr(serverInfo.info.slice(11, 19)),
 
             // single byte alloted to password
             password: serverInfo.info[offsets.password] === 0 ? false : true,

@@ -38,6 +38,12 @@ function LaunchModal({progress, setProgress, selected, password, setRecents, bui
                 }
 
                 case 'builds': {
+                    // skip checking for updater if the server is 0.3z R2
+                    if(selected.version === '03zR2') {
+                        setProgress('launch');
+                        break;
+                    }
+
                     const downloadedVersions = await buildVersions();
                     setProgress(downloadedVersions.hasOwnProperty(selected.version) ? 'httpd' : 'check');
                     break;
@@ -115,7 +121,15 @@ function LaunchModal({progress, setProgress, selected, password, setRecents, bui
                         let commandLine = !selected.password ? `-c -h ${ip} -c -p ${port} -n ${settings.current.playerName}` : `-c -h ${ip} -c -p ${port} -n ${settings.current.playerName} -z ${password}`;
                         if(buildMode.current) commandLine += ' -d';
 
-                        const pid = await invoke("launch_game", {dllPath: `${resDirPath}versions\\${selected.version}\\${settings.current.isSteam ? 'vcmp-steam.dll' : 'vcmp-game.dll'}`, gameDir: settings.current.gameDir, commandLine: commandLine, isSteam: settings.current.isSteam});
+                        const isR2 = selected.version === '03zR2';
+                        const pid = await invoke("launch_game", 
+                            { 
+                                dllPath: isR2 ? '' : `${resDirPath}versions\\${selected.version}\\${settings.current.isSteam ? 'vcmp-steam.dll' : 'vcmp-game.dll'}`, 
+                                gameDir: settings.current.gameDir, 
+                                commandLine: commandLine, 
+                                isSteam: settings.current.isSteam,
+                                isR2: isR2
+                            });
                         
                         if(settings.current.richPresence.enabled === true) { 
                             invoke("discord_presence", {pid: parseInt(pid), ip: selected.ip, sendString: `VCMP${ip.slice(0, 4)}${port.toString().slice(0, 2)}i`, serverName: selected.serverName, minimal: settings.current.richPresence.minimal});

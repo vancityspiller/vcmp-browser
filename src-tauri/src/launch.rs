@@ -6,13 +6,18 @@ use std::process::Command;
 
 #[tauri::command]
 #[allow(non_snake_case)]
-pub async fn launch_game(dllPath: String, gameDir: String, commandLine: String, isSteam: bool) -> Result<String, String>
+pub async fn launch_game(dllPath: String, gameDir: String, commandLine: String, isSteam: bool, isR2: bool) -> Result<String, String>
 {
     // build path to gta-vc.exe
     let mut game_exe: String = format!("{}\\gta-vc.exe", gameDir);
 
     // need to spawn external exe for steam vcmp
     if isSteam {
+
+        // R2 + Steam not supported
+        if isR2 {
+            return Err("Launching 0.3z R2 with Steam version is not yet implemented!".into());
+        }
 
         // check if steam is running
         // steam needs to be running before launching ; otherwise, the game exhibits unoridinary behaviour
@@ -63,7 +68,7 @@ pub async fn launch_game(dllPath: String, gameDir: String, commandLine: String, 
         } else {
 
             // failed to launch the game
-            return Err("Failed to launch steam game".into());
+            return Err("Failed to launch steam game!".into());
         }
     }
 
@@ -83,14 +88,40 @@ pub async fn launch_game(dllPath: String, gameDir: String, commandLine: String, 
             windows::Win32::Foundation::BOOL(0), 
             windows::Win32::System::Threading::CREATE_SUSPENDED, 
             std::ptr::null_mut(), 
-            gameDir, 
+            gameDir.to_owned(), 
             &windows::Win32::System::Threading::STARTUPINFOW::default(), 
             pi
         ).as_bool() == false 
         {
             // if failed to spawn, return an Error
-            return Err("Failed to launch game".into());
+            return Err("Failed to launch game!".into());
         }
+    }
+
+    // ------------------------------------------------------------------------------------------------ //
+
+    // we don't need to inject DLL ourselves for 0.3z R2
+    // although make sure it is installed
+    if isR2 {
+        let r2_flt_path = format!("{}\\mss\\vc-mp.flt", &gameDir);
+
+        if std::path::Path::new(&r2_flt_path).exists() == false {
+
+            unsafe {
+                // exit the game process and close the handle
+                windows::Win32::System::Threading::TerminateProcess(pi.hProcess, 0);
+                windows::Win32::Foundation::CloseHandle(pi.hProcess);
+            }
+
+            return Err("VC:MP R2 is not installed in the game directory!".into());
+        }
+        
+        // all done ; close handle and return process ID
+        unsafe { 
+            windows::Win32::System::Threading::ResumeThread(pi.hThread); 
+            windows::Win32::Foundation::CloseHandle(pi.hProcess); 
+        }
+        return Ok(pi.dwProcessId.to_string().into());
     }
 
     // ------------------------------------------------------------------------------------------------ //
@@ -140,14 +171,14 @@ pub async fn launch_game(dllPath: String, gameDir: String, commandLine: String, 
         ).as_bool() == false 
         {
             // throw error if failed to write
-            return Err("Failed to write memory".to_string());
+            return Err("Failed to write memory!".to_string());
         }
     }
 
     if bytes_written != dll_path_size 
     {
         // check if we have what we need
-        return Err("Failed to write memory".to_string());
+        return Err("Failed to write memory!".to_string());
     }
     
     // ------------------------------------------------------------------------------------------------ //
