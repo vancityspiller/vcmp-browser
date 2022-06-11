@@ -448,7 +448,13 @@ function ServerList({list, updateList, favoriteList, changeFavs, changeRecents, 
                                 onContextMenu={(event) => handleContextMenuOpen(idx, event)}                                
                             >
                                 <span className='srvItemLocked'>{element.password ? <LockIcon /> : ''}</span>
+
                                 <span className='srvItemName'>
+                                    {   // add a flair for R2
+                                        element.version === '03zR2' &&
+                                        <span className='srvItemFlair'>[R2] </span>
+                                    }
+
                                     {element.serverName.length > 55 
                                     ? (element.serverName.slice(0, 55) + '...') 
                                     : element.serverName}
