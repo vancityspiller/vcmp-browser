@@ -9,12 +9,12 @@ use chrono;
 
 #[tauri::command]
 #[allow(non_snake_case)]
-pub async fn discord_presence(pid: u32, ip: String, sendString: String, serverName: String, minimal: bool) {
-    discord_presence_init(pid, ip, sendString, serverName, minimal);
+pub async fn discord_presence(pid: u32, ip: String, sendString: String, serverName: String, minimal: bool, isR2: bool) {
+    discord_presence_init(pid, ip, sendString, serverName, minimal, isR2);
 }
 
 #[allow(non_snake_case)]
-fn discord_presence_init(pid: u32, ip: String, sendString: String, serverName: String, minimal: bool) {
+fn discord_presence_init(pid: u32, ip: String, sendString: String, serverName: String, minimal: bool, isR2: bool) {
 
     // open our process
     let p_handle: windows::Win32::Foundation::HANDLE = unsafe {
@@ -39,14 +39,14 @@ fn discord_presence_init(pid: u32, ip: String, sendString: String, serverName: S
     // set initial activity
     if !minimal {
         // get player information with UDP
-        let plr_str = get_plr_str(ip.to_owned(), sendString.to_owned());
+        let plr_str = get_plr_str(ip.to_owned(), sendString.to_owned(), isR2);
 
         client.set_activity(
             activity::Activity::new()
             .state(&plr_str)
             .details(&serverName)
             .assets(activity::Assets::new()
-                .large_image("logo"))
+                .large_image(if isR2 {"logor2"} else { "logo" }))
             .timestamps(activity::Timestamps::new()
                 .start(start_at))
         ).unwrap();
@@ -56,7 +56,7 @@ fn discord_presence_init(pid: u32, ip: String, sendString: String, serverName: S
         client.set_activity(
             activity::Activity::new()
             .assets(activity::Assets::new()
-                .large_image("logo"))
+                .large_image(if isR2 {"logor2"} else { "logo" }))
             .timestamps(activity::Timestamps::new()
                 .start(start_at))
         ).unwrap()
@@ -76,13 +76,13 @@ fn discord_presence_init(pid: u32, ip: String, sendString: String, serverName: S
             if exit_code == 259 {
 
                 if !minimal {
-                    let plr_str = get_plr_str(ip.to_owned(), sendString.to_owned());
+                    let plr_str = get_plr_str(ip.to_owned(), sendString.to_owned(), isR2);
                     client.set_activity(
                         activity::Activity::new()
                         .state(&plr_str)
                         .details(&serverName)
                         .assets(activity::Assets::new()
-                            .large_image("logo"))
+                            .large_image(if isR2 {"logor2"} else { "logo" }))
                         .timestamps(activity::Timestamps::new()
                             .start(start_at))
                     ).unwrap();
@@ -91,7 +91,7 @@ fn discord_presence_init(pid: u32, ip: String, sendString: String, serverName: S
                     client.set_activity(
                         activity::Activity::new()
                         .assets(activity::Assets::new()
-                            .large_image("logo"))
+                            .large_image(if isR2 {"logor2"} else { "logo" }))
                         .timestamps(activity::Timestamps::new()
                             .start(start_at))
                     ).unwrap();
@@ -115,7 +115,7 @@ fn discord_presence_init(pid: u32, ip: String, sendString: String, serverName: S
 // ------------------------------------------------------------------------------------------------ //
 // function to query players in server
 
-fn get_plr_str(ip: String, send_string: String) -> String {
+fn get_plr_str(ip: String, send_string: String, is_r2: bool) -> String {
     let socket: UdpSocket = UdpSocket::bind("0.0.0.0:0").expect("couldn't bind to address");
 
     // duration for timeout, 1 second
@@ -131,8 +131,8 @@ fn get_plr_str(ip: String, send_string: String) -> String {
     match socket.recv(&mut buf) {
         Ok(_received) => {
             let info = buf.to_vec();
-            let num = info[24] + info[25];
-            let max = info[26] + info[27];
+            let num = info[if is_r2 {12} else {24}] + info[if is_r2 {13} else {25}];
+            let max = info[if is_r2 {14} else {26}] + info[if is_r2 {15} else {27}];
 
             return format!("Players: {}/{}", num, max);
 

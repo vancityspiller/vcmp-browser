@@ -94,9 +94,11 @@ const parseServerData = async (serverInfo) => {
                             .reduce((p, n) => p + n),
             
             // strlen is provided for following values
-            serverName: Utf8ArrayToStr(serverInfo.info.slice(offsets.extraData, len_server + (isR2 ? 1 : 0))),    // need to add extra byte for 0.3
-            gameMode: Utf8ArrayToStr(serverInfo.info.slice(len_server + 4, len_gamemode + (isR2 ? 1 : 0))),       // same here
-            mapName: isR2 ? 'Vice City' : Utf8ArrayToStr(serverInfo.info.slice(len_gamemode + 4, len_map)),       // obsolete for 0.3
+            serverName: Utf8ArrayToStr(serverInfo.info.slice(offsets.extraData, len_server)),
+            gameMode: Utf8ArrayToStr(serverInfo.info.slice(len_server + 4, len_gamemode)),
+
+            // obsolete for 0.3
+            mapName: isR2 ? 'Vice City' : Utf8ArrayToStr(serverInfo.info.slice(len_gamemode + 4, len_map)),
 
             players: [],
             ping: parseInt(serverInfo.ping),
@@ -150,7 +152,7 @@ function getOffsets(isR2) {
         offsets.numPlayers = 12;
         offsets.maxPlayers = 14;
         offsets.extraDataLen = 15;
-        offsets.extraData = 19;
+        offsets.extraData = 20;
     }
 
     return offsets;

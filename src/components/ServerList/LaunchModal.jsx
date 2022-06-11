@@ -132,7 +132,15 @@ function LaunchModal({progress, setProgress, selected, password, setRecents, bui
                             });
                         
                         if(settings.current.richPresence.enabled === true) { 
-                            invoke("discord_presence", {pid: parseInt(pid), ip: selected.ip, sendString: `VCMP${ip.slice(0, 4)}${port.toString().slice(0, 2)}i`, serverName: selected.serverName, minimal: settings.current.richPresence.minimal});
+                            invoke("discord_presence", 
+                            {
+                                pid: parseInt(pid), 
+                                ip: selected.ip, 
+                                sendString: `VCMP${ip.slice(0, 4)}${port.toString().slice(0, 2)}i`, 
+                                serverName: selected.serverName, 
+                                minimal: settings.current.richPresence.minimal,
+                                isR2: isR2
+                            });
                         }
 
                     } catch (error) {
