@@ -83,10 +83,12 @@
     "windows": [
       {
         "fullscreen": false,
-        "resizable": false,
+        "resizable": true,
         "title": "VCMP Browser",
         "width": 1067,
         "height": 600,
+        "minWidth": 1067,
+        "minHeight": 600,
         "decorations": false
       }
     ]
