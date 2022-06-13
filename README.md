@@ -53,7 +53,13 @@ Head over to [releases](https://github.com/vancityspiller/vcmp-browser/releases)
 
 ## TODO
 - [ ] Ability to hide certain servers.
-- [ ] Refactor CSS to make the app responsive and resizable.
+- [x] Refactor CSS to make the app responsive and resizable.
+
+## Changelog
+
+- 1.0.3
+    - Ability to parse and launch 0.3z R2 servers
+    - App can now be resized
 
 ---
 
