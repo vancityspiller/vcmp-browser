@@ -99,7 +99,6 @@ function ServerInfoDrawer({open, handleClose, data, handleFavorite, handleCopy, 
                             data={getPlayersObj}
                             headerHeight={0}
                             hover={false}
-                            height={250}
                             rowHeight={30}
                             rowClassName='srvDrawerPlayersRow'
                         >
