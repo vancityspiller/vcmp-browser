@@ -58,7 +58,7 @@
       },
       "resources": ["./7z.dll", "./launcher.steam.exe"],
       "shortDescription": "",
-      "targets": "msi",
+      "targets": "all",
       "windows": {
         "certificateThumbprint": null,
         "digestAlgorithm": "sha256",
@@ -78,7 +78,10 @@
           "https://v4.vcmp.net/browserupdate/{{current_version}}"
       ],
       "dialog": true,
-      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDEzOURGRkRFQ0ExMUE3NEIKUldSTHB4SEszditkRTJWTG50cm1BbjRLS0lnYkszNTFXUFVqR1oyMzZaRGYwN2dnWjltazV5TnkK"
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDEzOURGRkRFQ0ExMUE3NEIKUldSTHB4SEszditkRTJWTG50cm1BbjRLS0lnYkszNTFXUFVqR1oyMzZaRGYwN2dnWjltazV5TnkK",
+      "windows": {
+        "installMode": "basicUi"
+      }
     },
     "windows": [
       {
