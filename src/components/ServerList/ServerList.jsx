@@ -23,7 +23,7 @@ import ServerlistHeader from './Header';
 
 // --------------------------------------------------------- //
 
-function ServerList({list, updateList, favoriteList, changeFavs, changeRecents, reloadCb, recentsTab, favoritesTab}) {
+function ServerList({list, updateList, favoriteList, hiddenList, changeFavs, changeRecents, reloadCb, recentsTab, favoritesTab}) {
 
     const [selected, setSelected] = useState(null);
 
@@ -47,6 +47,11 @@ function ServerList({list, updateList, favoriteList, changeFavs, changeRecents, 
 
         // make a copy of state
         let borrowed = [...list];
+
+        // remove hidden servers
+        borrowed = borrowed.filter(v => {
+            return (hiddenList.indexOf(v.ip) === -1);
+        })
 
         // show 'Waiting for server data...' on favorites and recents page
         const includeWaiting = favoritesTab || recentsTab;

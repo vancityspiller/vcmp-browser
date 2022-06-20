@@ -29,7 +29,8 @@ const fallback = {
     servers: {
         favorites: [],
         passwords: [],
-        history: []
+        history: [],
+        hidden: []
     }
 };
 
@@ -123,6 +124,7 @@ export async function checkConfig() {
                             await fs.writeFile({contents: JSON.stringify({...fallback.settings, ...settingsFile}, null, 2), path: `${resDirPath}data\\settings.json`});                       
 
                             const serversFile = JSON.parse(await fs.readTextFile(`${resDirPath}data\\servers.json`));
+                            await fs.writeFile({contents: JSON.stringify({...fallback.servers, ...serversFile}, null, 2), path: `${resDirPath}data\\servers.json`});                                                   
 
                             // store a maximum of 20 recents
                             if(serversFile.history.length > 20) {

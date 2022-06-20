@@ -25,6 +25,7 @@ function Dashboard() {
 
     // read file values
     const [favs, setFavs] = useState(null);
+    const [hiddens, setHidden] = useState(null);
     const [recents, setRecents] = useState(null);
 
     // server lists
@@ -83,6 +84,7 @@ function Dashboard() {
     
                 const storeObj = {
                     favs: favs,
+                    hiddens: hiddens,
                     recents: recents,
                     serverList: serverList,
                     favList: favList,
@@ -93,7 +95,7 @@ function Dashboard() {
                 localStorage.setItem('servers', JSON.stringify(storeObj));
             }
         
-    }, [favs, recents, serverList, favList, featuredList, recentList]);
+    }, [favs, recents, hiddens, serverList, favList, featuredList, recentList]);
 
     // --------------------------------------------------------- //
 
@@ -122,6 +124,7 @@ function Dashboard() {
                     const storedServers = JSON.parse(storedData);
                     
                     setFavs(storedServers.favs);
+                    setHidden(storedServers.hiddens);
                     setRecents(storedServers.recents);
                     
                     setServerList(storedServers.serverList);
@@ -136,9 +139,8 @@ function Dashboard() {
 
             // --------------------------------------------------------- //
 
-            const {favorites, history} = await loadFile('servers.json');
-
-            setFavs(favorites); setRecents(history); 
+            const {favorites, history, hidden} = await loadFile('servers.json');
+            setFavs(favorites); setRecents(history); setHidden(hidden);
 
             let masterServers, featServers, failed = false;
 
@@ -416,10 +418,10 @@ function Dashboard() {
                             : <Loader className='dashLoader' vertical content='Fetching masterlist...' size='md'/>
                 :
                     <Content>
-                        { tab === 'Masterlist' && <ServerList list={serverList} updateList={setServerList} favoriteList={favs} changeFavs={setFavs} changeRecents={setRecents} reloadCb={forceReload}/> }
-                        { tab === 'Featured' && <ServerList list={featuredList} updateList={setFeaturedList} favoriteList={favs} changeFavs={setFavs} changeRecents={setRecents} reloadCb={forceReload}/> }
-                        { tab === 'Recent' && <ServerList list={recentList} updateList={setRecentList} favoriteList={favs} changeFavs={setFavs} changeRecents={setRecents} recentsTab /> }
-                        { tab === 'Favorites' && <ServerList list={favList} updateList={setFavList} favoriteList={favs} changeFavs={setFavs} changeRecents={setRecents} favoritesTab /> }
+                        { tab === 'Masterlist' && <ServerList list={serverList} updateList={setServerList} hiddenList={hiddens} favoriteList={favs} changeFavs={setFavs} changeRecents={setRecents} reloadCb={forceReload}/> }
+                        { tab === 'Featured' && <ServerList list={featuredList} updateList={setFeaturedList} hiddenList={hiddens} favoriteList={favs} changeFavs={setFavs} changeRecents={setRecents} reloadCb={forceReload}/> }
+                        { tab === 'Recent' && <ServerList list={recentList} updateList={setRecentList} hiddenList={hiddens} favoriteList={favs} changeFavs={setFavs} changeRecents={setRecents} recentsTab /> }
+                        { tab === 'Favorites' && <ServerList list={favList} updateList={setFavList} hiddenList={hiddens} favoriteList={favs} changeFavs={setFavs} changeRecents={setRecents} favoritesTab /> }
                     </Content>
                 }
             </Container>
