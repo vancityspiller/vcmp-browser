@@ -37,6 +37,7 @@ function Dashboard() {
     // track renders
     const isInitialMountFav = useRef(true);
     const isInitialMountRec = useRef(true);
+    const isInitialMountHid = useRef(true);
 
     const isFinalUnmount = useRef(false);
     const lastUpdate = useRef(Date.now());
@@ -349,6 +350,23 @@ function Dashboard() {
 
     useEffect(() => {
 
+        const effect = async () => {
+            const servers = await loadFile('servers.json');
+            saveFile('servers.json', {...servers, hidden: hiddens});
+        }
+
+        if(isInitialMountHid.current) {
+            isInitialMountHid.current = false;
+        } else {
+            effect();
+        }
+
+    }, [hiddens]);
+
+    // --------------------------------------------------------- //
+
+    useEffect(() => {
+
         // register shortcut, Q and E to switch between dashboard tabs
         const listener = event => {
             if(!event.ctrlKey) {
@@ -418,10 +436,10 @@ function Dashboard() {
                             : <Loader className='dashLoader' vertical content='Fetching masterlist...' size='md'/>
                 :
                     <Content>
-                        { tab === 'Masterlist' && <ServerList list={serverList} updateList={setServerList} hiddenList={hiddens} favoriteList={favs} changeFavs={setFavs} changeRecents={setRecents} reloadCb={forceReload}/> }
-                        { tab === 'Featured' && <ServerList list={featuredList} updateList={setFeaturedList} hiddenList={hiddens} favoriteList={favs} changeFavs={setFavs} changeRecents={setRecents} reloadCb={forceReload}/> }
-                        { tab === 'Recent' && <ServerList list={recentList} updateList={setRecentList} hiddenList={hiddens} favoriteList={favs} changeFavs={setFavs} changeRecents={setRecents} recentsTab /> }
-                        { tab === 'Favorites' && <ServerList list={favList} updateList={setFavList} hiddenList={hiddens} favoriteList={favs} changeFavs={setFavs} changeRecents={setRecents} favoritesTab /> }
+                        { tab === 'Masterlist' && <ServerList list={serverList} updateList={setServerList} hiddenList={hiddens} changeHidden={setHidden} favoriteList={favs} changeFavs={setFavs} changeRecents={setRecents} reloadCb={forceReload}/> }
+                        { tab === 'Featured' && <ServerList list={featuredList} updateList={setFeaturedList} hiddenList={hiddens} changeHidden={setHidden} favoriteList={favs} changeFavs={setFavs} changeRecents={setRecents} reloadCb={forceReload}/> }
+                        { tab === 'Recent' && <ServerList list={recentList} updateList={setRecentList} hiddenList={hiddens} changeHidden={setHidden} favoriteList={favs} changeFavs={setFavs} changeRecents={setRecents} recentsTab /> }
+                        { tab === 'Favorites' && <ServerList list={favList} updateList={setFavList} hiddenList={hiddens} changeHidden={setHidden} favoriteList={favs} changeFavs={setFavs} changeRecents={setRecents} favoritesTab /> }
                     </Content>
                 }
             </Container>

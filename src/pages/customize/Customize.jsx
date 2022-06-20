@@ -128,6 +128,8 @@ function Customize() {
         setSettings(n);
     }
 
+    // --------------------------------------------------------- //
+
     const handleRevert = () => {
 
         setSaveEnabled(false);
@@ -140,6 +142,8 @@ function Customize() {
             isSteam: settings.isSteam
         });
     }
+
+    // --------------------------------------------------------- //
 
     const selectGameDir = () => {
         dialog.open({
@@ -176,6 +180,31 @@ function Customize() {
             }
         })
         .catch(() => {});
+    }
+
+    // --------------------------------------------------------- //
+
+    const handleUnhide = () => {
+        let cache = localStorage.getItem('servers');
+        if(cache) {
+            cache = JSON.parse(cache);
+            localStorage.setItem('servers', JSON.stringify({
+                favs: cache.favs,
+                hiddens: [],
+                recents: cache.recents,
+                serverList: cache.serverList,
+                favList: cache.favList,
+                featuredList: cache.featuredList,
+                recentList: cache.recentList
+            }));
+        }
+
+        const handle = async () => {
+            const servers = await loadFile('servers.json');
+            saveFile('servers.json', {...servers, hidden: []});
+        }
+
+        handle();
     }
 
     // ========================================================= //
@@ -308,6 +337,16 @@ function Customize() {
                         </Button>
 
                         <Button onClick={handleRevert}>Revert</Button>
+                    </div>
+
+                    <div className='cszActionsRight'>
+
+                        <Button 
+                            appearance='primary' 
+                            onClick={handleUnhide}
+                        >
+                            Unhide all servers
+                        </Button>
                     </div>
                 </div>
 

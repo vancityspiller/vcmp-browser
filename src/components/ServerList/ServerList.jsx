@@ -23,7 +23,7 @@ import ServerlistHeader from './Header';
 
 // --------------------------------------------------------- //
 
-function ServerList({list, updateList, favoriteList, hiddenList, changeFavs, changeRecents, reloadCb, recentsTab, favoritesTab}) {
+function ServerList({list, updateList, favoriteList, hiddenList, changeFavs, changeHidden, changeRecents, reloadCb, recentsTab, favoritesTab}) {
 
     const [selected, setSelected] = useState(null);
 
@@ -49,9 +49,11 @@ function ServerList({list, updateList, favoriteList, hiddenList, changeFavs, cha
         let borrowed = [...list];
 
         // remove hidden servers
-        borrowed = borrowed.filter(v => {
-            return (hiddenList.indexOf(v.ip) === -1);
-        })
+        if(!recentsTab) {
+            borrowed = borrowed.filter(v => {
+                return (hiddenList.indexOf(v.ip) === -1);
+            });
+        }
 
         // show 'Waiting for server data...' on favorites and recents page
         const includeWaiting = favoritesTab || recentsTab;
@@ -157,7 +159,7 @@ function ServerList({list, updateList, favoriteList, hiddenList, changeFavs, cha
         }
 
         return borrowed;
-    }, [list, search, sort, favoriteList, displayLocked]);
+    }, [list, search, sort, favoriteList, hiddenList, displayLocked]);
 
     const searchPlaceholder = useMemo(() => {
 
@@ -356,6 +358,15 @@ function ServerList({list, updateList, favoriteList, hiddenList, changeFavs, cha
         setPasswordModal(true);
     }, [selected]);
 
+    // --------------------------------------------------------- //
+
+    const actHideServer = useCallback(() => {
+        
+        changeHidden(p => {
+            return [...p, selected.ip];;
+        });        
+    }, [selected]);
+
     // ========================================================= //
 
     const triggerRef = useRef();
@@ -406,6 +417,11 @@ function ServerList({list, updateList, favoriteList, hiddenList, changeFavs, cha
                 selected?.password ? actLaunchPassword() : actLaunchRequested();
                 break;
             }
+
+            case 6: {
+                actHideServer();
+                break;
+            }
         }
 
         triggerRef.current.style.opacity = 0;
@@ -439,6 +455,7 @@ function ServerList({list, updateList, favoriteList, hiddenList, changeFavs, cha
                             <Dropdown.Item eventKey={3}>Copy IP</Dropdown.Item>
                             <Dropdown.Item disabled={selected?.ping === 9999} eventKey={4}>Copy Info</Dropdown.Item>
                             <Dropdown.Item disabled={selected?.ping === 9999} eventKey={5}>Build Mode</Dropdown.Item>
+                            <Dropdown.Item disabled={selected?.isFavorite} eventKey={6}>Hide Server</Dropdown.Item>
                         </Dropdown.Menu>
                     </Popover>
 
