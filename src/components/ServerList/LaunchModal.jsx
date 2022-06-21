@@ -62,8 +62,11 @@ function LaunchModal({progress, setProgress, selected, password, setRecents, bui
                         setProgress('download');
 
                     } catch (e) {
+                        buildMode.current = false;
+
                         setError(`Version ${selected.version} is not available locally or on updater!`);
                         setProgress('errored');
+
                         localStorage.setItem('navSwitching', 'true');
                         break;
                     }
@@ -76,8 +79,11 @@ function LaunchModal({progress, setProgress, selected, password, setRecents, bui
                         setProgress('httpd');
 
                     } catch (e) {
+                        buildMode.current = false;
+
                         setError(`Version ${selected.version} could not be downloaded successfully!`);
                         setProgress('errored');
+
                         localStorage.setItem('navSwitching', 'true');
                         break;
                     }
@@ -152,6 +158,7 @@ function LaunchModal({progress, setProgress, selected, password, setRecents, bui
                         break;
                     }
 
+                    buildMode.current = false;
                     localStorage.setItem('navSwitching', 'true');
 
                     setProgress('');
