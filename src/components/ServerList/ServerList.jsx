@@ -376,19 +376,38 @@ function ServerList({list, updateList, favoriteList, hiddenList, changeFavs, cha
         event.preventDefault();
         setSelected({...rows[idx]});
 
+        // set width and make it appear
         triggerRef.current.style.opacity = 100;
         triggerRef.current.style.width = '200px';
         triggerRef.current.style["z-index"] = 1;
 
-        if(event.clientY > srvList.current.clientHeight) {
-            triggerRef.current.style.top = (event.clientY - 130 - (event.clientY - srvList.current.clientHeight) + srvList.current.scrollTop) + 'px';
-        } else {
-            triggerRef.current.style.top = (event.clientY - 130 + srvList.current.scrollTop) + 'px';
+        // --------------------------------------------------------- //
+        // vertical mapping
+
+        triggerRef.current.style.top = event.clientY + 'px';
+
+        // is the mouse position too low?
+        const yDiff = event.view.innerHeight - event.clientY;
+        if(yDiff < 300) {
+            // then push the toast a bit up
+            triggerRef.current.style.top = event.clientY - (300 - yDiff) + 'px';
         }
 
-        triggerRef.current.style.left = (event.clientX > 800 ? 800 : event.clientX) - 110 + 'px';
+        // --------------------------------------------------------- //
+        // horizontal mapping
+
+        triggerRef.current.style.left = event.clientX + 'px';
+
+        // is the mouse position too right?
+        const xDiff = event.view.innerWidth - event.clientX;
+        if(xDiff < 200) {
+            // then push the toast a bit left ; offset 30px
+            triggerRef.current.style.left = event.clientX - (200 - xDiff) - 30 + 'px';
+        }
     }
 
+    // ========================================================= //
+    
     const handleContextMenuSelect = (key) => {
 
         switch(key) {
@@ -431,6 +450,19 @@ function ServerList({list, updateList, favoriteList, hiddenList, changeFavs, cha
 
     return (
         <React.Fragment>
+
+            <Popover full ref={triggerRef}>
+                <Dropdown.Menu
+                    onSelect={handleContextMenuSelect}
+                >
+                    <Dropdown.Item disabled={selected?.ping === 9999} eventKey={1}>Launch</Dropdown.Item>
+                    <Dropdown.Item eventKey={2}>{selected?.isFavorite ? 'Remove Favorite' : 'Set Favorite'}</Dropdown.Item>
+                    <Dropdown.Item eventKey={3}>Copy IP</Dropdown.Item>
+                    <Dropdown.Item disabled={selected?.ping === 9999} eventKey={4}>Copy Info</Dropdown.Item>
+                    <Dropdown.Item disabled={selected?.ping === 9999} eventKey={5}>Build Mode</Dropdown.Item>
+                    <Dropdown.Item disabled={selected?.isFavorite} eventKey={6}>Hide Server</Dropdown.Item>
+                </Dropdown.Menu>
+            </Popover>
             
             <ServerlistHeader sort={sort} setSort={setSort} recentsTab={recentsTab} favoritesTab={favoritesTab}/>
             {favoritesTab && <AddFav setFavorites={changeFavs} />}
@@ -445,19 +477,6 @@ function ServerList({list, updateList, favoriteList, hiddenList, changeFavs, cha
                     </div>
                 :
                 <div className='srvList' ref={srvList}>
-
-                    <Popover full ref={triggerRef}>
-                        <Dropdown.Menu
-                            onSelect={handleContextMenuSelect}
-                        >
-                            <Dropdown.Item disabled={selected?.ping === 9999} eventKey={1}>Launch</Dropdown.Item>
-                            <Dropdown.Item eventKey={2}>{selected?.isFavorite ? 'Remove Favorite' : 'Set Favorite'}</Dropdown.Item>
-                            <Dropdown.Item eventKey={3}>Copy IP</Dropdown.Item>
-                            <Dropdown.Item disabled={selected?.ping === 9999} eventKey={4}>Copy Info</Dropdown.Item>
-                            <Dropdown.Item disabled={selected?.ping === 9999} eventKey={5}>Build Mode</Dropdown.Item>
-                            <Dropdown.Item disabled={selected?.isFavorite} eventKey={6}>Hide Server</Dropdown.Item>
-                        </Dropdown.Menu>
-                    </Popover>
 
                     {rows.map((element, idx) => {
                         return (
