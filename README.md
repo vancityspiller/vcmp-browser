@@ -52,14 +52,19 @@ In other words, if you like the idea of **brand new Aston Martin with no mileage
 Head over to [releases](https://github.com/vancityspiller/vcmp-browser/releases).
 
 ## TODO
-- [ ] Ability to hide certain servers.
-- [x] Refactor CSS to make the app responsive and resizable.
+- [x] ~~Ability to hide certain servers.~~
+- [x] ~~Refactor CSS to make the app responsive and resizable.~~
 
 ## Changelog
 
 - 1.0.3
     - Ability to parse and launch 0.3z R2 servers
     - App can now be resized
+
+- 1.0.4 
+    - Ability to hide/unhide certain servers from masterlist.
+    - Fixed context menu being unaware of responsiveness.
+    - Fixed other minor bugs.
 
 ---
 
