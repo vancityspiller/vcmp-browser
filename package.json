@@ -13,10 +13,11 @@
   "dependencies": {
     "@rsuite/icons": "^1.0.2",
     "@tauri-apps/api": "^1.0.0",
+    "javascript-time-ago": "^2.5.9",
     "react": "^18.0.0",
     "react-dom": "^18.0.0",
-    "rsuite": "^5.11.0",
-    "timeago-react": "^3.0.4"
+    "react-time-ago": "^7.2.1",
+    "rsuite": "^5.11.0"
   },
   "devDependencies": {
     "@tauri-apps/cli": "^1.0.0",

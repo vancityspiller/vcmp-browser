@@ -1,6 +1,6 @@
 import React, { useState, useCallback, useMemo, useEffect, useRef } from 'react';
 import { Dropdown, Popover } from 'rsuite';
-import TimeAgo from 'timeago-react';
+import ReactTimeAgo from 'react-time-ago'
 
 import AddFav from './AddFav';
 import PasswordModal from './PasswordModal';
@@ -506,7 +506,7 @@ function ServerList({list, updateList, favoriteList, hiddenList, changeFavs, cha
                                 
                                 <span className='srvItemMode'>
                                     {recentsTab 
-                                        ? <TimeAgo datetime={element.addedAt} opts={{minInterval: 15}}/>
+                                        ? <ReactTimeAgo date={element.addedAt} />
                                         : (element.gameMode.length > 20 ? (element.gameMode.slice(0, 20) + '...') : element.gameMode)
                                     }
                                 </span>

@@ -7,6 +7,13 @@ import './main.less';
 
 // ========================================================= //
 
+TimeAgo.addDefaultLocale(en)
+
+import TimeAgo from 'javascript-time-ago'
+import en from 'javascript-time-ago/locale/en.json'
+
+// ========================================================= //
+
 ReactDOM.createRoot(document.getElementById('root')).render(
 
     <CustomProvider theme='dark'>
