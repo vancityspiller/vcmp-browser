@@ -55,7 +55,7 @@ export async function checkConfig() {
 
         // ------------------------------------------------------- //
 
-        path.appDir()
+        path.appDataDir()
         .then(async resDirPath => {
 
             try {
