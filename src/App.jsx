@@ -92,28 +92,6 @@ function App() {
 
     // ========================================================= //
 
-    function NavElement() {
-        if(navAddress === 'Dashboard') {
-            return ( <Dashboard /> );
-        }
-
-        if(navAddress === 'Customize') {
-            return ( <Customize/> );
-        }
-
-        if(navAddress === 'About') {
-            return ( <About /> );
-        }
-
-        if(navAddress === 'Settings') {
-            return ( <Settings setUpdate={setUpdate}/> );
-        }
-
-        return (<React.Fragment />);
-    }
-
-    // --------------------------------------------------------- //
-
     return (
         <React.Fragment>
             <Container>
@@ -127,9 +105,21 @@ function App() {
                     </Notification>
                 }
              
-                {updating 
+                {/*
+                    Rendered inline rather than through a component declared in
+                    this function. Such a component gets a new identity on every
+                    render, so React unmounts and remounts the whole page -
+                    losing the dashboard's server lists and selection any time
+                    App re-rendered, such as when the navigation lock changed.
+                */}
+                {updating
                     ? <Loader className='updateLoader' vertical content='Updating...' size='md'/>
-                    : <NavElement />
+                    : <React.Fragment>
+                        {navAddress === 'Dashboard' && <Dashboard />}
+                        {navAddress === 'Customize' && <Customize />}
+                        {navAddress === 'About' && <About />}
+                        {navAddress === 'Settings' && <Settings setUpdate={setUpdate} />}
+                    </React.Fragment>
                 }
                 
             </Container>

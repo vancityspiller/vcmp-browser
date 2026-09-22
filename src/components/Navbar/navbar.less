@@ -1,82 +1,94 @@
 .sidebar {
-    background: rgb(2,0,36);
-    background: linear-gradient(180deg, rgba(2,0,36,1) 50%, rgba(120,37,140,1) 100%);
+  background: rgb(2, 0, 36);
+  background: linear-gradient(
+    180deg,
+    rgba(2, 0, 36, 1) 50%,
+    rgba(120, 37, 140, 1) 100%
+  );
 
-    height: 100vh;
+  height: 100vh;
 }
 
 .nvWrapper {
-    position: absolute;
-    top: 30vh;
+  position: absolute;
+  top: 30vh;
 }
 
 // --------------------------------------------------------- //
 
 .nvIconHolder {
-    width: 80px;
-    margin-top: 10px;
-    padding: 2px 4px;
-    height: 40px;
+  width: 72px;
+  margin-top: 10px;
+  padding: 2px 4px;
+  height: 40px;
 }
 
 .nvIconHolder-unselected {
-    &:hover {
-        filter: invert(96%) sepia(5%) saturate(0%) hue-rotate(25deg) brightness(150%) contrast(86%);
-        cursor: pointer;
-    }
+  &:hover {
+    filter: invert(96%) sepia(5%) saturate(0%) hue-rotate(25deg)
+      brightness(150%) contrast(86%);
+    cursor: pointer;
+  }
 }
 
 .nvIconHolderSelected {
-    background: rgb(134,8,134);
-    background: linear-gradient(260deg, rgba(134, 8, 134, 0.247) 0%, rgba(250, 154, 255, 0.288) 100%);
+  background: rgb(134, 8, 134);
+  background: linear-gradient(
+    260deg,
+    rgba(134, 8, 134, 0.247) 0%,
+    rgba(250, 154, 255, 0.288) 100%
+  );
 }
 
 // --------------------------------------------------------- //
 
 .nvIcon {
-    filter: invert(54%) sepia(15%) saturate(269%) hue-rotate(243deg) brightness(97%) contrast(94%);
-    width: 15px;
+  filter: invert(54%) sepia(15%) saturate(269%) hue-rotate(243deg)
+    brightness(97%) contrast(94%);
+  width: 15px;
 }
 
 .nvIcon2 {
-    margin-top: 11px;
-    margin-left: 29px;
+  margin-top: 11px;
+  margin-left: 29px;
 }
 
 .nvIconSelected {
-    filter: invert(50%) sepia(92%) saturate(4121%) hue-rotate(259deg) brightness(93%) contrast(92%);
+  filter: invert(50%) sepia(92%) saturate(4121%) hue-rotate(259deg)
+    brightness(93%) contrast(92%);
 }
 
 // --------------------------------------------------------- //
 
 .nvLogo {
-    width: 50px;
-    position: absolute;
-    top: 20px;
-    left: 15px;
+  width: 50px;
+  position: absolute;
+  top: 20px;
+  left: 15px;
 }
 
 .nvClose {
-    margin-top: 20px;
-    padding: 2px 4px;
-    border: 2px solid rgba(255, 255, 255, 0);
-    border-radius: 5px;
-    width: unset;
+  margin-top: 20px;
+  padding: 2px 4px;
+  border: 2px solid rgba(255, 255, 255, 0);
+  border-radius: 5px;
+  width: unset;
 
-    bottom: 20px;
-    left: 20px;
+  bottom: 20px;
+  left: 20px;
 
-    >.nvIcon {
-        filter: invert(96%) sepia(5%) saturate(0%) hue-rotate(25deg) brightness(90%) contrast(86%);
-        width: 25px;
-    }
+  > .nvIcon {
+    filter: invert(96%) sepia(5%) saturate(0%) hue-rotate(25deg) brightness(90%)
+      contrast(86%);
+    width: 25px;
+  }
 
-    &:hover {
-        cursor: pointer;
-        filter: brightness(150%);
-    }
+  &:hover {
+    cursor: pointer;
+    filter: brightness(150%);
+  }
 
-    position: absolute;
+  position: absolute;
 }
 
 // --------------------------------------------------------- //

@@ -1,233 +1,233 @@
 .srvHeader {
-    position: absolute;
-    top: 100px;
-    left: 110px;
+  position: absolute;
+  top: 100px;
+  left: 110px;
 
-    color: gray;
-    font-size: 12px;
+  color: gray;
+  font-size: 12px;
 }
 
 // --------------------------------------------------------- //
 
 .srvItemLocked {
-    position: absolute;
-    left: 2vw;
+  position: absolute;
+  left: 2vw;
 
-    svg {
-        color: gray;
-    }
+  svg {
+    color: gray;
+  }
 }
 
 .srvItemFav {
-    position: absolute;
-    left: 44vw;
+  position: absolute;
+  left: 44vw;
+  margin-top: -1px;
 
-    svg {
-        color: #c04ce4e0;
-    }
+  svg {
+    color: #c04ce4e0;
+  }
 }
 
 .srvHeaderName {
-    position: absolute;
-    left: 4.4vw;
+  position: absolute;
+  left: 4.4vw;
 }
 
 .srvHeaderPing {
-    position: absolute;
-    left: 46.5vw;
+  position: absolute;
+  left: 46.5vw;
 }
 
 .srvHeaderPlayers {
-    position: absolute;
-    left: 56vw;
+  position: absolute;
+  left: 56vw;
 }
 
 .srvHeaderMode {
-    width: 100px;
-    position: absolute;
-    left: 65vw;
+  width: 100px;
+  position: absolute;
+  left: 65vw;
 }
 
 .srvHeaderSortable {
+  white-space: nowrap;
 
-    white-space: nowrap;
+  svg {
+    color: #c14ce4;
+    transform: scale(1.2);
+    margin-top: -2px;
+  }
 
-    svg {
-        color: #c14ce4;
-        transform: scale(1.2); 
-        margin-top: -2px;
-    }
-    
-    &:hover {
-        cursor: pointer;
-        color: #c14ce4;
-    }
+  &:hover {
+    cursor: pointer;
+    color: #c14ce4;
+  }
 }
 
 // --------------------------------------------------------- //
 
 .srvList {
-    position: absolute;
-    top: 130px;
-    left: 110px;
+  position: absolute;
+  top: 130px;
+  left: 110px;
 
-    width: 85%;
+  width: 85%;
 
-    overflow-y: auto;
-    height: 63%;
-    padding-right: 20px;
+  overflow-y: auto;
+  height: 63%;
+  padding-right: 20px;
 }
 
 .srvItem {
-    margin-bottom: 10px;
+  display: flex;
+  align-items: center;
 
-    background-color: #000000;
-    height: 35px;
+  margin-bottom: 10px;
 
-    border: 2px solid #00000000;
-    border-radius: 10px;
+  background-color: #000000;
+  height: 35px;
 
-    span {
-        margin-top: 7px;
-        font-weight: 500;
-        color: rgb(211, 211, 211);
-        font-size: 13px;
-    }
+  border: 2px solid #00000000;
+  border-radius: 10px;
 
-    -webkit-transition : border 300ms ease-out;
-    -moz-transition : border 300ms ease-out;
-    -o-transition : border 300ms ease-out;
-    transition : border 300ms ease-out;
+  span {
+    font-weight: 500;
+    color: rgb(211, 211, 211);
+    font-size: 13px;
+  }
 
-    &:hover {
-        cursor: pointer;
-        border-color: #c14ce4;
-    }
+  -webkit-transition: border 300ms ease-out;
+  -moz-transition: border 300ms ease-out;
+  -o-transition: border 300ms ease-out;
+  transition: border 300ms ease-out;
 
-    box-shadow: 0 0 5px #000000;
+  &:hover {
+    cursor: pointer;
+    border-color: #c14ce4;
+  }
 
+  box-shadow: 0 0 5px #000000;
 }
 
 .srvItem-selected {
-    border-color: #c14ce4;
+  border-color: #c14ce4;
 
-    span {
-        color: rgb(220, 220, 220);
-    }
+  span {
+    color: rgb(220, 220, 220);
+  }
 
-    box-shadow: 0 0 5px #c14ce4;
+  box-shadow: 0 0 5px #c14ce4;
 }
 
 // --------------------------------------------------------- //
 
 .srvItemName {
-    position: absolute;
-    margin-left: 4.4vw;
+  position: absolute;
+  margin-left: 4.4vw;
 
-    .srvItemFlair {
-        font-size: 10px;
-        color: rgb(167, 167, 167);
-    }
+  .srvItemFlair {
+    font-size: 10px;
+    color: rgb(167, 167, 167);
+  }
 }
 
 .srvItemPing {
-    position: absolute;
-    margin-left: 46.5vw;
+  position: absolute;
+  margin-left: 46.5vw;
 }
 
 .srvItemPlayers {
-    position: absolute;
-    margin-left: 56vw;
+  position: absolute;
+  margin-left: 56vw;
 
-    span {
-        color: rgb(167, 167, 167);
-    }
+  span {
+    color: rgb(167, 167, 167);
+  }
 }
 
 .srvItemMode {
-    position: absolute;
-    margin-left: 65vw;
+  position: absolute;
+  margin-left: 65vw;
 }
 
 // --------------------------------------------------------- //
 
 .srvBarWrapper {
-    position: absolute;
-    bottom: 30px;
-    left: 110px;
+  position: absolute;
+  bottom: 30px;
+  left: 110px;
 
-    width: 82%;
+  width: 82%;
 }
 
 // --------------------------------------------------------- //
 
 .srvEmptyFallback {
-    position: absolute;
-    top: 44vh;
-    left: 46%;
-    text-align: center;
+  position: absolute;
+  top: 44vh;
+  left: 46%;
+  text-align: center;
 
-    svg {
-        transform: scale(3);
-        color: gray;
-    }
+  svg {
+    transform: scale(3);
+    color: gray;
+  }
 
-    h5 {
-        margin-top: 25px;
-        color: rgb(219, 219, 219);
-        font-weight: 500;
-    }
+  h5 {
+    margin-top: 25px;
+    color: rgb(219, 219, 219);
+    font-weight: 500;
+  }
 
-    span {
-        color: gray;
-    }
+  span {
+    color: gray;
+  }
 }
 
 // --------------------------------------------------------- //
 
 .srvDisplayLocked {
-    background-color: #c14ce4 !important;
+  background-color: #c14ce4 !important;
 }
 
 // --------------------------------------------------------- //
 
 .modalCenter {
-    margin: 150px auto 0 auto !important;
+  margin: 150px auto 0 auto !important;
 }
 
 .srvAddButton {
-    position: absolute !important;
-    top: 25px;
-    right: 40px;
+  position: absolute !important;
+  top: 25px;
+  right: 40px;
 }
 
 .srvAddError {
-    color: gray;
-    position: absolute;
-    white-space: nowrap;
+  color: gray;
+  position: absolute;
+  white-space: nowrap;
 
-    bottom: 30px;
-    left: 23px;
+  bottom: 30px;
+  left: 23px;
 }
 
 // --------------------------------------------------------- //
 
 .srvSavePass {
-    position: absolute;
+  position: absolute;
 
-    left: -290px;
+  left: -243px;
 }
 
 // --------------------------------------------------------- //
 
 .launchModalBody {
-    height: 150px;
+  height: 150px;
 }
 
 .launchLoader {
-   
-    position: absolute;
-    top:50%;
-    left: 50%;
-    transform: translate(-50% , -50%)
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
 }
