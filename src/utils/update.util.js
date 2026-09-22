@@ -49,13 +49,40 @@ export async function checkVersions(updater, versions) {
 
 // ======================================================= //
 
+// Downloads already running, keyed by version.
+//
+// Installing starts by deleting the version directory, so two overlapping
+// installs of the same version would have the second wipe what the first had
+// already extracted and then interleave writes into it, leaving a random
+// subset of the files on disk. A second caller now waits on the first instead.
+const installing = new Map();
+
 /**
- * Downloads a version from the updater and extracts it into place
+ * Downloads a version from the updater and extracts it into place.
+ *
+ * Calling this again for a version already being installed returns the
+ * in-flight promise rather than starting a competing install.
  * @param {UpdaterSettings} updater
  * @param {String} version The version to download
  * @returns {Promise}
  */
-export async function downloadVersion(updater, version) {
+export function downloadVersion(updater, version) {
+
+    const running = installing.get(version);
+    if(running) return running;
+
+    const task = installVersion(updater, version).finally(() => installing.delete(version));
+    installing.set(version, task);
+
+    return task;
+}
+
+// ------------------------------------------------------- //
+
+/**
+ * Performs the download and extraction. Callers go through downloadVersion.
+ */
+async function installVersion(updater, version) {
 
     const archive = await postUpdaterForm(
         `${updater.url}download`,
@@ -78,7 +105,12 @@ export async function downloadVersion(updater, version) {
 
     // extract7z is our own command, so it needs absolute paths
     const root = await appDirPath();
-    await invoke('extract7z', {path: `${root}${archivePath}`, dest: `${root}${dir}\\`});
+
+    try {
+        await invoke('extract7z', {path: `${root}${archivePath}`, dest: `${root}${dir}\\`});
+    } catch (error) {
+        throw new Error(`downloaded ${version} (${archive.length} bytes) but could not extract it: ${error}`);
+    }
 
     await appData.removeFile(archivePath);
 }

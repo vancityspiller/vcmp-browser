@@ -15,6 +15,14 @@ function LaunchModal({progress, setProgress, selected, password, setRecents, bui
     const settings = useRef({});
     const {setLocked} = useNavigationLock();
 
+    // The drawer refreshes a server a second or two after it is opened, so
+    // `selected` can change while a launch is already running. The steps read
+    // it through this ref, keeping the state machine driven purely by
+    // `progress` -- otherwise that refresh re-entered the current step and
+    // started a second download on top of the first.
+    const server = useRef(selected);
+    server.current = selected;
+
     const isOpen = progress !== '' || error !== '';
 
     const handleClose = () => {
@@ -39,13 +47,13 @@ function LaunchModal({progress, setProgress, selected, password, setRecents, bui
 
                 case 'builds': {
                     // skip checking for updater if the server is 0.3z R2
-                    if(selected.version === '03zR2') {
+                    if(server.current.version === '03zR2') {
                         setProgress('launch');
                         break;
                     }
 
                     const downloadedVersions = await buildVersions();
-                    setProgress(downloadedVersions.hasOwnProperty(selected.version) ? 'launch' : 'download');
+                    setProgress(downloadedVersions.hasOwnProperty(server.current.version) ? 'launch' : 'download');
                     break;
                 }
 
@@ -54,13 +62,13 @@ function LaunchModal({progress, setProgress, selected, password, setRecents, bui
                         // the updater's /check only compares hashes, it never
                         // reports whether a version exists, so the download is
                         // the only honest availability test
-                        await downloadVersion(settings.current.updater, selected.version);
+                        await downloadVersion(settings.current.updater, server.current.version);
                         setProgress('launch');
 
                     } catch (e) {
                         buildMode.current = false;
 
-                        setError(`Version ${selected.version} is not installed, and the updater could not provide it!`);
+                        setError(`Could not install version ${server.current.version}: ${e?.message ?? e}`);
                         setProgress('errored');
 
                         setLocked(false);
@@ -72,7 +80,7 @@ function LaunchModal({progress, setProgress, selected, password, setRecents, bui
                 case 'launch': {
                     try {
                         const resDirPath = await appDirPath();
-                        const [ip, port] = selected.ip.split(":");
+                        const [ip, port] = server.current.ip.split(":");
 
                         const newRecent = {ip: ip, port: parseInt(port), addedAt: Date.now()};
 
@@ -90,13 +98,13 @@ function LaunchModal({progress, setProgress, selected, password, setRecents, bui
                             }
                         });
 
-                        let commandLine = !selected.password ? `-c -h ${ip} -c -p ${port} -n ${settings.current.playerName}` : `-c -h ${ip} -c -p ${port} -n ${settings.current.playerName} -z ${password}`;
+                        let commandLine = !server.current.password ? `-c -h ${ip} -c -p ${port} -n ${settings.current.playerName}` : `-c -h ${ip} -c -p ${port} -n ${settings.current.playerName} -z ${password}`;
                         if(buildMode.current) commandLine += ' -d';
 
-                        const isR2 = selected.version === '03zR2';
+                        const isR2 = server.current.version === '03zR2';
                         const pid = await invoke("launch_game", 
                             { 
-                                dllPath: isR2 ? '' : `${resDirPath}versions\\${selected.version}\\${settings.current.isSteam ? 'vcmp-steam.dll' : 'vcmp-game.dll'}`, 
+                                dllPath: isR2 ? '' : `${resDirPath}versions\\${server.current.version}\\${settings.current.isSteam ? 'vcmp-steam.dll' : 'vcmp-game.dll'}`, 
                                 gameDir: settings.current.gameDir, 
                                 commandLine: commandLine, 
                                 isSteam: settings.current.isSteam,
@@ -107,8 +115,8 @@ function LaunchModal({progress, setProgress, selected, password, setRecents, bui
                             invoke("discord_presence", 
                             {
                                 pid: parseInt(pid),
-                                ip: selected.ip,
-                                serverName: selected.serverName,
+                                ip: server.current.ip,
+                                serverName: server.current.serverName,
                                 minimal: settings.current.richPresence.minimal,
                                 isR2: isR2
                             });
@@ -133,11 +141,12 @@ function LaunchModal({progress, setProgress, selected, password, setRecents, bui
             }
         }
 
-        if(progress !== '' || progress !== 'errored') {
+        if(progress !== '' && progress !== 'errored') {
             effect();
         }
 
-    }, [progress, selected])
+        // deliberately not depending on `selected`; see the ref above
+    }, [progress])
 
     // --------------------------------------------------------- //
 
