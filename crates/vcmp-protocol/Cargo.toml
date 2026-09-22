@@ -1,0 +1,8 @@
+[package]
+name = "vcmp-protocol"
+version = "0.1.0"
+edition = "2021"
+description = "Parser for the VC:MP server query protocol (0.4 and 0.3z R2)"
+
+[dependencies]
+serde = { version = "1", features = ["derive"] }

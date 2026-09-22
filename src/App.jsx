@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Container, Loader, Notification } from 'rsuite';
 
-import { dialog } from '@tauri-apps/api';
-import { appWindow } from '@tauri-apps/api/window';
+import { message, window as appWindow } from './api/tauri';
+import { useNavigationLock } from './state/navigationLock';
 
 import DraggableHeader from './components/DraggableHeader';
 import SideNavbar from './components/Navbar/Navbar';
@@ -20,6 +20,7 @@ import { runUpdater } from './utils/update.util';
 function App() {
 
     const [navAddress, setNavAddress] = useState('Dashboard');
+    const {setLocked} = useNavigationLock();
 
     const [update, setUpdate] = useState(0);
     const [updating, setUpdating] = useState(true);
@@ -47,8 +48,9 @@ function App() {
             try {
                 await checkConfig();
             } catch (e) {
-                dialog.message(`Fatal Error: ${e}! Program will exit.`)
-                .then(() => appWindow.close());
+                await message(`Fatal Error: ${e}! Program will exit.`);
+                await appWindow.close();
+                return;
             }
 
             const settings = await loadFile('settings.json');
@@ -61,8 +63,9 @@ function App() {
                 }
             }
 
+            // nothing works without these, so keep the user on Customize
             if(settings.gameDir === '' || settings.playerName === '') {
-                localStorage.setItem('navSwitching', 'false');
+                setLocked(true);
                 setNavAddress('Customize');
             }
 

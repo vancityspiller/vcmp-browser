@@ -1,4 +1,4 @@
-import { appWindow } from '@tauri-apps/api/window';
+import { window as appWindow } from '../api/tauri';
 import React from 'react';
 
 function DraggableHeader() {

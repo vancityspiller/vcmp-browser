@@ -1,15 +1,19 @@
-import React, { useState, useCallback, useMemo, useEffect, useRef } from 'react';
-import { Dropdown, Popover } from 'rsuite';
-import ReactTimeAgo from 'react-time-ago'
+import React, { useState, useCallback, useMemo, useRef } from 'react';
+import ReactTimeAgo from 'react-time-ago';
 
 import AddFav from './AddFav';
 import PasswordModal from './PasswordModal';
 import LaunchModal from './LaunchModal';
+import ContextMenu, { MENU_ACTION } from './ContextMenu';
+import Searchbar from './Searchbar';
+import ServerlistHeader from './Header';
 
 import ServerInfoDrawer from '../ServerInfoDrawer/ServerInfoDrawer';
 
-import { clipboard } from '@tauri-apps/api';
-import { performUDP } from '../../utils/server.util';
+import { clipboard } from '../../api/tauri';
+import { queryServer } from '../../api/servers';
+import { useServerFilters, WAITING_ROW } from './useServerFilters';
+import { useListKeyboard } from './useListKeyboard';
 
 // ========================================================= //
 
@@ -18,511 +22,273 @@ import FavoriteIcon from '@rsuite/icons/legacy/Star';
 import ExcIcon from '@rsuite/icons/legacy/ExclamationTriangle';
 
 import './serverlist.less';
-import Searchbar from './Searchbar';
-import ServerlistHeader from './Header';
 
 // --------------------------------------------------------- //
 
-function ServerList({list, updateList, favoriteList, hiddenList, changeFavs, changeHidden, changeRecents, reloadCb, recentsTab, favoritesTab}) {
+// names longer than this are cut short to keep the columns aligned
+const MAX_NAME_LENGTH = 55;
+const MAX_GAMEMODE_LENGTH = 20;
+
+function truncate(text, limit) {
+    return text.length > limit ? `${text.slice(0, limit)}...` : text;
+}
+
+// --------------------------------------------------------- //
+
+function ServerList({
+    list, updateList, favoriteList, hiddenList,
+    changeFavs, changeHidden, changeRecents,
+    reloadCb, recentsTab, favoritesTab
+}) {
 
     const [selected, setSelected] = useState(null);
-
     const [search, setSearch] = useState('');
+    const [showLocked, setShowLocked] = useState(true);
     const [sort, setSort] = useState({
         column: favoritesTab || recentsTab ? 'addedAt' : '',
         mode: favoritesTab ? 'des' : (recentsTab ? 'asc' : '')
     });
 
-    const [displayLocked, setDisplayLocked] = useState(true);
-
-    // --------------------------------------------------------- //
-
-    const handleSearch = (value) => {
-        setSearch(value);
-    }
-    
-    // --------------------------------------------------------- //
-
-    const rows = useMemo(() => {
-
-        // make a copy of state
-        let borrowed = [...list];
-
-        // remove hidden servers
-        if(!recentsTab) {
-            borrowed = borrowed.filter(v => {
-                return (hiddenList.indexOf(v.ip) === -1);
-            });
-        }
-
-        // show 'Waiting for server data...' on favorites and recents page
-        const includeWaiting = favoritesTab || recentsTab;
-
-        if(!includeWaiting) {
-            borrowed = borrowed.filter(v => {
-                return v.ping !== null;
-            });
-        } else {
-            borrowed = borrowed.map((v) => {
-                if(v.ping === null) {
-                    return {...v, ping: 9999, serverName: 'Waiting for server data...', gameMode: '', numPlayer: 0, version: '', password: false, isFavorite: false, players: []}
-                } else return v;
-            });
-        }
-
-        // --------------------------------------------------------- //
-
-        // remove locked servers
-        if(displayLocked === false) {
-            borrowed = borrowed.filter(v => {
-                return !v.password;
-            });
-        }
-
-        // add favorites key; so it can be used later as well
-        borrowed = borrowed.map((v) => {
-
-            const fIdx = favoriteList.findIndex(fav => {
-                return (fav.ip + ':' + fav.port) === v.ip;
-            });
-
-            if(fIdx === -1) {
-                return {...v, isFavorite: false};
-            }
-
-            if(recentsTab) {
-                return {...v, isFavorite: true};
-            }
-
-            return {...v, isFavorite: true, addedAt: favoriteList[fIdx].addedAt};
-        });
-
-        // search logic
-        if(search.trim() !== '') {
-            borrowed = borrowed.filter(server => {
-
-                const searchTerm = search.trim().toLowerCase();
-
-                // we search for server name
-                if(server.serverName.toLowerCase().indexOf(searchTerm) !== -1)
-                    return true;
-                
-                // we search for server ip
-                if(server.ip.toLowerCase().indexOf(searchTerm) !== -1)
-                    return true;
-                
-                let playerSearch = false;
-                
-                // so why leave players (2261A: stalking is illegal)
-                for(let i = 0 ; i < server.players.length ; i++) {
-                    if(server.players[i].toLowerCase().indexOf(searchTerm) !== -1) {
-                        playerSearch = true;
-                        break;
-                    }
-                }
-
-                if(playerSearch === true) return true;
-                return false;
-            });
-        }
-
-        // --------------------------------------------------------- //
-
-        // sort (default sorted by ping: asc ; because that's how they're received )
-        // it doesn't make much sense to sort by name when you can search but doesn't hurt me
-        if(sort.mode.length > 0 && sort.column.length > 0) {
-
-            borrowed.sort((a, b) => {
-
-                // get the column data for which we are sorting
-                let x = a[sort.column];
-                let y = b[sort.column];
-
-                // need to be some sort of integer for comparison
-                if(typeof(x) === 'string') {
-                    x = x.charCodeAt();
-                }
-
-                if(typeof(y) === 'string') {
-                    y = y.charCodeAt();
-                }
-                
-                // increasing or decreasing order?
-                // less ping is better, so swap for that
-                
-                if(sort.mode === 'des') {
-                    return (sort.column === 'ping' ? y - x :  x - y);
-                } else {
-                    return (sort.column === 'ping' ? x - y :  y - x);
-                }
-            });
-        }
-
-        return borrowed;
-    }, [list, search, sort, favoriteList, hiddenList, displayLocked]);
-
-    const searchPlaceholder = useMemo(() => {
-
-        let players = 0;
-        rows.forEach(v => {
-
-            if(v.players)
-            players += v.players.length;
-        });
-
-        return `Search in ${rows.length} servers and ${players} players`;
-    }, [rows]);
-
-    // --------------------------------------------------------- //
-    // for drawer
-
     const [drawerOpen, setDrawerOpen] = useState(false);
+    const [menuPosition, setMenuPosition] = useState(null);
+    const [passwordModal, setPasswordModal] = useState(false);
+    const [enteredPassword, setEnteredPassword] = useState('');
+    const [launchProgress, setLaunchProgress] = useState('');
 
-    const handleDrawerClose = () => {
-        setDrawerOpen(false);
-    }
+    const buildMode = useRef(false);
+    const listRef = useRef();
 
     // --------------------------------------------------------- //
 
-    const handleSelect = useCallback((idx, dontUpdate = false) => {
+    const {rows, totalPlayers} = useServerFilters({
+        list, search, sort, favoriteList, hiddenList, showLocked, recentsTab, favoritesTab
+    });
 
-        const cb = async () => {
+    const searchPlaceholder = useMemo(
+        () => `Search in ${rows.length} servers and ${totalPlayers} players`,
+        [rows.length, totalPlayers]
+    );
 
-            setSelected({...rows[idx]});
-            setDrawerOpen(true);
+    // --------------------------------------------------------- //
 
-            // if changing via arrow keys, don't update server info or will cause sync issues
-            if(dontUpdate) return;
+    /**
+     * Opens a server in the drawer, refreshing its details unless we are
+     * stepping through the list with the arrow keys.
+     */
+    const handleSelect = useCallback(async (idx, skipRefresh = false) => {
 
-            const rawIndex = list.findIndex(v => {
-                return rows[idx].ip === v.ip;
-            });
+        const current = rows[idx];
+        if(!current) return;
 
-            const current = rows[idx];
-    
-            const [ip, port] = rows[idx].ip.split(':');
-            let newData = await performUDP(ip, parseInt(port));
+        setSelected({...current});
+        setDrawerOpen(true);
 
-            if(recentsTab) newData["addedAt"] = current.addedAt;
+        if(skipRefresh) return;
 
-            if(newData.ping === null)
-            newData = {...newData, ping: 9999, serverName: 'Waiting for server data...', gameMode: '', numPlayer: 0, version: '', password: false, isFavorite: false, players: []};
-            newData.isFavorite = current.isFavorite;
-            
-            setSelected(newData);
+        const [ip, port] = current.ip.split(':');
+        let refreshed = await queryServer(ip, parseInt(port));
 
-            updateList(p => {
-                const n = [...p];
-                n[rawIndex] = newData;
-                return n;
-            });
-    
-        };
-        cb();
+        if(refreshed.ping === null) {
+            refreshed = {...refreshed, ...WAITING_ROW};
+        }
 
-    }, [rows]);
+        refreshed.isFavorite = current.isFavorite;
+        if(recentsTab) refreshed.addedAt = current.addedAt;
 
-    const handleDirectLaunch = useCallback((idx) => {
-        setSelected({...rows[idx]});
-        rows[idx]?.password ? actLaunchPassword() : actLaunchRequested();
+        setSelected(refreshed);
 
+        updateList(previous => previous.map(v => v.ip === current.ip ? refreshed : v));
+
+    }, [rows, recentsTab, updateList]);
+
+    // --------------------------------------------------------- //
+
+    const requestLaunch = useCallback((server = selected) => {
+        server?.password ? setPasswordModal(true) : setLaunchProgress('updater');
     }, [selected]);
 
+    const handleDirectLaunch = useCallback(idx => {
+        const server = rows[idx];
+        if(!server) return;
+
+        setSelected({...server});
+        buildMode.current = false;
+        requestLaunch(server);
+
+    }, [rows, requestLaunch]);
+
     // --------------------------------------------------------- //
 
-    const srvList = useRef();
-
-    useEffect(() => {
-
-        // register shortcut, Up and Down arrows to navigate serverlist
-        const listener = event => {
-
-            // if a server is selected, use to go to next/previous
-            if(drawerOpen && selected) {
-                if(!event.ctrlKey) {
-                    if(event.key === 'ArrowDown') {
-                        const current = rows.findIndex(v => v.ip === selected.ip);
-
-                        if(current === rows.length - 1) return;
-                        const next = current + 1;
-
-                        srvList.current.scrollTop += 15;
-                        handleSelect(next, true);
-
-                    } else if(event.key === 'ArrowUp') {
-
-                        const current = rows.findIndex(v => v.ip === selected.ip);
-
-                        if(current === 0) return;
-                        const next = current - 1;
-
-                        srvList.current.scrollTop -= 15;
-                        handleSelect(next, true);
-                    }
-                }
-            }
-
-            // for scrolling
-            if(!event.ctrlKey) {
-                if(event.key === 'ArrowDown') {
-                    const scrollTo = srvList.current.scrollTop + 30;
-                    srvList.current.scrollTo({top: scrollTo, behaviour: 'smooth'})
-
-                } else if(event.key === 'ArrowUp') {
-                    const scrollTo = srvList.current.scrollTop - 30;
-                    srvList.current.scrollTo({top: scrollTo, behaviour: 'smooth'})
-                }
-            }
-        };
-
-        document.addEventListener('keydown', listener);
-
-        // --------------------------------------------------------- //
-
-        const contextListener = () => {
-
-            if(!triggerRef.current) {
-                return;
-            }
-
-            triggerRef.current.style.opacity = 0;
-            triggerRef.current.style["z-index"] = -1;
-        }
-
-        document.addEventListener('click', contextListener);
-
-        return () => {
-            document.removeEventListener('keydown', listener);
-            document.removeEventListener('click', contextListener);
-        }
-    }, [drawerOpen, selected]);
+    useListKeyboard({
+        rows,
+        selected,
+        active: drawerOpen,
+        listRef,
+        onSelect: handleSelect
+    });
 
     // ========================================================= //
-    // callbacks for performing actions
 
-    const actHandleFavorite = useCallback(() => {
+    const toggleFavorite = useCallback(() => {
+
+        if(!selected) return;
 
         if(selected.isFavorite) {
-            
-            changeFavs(p => {
-                return p.filter(v => {
-                    return selected.ip !== (v.ip + ':' + v.port);
-                })
-            })
+            changeFavs(p => p.filter(v => `${v.ip}:${v.port}` !== selected.ip));
 
         } else {
-
             const [ip, port] = selected.ip.split(':');
-            const newFav = {ip: ip, port: parseInt(port), addedAt: Date.now()};
-
-            changeFavs(p => {
-                return [...p, newFav];
-            });
+            changeFavs(p => [...p, {ip: ip, port: parseInt(port), addedAt: Date.now()}]);
         }
 
-        selected.isFavorite = !selected.isFavorite;
+        setSelected(p => p && {...p, isFavorite: !p.isFavorite});
 
     }, [selected, changeFavs]);
 
     // --------------------------------------------------------- //
 
-    const actCopyInfo = useCallback((mode) => {
-        
-        if(mode === 'ip') {
-            clipboard.writeText(selected.ip)
-                .catch(() => console.log('ERR: clipboard.writeText failed!'));
-        } 
+    const copyInfo = useCallback(mode => {
 
-        else if(mode === 'info') {
-            clipboard.writeText(`Server Name: ${selected.serverName}\nIP: ${selected.ip}\nGamemode: ${selected.gameMode}\nVersion: ${selected.version}`)
-                .catch(() => console.log('ERR: clipboard.writeText failed!'));
-        }
+        if(!selected) return;
+
+        const text = mode === 'ip'
+            ? selected.ip
+            : `Server Name: ${selected.serverName}\nIP: ${selected.ip}\n`
+              + `Gamemode: ${selected.gameMode}\nVersion: ${selected.version}`;
+
+        clipboard.writeText(text).catch(() => console.error('could not write to the clipboard'));
 
     }, [selected]);
 
     // --------------------------------------------------------- //
 
-    const [passwordModal, setPasswordModal] = useState(false);
-    const [enteredPassword, setEnteredPassword] = useState('');
-    const [launchProgress, setLaunchProgress] = useState('');
-    const buildMode = useRef(false);
-
-    const actLaunchRequested = useCallback(() => {
-        setPasswordModal(false);
-        setLaunchProgress('updater');
-    }, [selected]);
-
-    // --------------------------------------------------------- //
-
-    const actLaunchPassword = useCallback(() => {
-        setPasswordModal(true);
-    }, [selected]);
-
-    // --------------------------------------------------------- //
-
-    const actHideServer = useCallback(() => {
-        
-        changeHidden(p => {
-            return [...p, selected.ip];;
-        });        
-    }, [selected]);
+    const hideServer = useCallback(() => {
+        if(selected) changeHidden(p => [...p, selected.ip]);
+    }, [selected, changeHidden]);
 
     // ========================================================= //
 
-    const triggerRef = useRef();
-
-    const handleContextMenuOpen = (idx, event) => {
-
+    const openContextMenu = (idx, event) => {
         event.preventDefault();
+
         setSelected({...rows[idx]});
+        setMenuPosition({x: event.clientX, y: event.clientY});
+    };
 
-        // set width and make it appear
-        triggerRef.current.style.opacity = 100;
-        triggerRef.current.style.width = '200px';
-        triggerRef.current.style["z-index"] = 1;
+    const dismissContextMenu = useCallback(() => setMenuPosition(null), []);
 
-        // --------------------------------------------------------- //
-        // vertical mapping
-
-        triggerRef.current.style.top = event.clientY + 'px';
-
-        // is the mouse position too low?
-        const yDiff = event.view.innerHeight - event.clientY;
-        if(yDiff < 300) {
-            // then push the toast a bit up
-            triggerRef.current.style.top = event.clientY - (300 - yDiff) + 'px';
-        }
-
-        // --------------------------------------------------------- //
-        // horizontal mapping
-
-        triggerRef.current.style.left = event.clientX + 'px';
-
-        // is the mouse position too right?
-        const xDiff = event.view.innerWidth - event.clientX;
-        if(xDiff < 200) {
-            // then push the toast a bit left ; offset 30px
-            triggerRef.current.style.left = event.clientX - (200 - xDiff) - 30 + 'px';
-        }
-    }
-
-    // ========================================================= //
-    
-    const handleContextMenuSelect = (key) => {
+    const handleMenuSelect = key => {
 
         switch(key) {
-            case 1:
+            case MENU_ACTION.LAUNCH:
                 buildMode.current = false;
-                selected?.password ? actLaunchPassword() : actLaunchRequested();
+                requestLaunch();
                 break;
 
-            case 2: {
-                actHandleFavorite();
-                break;
-            }
-
-            case 3: {
-                actCopyInfo('ip');
-                break;
-            }
-
-            case 4: {
-                actCopyInfo('info');
-                break;
-            }
-
-            case 5: {
+            case MENU_ACTION.BUILD_MODE:
                 buildMode.current = true;
-                selected?.password ? actLaunchPassword() : actLaunchRequested();
+                requestLaunch();
                 break;
-            }
 
-            case 6: {
-                actHideServer();
-                break;
-            }
+            case MENU_ACTION.FAVORITE:  toggleFavorite(); break;
+            case MENU_ACTION.COPY_IP:   copyInfo('ip'); break;
+            case MENU_ACTION.COPY_INFO: copyInfo('info'); break;
+            case MENU_ACTION.HIDE:      hideServer(); break;
         }
 
-        triggerRef.current.style.opacity = 0;
-    }
+        dismissContextMenu();
+    };
 
     // --------------------------------------------------------- //
 
     return (
         <React.Fragment>
 
-            <Popover full ref={triggerRef}>
-                <Dropdown.Menu
-                    onSelect={handleContextMenuSelect}
-                >
-                    <Dropdown.Item disabled={selected?.ping === 9999} eventKey={1}>Launch</Dropdown.Item>
-                    <Dropdown.Item eventKey={2}>{selected?.isFavorite ? 'Remove Favorite' : 'Set Favorite'}</Dropdown.Item>
-                    <Dropdown.Item eventKey={3}>Copy IP</Dropdown.Item>
-                    <Dropdown.Item disabled={selected?.ping === 9999} eventKey={4}>Copy Info</Dropdown.Item>
-                    <Dropdown.Item disabled={selected?.ping === 9999} eventKey={5}>Build Mode</Dropdown.Item>
-                    <Dropdown.Item disabled={selected?.isFavorite} eventKey={6}>Hide Server</Dropdown.Item>
-                </Dropdown.Menu>
-            </Popover>
-            
-            <ServerlistHeader sort={sort} setSort={setSort} recentsTab={recentsTab} favoritesTab={favoritesTab}/>
+            <ContextMenu
+                position={menuPosition}
+                server={selected}
+                onSelect={handleMenuSelect}
+                onDismiss={dismissContextMenu}
+            />
+
+            <ServerlistHeader sort={sort} setSort={setSort} recentsTab={recentsTab} favoritesTab={favoritesTab} />
             {favoritesTab && <AddFav setFavorites={changeFavs} />}
 
-            {
-                rows.length === 0 
-                ? 
+            {rows.length === 0
+                ?
                     <div className='srvEmptyFallback'>
                         <ExcIcon />
                         <h5>No servers found</h5>
-                        <span>{ search.length > 0 ? 'refine your search' : 'might still be loading' }</span>
+                        <span>{search.length > 0 ? 'refine your search' : 'might still be loading'}</span>
                     </div>
                 :
-                <div className='srvList' ref={srvList}>
-
-                    {rows.map((element, idx) => {
-                        return (
-                            <div 
-                                className={`srvItem ${drawerOpen && selected?.ip === element.ip ? 'srvItem-selected' : ''}`} 
-                                key={element.ip} 
-                                onClick={(e) => {
-                                    e.ctrlKey ? handleDirectLaunch(idx) : handleSelect(idx)
-                                }}
-                                onContextMenu={(event) => handleContextMenuOpen(idx, event)}                                
+                    <div className='srvList' ref={listRef}>
+                        {rows.map((element, idx) => (
+                            <div
+                                className={`srvItem ${drawerOpen && selected?.ip === element.ip ? 'srvItem-selected' : ''}`}
+                                key={element.ip}
+                                onClick={e => e.ctrlKey ? handleDirectLaunch(idx) : handleSelect(idx)}
+                                onContextMenu={event => openContextMenu(idx, event)}
                             >
                                 <span className='srvItemLocked'>{element.password ? <LockIcon /> : ''}</span>
 
                                 <span className='srvItemName'>
-                                    {   // add a flair for R2
-                                        element.version === '03zR2' &&
-                                        <span className='srvItemFlair'>[R2] </span>
-                                    }
-
-                                    {element.serverName.length > 55 
-                                    ? (element.serverName.slice(0, 55) + '...') 
-                                    : element.serverName}
+                                    {element.version === '03zR2' && <span className='srvItemFlair'>[R2] </span>}
+                                    {truncate(element.serverName, MAX_NAME_LENGTH)}
                                 </span>
+
                                 <span className='srvItemFav'>{element.isFavorite ? <FavoriteIcon /> : ''}</span>
                                 <span className='srvItemPing'>{element.ping}</span>
-                                <span className='srvItemPlayers'>{element.numPlayers}<span>/{element.maxPlayers}</span></span>
-                                
+                                <span className='srvItemPlayers'>
+                                    {element.numPlayers}<span>/{element.maxPlayers}</span>
+                                </span>
+
                                 <span className='srvItemMode'>
-                                    {recentsTab 
+                                    {recentsTab
                                         ? <ReactTimeAgo date={element.addedAt} />
-                                        : (element.gameMode.length > 20 ? (element.gameMode.slice(0, 20) + '...') : element.gameMode)
-                                    }
+                                        : truncate(element.gameMode, MAX_GAMEMODE_LENGTH)}
                                 </span>
                             </div>
-                        )
-                    })}
-                </div>
+                        ))}
+                    </div>
             }
-            
-            <Searchbar search={search} handleSearch={handleSearch} reloadCb={reloadCb} locked={displayLocked} setLocked={setDisplayLocked} placeholder={searchPlaceholder} />
 
-            <ServerInfoDrawer open={drawerOpen} handleClose={handleDrawerClose} data={selected} handleFavorite={actHandleFavorite} handleCopy={actCopyInfo} handleLaunch={selected?.password ? actLaunchPassword : actLaunchRequested}/>
-            <PasswordModal open={passwordModal} setOpen={setPasswordModal} selected={selected} next={actLaunchRequested} password={enteredPassword} setPassword={setEnteredPassword}/>
+            <Searchbar
+                search={search}
+                handleSearch={setSearch}
+                reloadCb={reloadCb}
+                locked={showLocked}
+                setLocked={setShowLocked}
+                placeholder={searchPlaceholder}
+            />
 
-            <LaunchModal progress={launchProgress} setProgress={setLaunchProgress} selected={selected} password={enteredPassword} setRecents={changeRecents} buildMode={buildMode}/>
-                
+            <ServerInfoDrawer
+                open={drawerOpen}
+                handleClose={() => setDrawerOpen(false)}
+                data={selected}
+                handleFavorite={toggleFavorite}
+                handleCopy={copyInfo}
+                handleLaunch={() => requestLaunch()}
+            />
+
+            <PasswordModal
+                open={passwordModal}
+                setOpen={setPasswordModal}
+                selected={selected}
+                next={() => { setPasswordModal(false); setLaunchProgress('updater'); }}
+                password={enteredPassword}
+                setPassword={setEnteredPassword}
+            />
+
+            <LaunchModal
+                progress={launchProgress}
+                setProgress={setLaunchProgress}
+                selected={selected}
+                password={enteredPassword}
+                setRecents={changeRecents}
+                buildMode={buildMode}
+            />
+
         </React.Fragment>
     );
 }

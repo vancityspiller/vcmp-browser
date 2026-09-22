@@ -1,10 +1,9 @@
-import { invoke, path } from '@tauri-apps/api';
+import { invoke, appDirPath } from '../../api/tauri';
 import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { Button, Loader, Modal } from 'rsuite';
-import { downloadFiles } from '../../utils/httpd.utils';
-
 import { loadFile } from '../../utils/resfile.util';
-import { buildVersions, checkVersions, downloadVersion } from '../../utils/update.util';
+import { useNavigationLock } from '../../state/navigationLock';
+import { buildVersions, downloadVersion } from '../../utils/update.util';
 
 // ========================================================= //
 
@@ -14,6 +13,7 @@ function LaunchModal({progress, setProgress, selected, password, setRecents, bui
     const [error, setError] = useState('');
 
     const settings = useRef({});
+    const {setLocked} = useNavigationLock();
 
     const isOpen = progress !== '' || error !== '';
 
@@ -31,7 +31,7 @@ function LaunchModal({progress, setProgress, selected, password, setRecents, bui
 
             switch(progress) {
                 case 'updater': {
-                    localStorage.setItem('navSwitching', 'false');
+                    setLocked(true);
                     settings.current = await loadFile('settings.json');
                     setProgress('builds');
                     break;
@@ -45,68 +45,34 @@ function LaunchModal({progress, setProgress, selected, password, setRecents, bui
                     }
 
                     const downloadedVersions = await buildVersions();
-                    setProgress(downloadedVersions.hasOwnProperty(selected.version) ? 'httpd' : 'check');
-                    break;
-                }
-
-                case 'check': {
-                    try {
-                        const vObj = {};
-                        vObj[selected.version] = '00000001';
-
-                        const buildsAvailable = await checkVersions(settings.current.updater, vObj);
-                        if(buildsAvailable.length === 0) {
-                            throw new Error();
-                        }
-
-                        setProgress('download');
-
-                    } catch (e) {
-                        buildMode.current = false;
-
-                        setError(`Version ${selected.version} is not available locally or on updater!`);
-                        setProgress('errored');
-
-                        localStorage.setItem('navSwitching', 'true');
-                        break;
-                    }
+                    setProgress(downloadedVersions.hasOwnProperty(selected.version) ? 'launch' : 'download');
                     break;
                 }
 
                 case 'download': {
                     try {
+                        // the updater's /check only compares hashes, it never
+                        // reports whether a version exists, so the download is
+                        // the only honest availability test
                         await downloadVersion(settings.current.updater, selected.version);
-                        setProgress('httpd');
+                        setProgress('launch');
 
                     } catch (e) {
                         buildMode.current = false;
 
-                        setError(`Version ${selected.version} could not be downloaded successfully!`);
+                        setError(`Version ${selected.version} is not installed, and the updater could not provide it!`);
                         setProgress('errored');
 
-                        localStorage.setItem('navSwitching', 'true');
+                        setLocked(false);
                         break;
                     }
                     break;
                 }
 
-                case 'httpd': {
-                    if(settings.current.httpDownloads) {
-                        await downloadFiles(selected.ip);
-                    }
-                    
-                    setProgress('launch');
-                    break;
-                }
-
                 case 'launch': {
                     try {
-                        let resDirPath = await path.appDataDir();
+                        const resDirPath = await appDirPath();
                         const [ip, port] = selected.ip.split(":");
-
-                        if(resDirPath.startsWith('\\\\?\\')) {
-                            resDirPath = resDirPath.slice(4);
-                        }
 
                         const newRecent = {ip: ip, port: parseInt(port), addedAt: Date.now()};
 
@@ -140,10 +106,9 @@ function LaunchModal({progress, setProgress, selected, password, setRecents, bui
                         if(settings.current.richPresence.enabled === true) { 
                             invoke("discord_presence", 
                             {
-                                pid: parseInt(pid), 
-                                ip: selected.ip, 
-                                sendString: `VCMP${ip.slice(0, 4)}${port.toString().slice(0, 2)}i`, 
-                                serverName: selected.serverName, 
+                                pid: parseInt(pid),
+                                ip: selected.ip,
+                                serverName: selected.serverName,
                                 minimal: settings.current.richPresence.minimal,
                                 isR2: isR2
                             });
@@ -153,13 +118,13 @@ function LaunchModal({progress, setProgress, selected, password, setRecents, bui
 
                         setError(error);
                         setProgress('errored');
-                        localStorage.setItem('navSwitching', 'true');
+                        setLocked(false);
 
                         break;
                     }
 
                     buildMode.current = false;
-                    localStorage.setItem('navSwitching', 'true');
+                    setLocked(false);
 
                     setProgress('');
                     handleClose();
@@ -182,12 +147,8 @@ function LaunchModal({progress, setProgress, selected, password, setRecents, bui
                 return 'Fetching updater settings';
             case 'builds':
                 return 'Checking build versions';
-            case 'check':
-                return `Checking updater`;
             case 'download':
                 return `Downloading version ${selected.version}`;
-            case 'httpd':
-                return 'Downloading server store files';
             case 'launch':
                 return 'Launching game';
             default: return '';

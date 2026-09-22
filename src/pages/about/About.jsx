@@ -1,4 +1,4 @@
-import { app, shell } from '@tauri-apps/api';
+import { getVersion, openUrl } from '../../api/tauri';
 import React, { useState, useEffect } from 'react';
 import { Avatar, Content, Tag } from 'rsuite';
 
@@ -24,7 +24,7 @@ function About() {
     useEffect(() => {
         
         const effect = async () => {
-            const appVersion = await app.getVersion();
+            const appVersion = await getVersion();
             setVersion(appVersion);        
         }
 
@@ -35,7 +35,7 @@ function About() {
     // --------------------------------------------------------- //
 
     const openWebsite = async (url) => {
-        await shell.open(url);
+        await openUrl(url);
     }
 
     // --------------------------------------------------------- //

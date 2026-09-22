@@ -2,10 +2,11 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { IconButton, Container, Content, Header, Loader, Nav, Tag } from 'rsuite';
 import ServerList from '../../components/ServerList/ServerList';
 
-import { http } from "@tauri-apps/api";
-
+import { fetchJson } from '../../api/tauri';
+import { queryServer, queryServers } from '../../api/servers';
 import { loadFile, saveFile } from '../../utils/resfile.util';
-import { performUDP } from '../../utils/server.util';
+import { useAfterMount } from '../../hooks/useAfterMount';
+import { useUnmountEffect } from '../../hooks/useUnmountEffect';
 
 // ========================================================= //
 
@@ -16,6 +17,25 @@ import './dashboard.less';
 
 // --------------------------------------------------------- //
 
+// Q and E cycle the tabs, in this order
+const TABS = ['Favorites', 'Masterlist', 'Featured', 'Recent'];
+
+// tabs that depend on the masterlist, and so show its loading and error states
+const MASTERLIST_TABS = ['Masterlist', 'Featured'];
+
+// don't cache a list that is still filling in
+const SETTLE_DELAY = 1500;
+
+const CACHE_KEY = 'servers';
+const LAST_TAB_KEY = 'lastTab';
+
+// --------------------------------------------------------- //
+
+/** Formats a stored favorite or recent as the "ip:port" key the lists use. */
+const addressOf = (entry) => `${entry.ip}:${entry.port}`;
+
+// --------------------------------------------------------- //
+
 function Dashboard() {
 
     const [tab, setTab] = useState();
@@ -23,424 +43,318 @@ function Dashboard() {
     const [failed, setFailed] = useState(false);
     const [reload, setReload] = useState(0);
 
-    // read file values
+    // the user's own lists, as stored in servers.json
     const [favs, setFavs] = useState(null);
     const [hiddens, setHidden] = useState(null);
     const [recents, setRecents] = useState(null);
 
-    // server lists
+    // query results
     const [serverList, setServerList] = useState([]);
     const [favList, setFavList] = useState([]);
     const [featuredList, setFeaturedList] = useState([]);
     const [recentList, setRecentList] = useState([]);
 
-    // track renders
-    const isInitialMountFav = useRef(true);
-    const isInitialMountRec = useRef(true);
-    const isInitialMountHid = useRef(true);
-
-    const isFinalUnmount = useRef(false);
     const lastUpdate = useRef(Date.now());
 
     // --------------------------------------------------------- //
 
-    const forceReload = useCallback(() => {
-        setReload(p => p + 1);
-    }, [reload]);
+    const forceReload = useCallback(() => setReload(p => p + 1), []);
 
-    // --------------------------------------------------------- //
-
-    const handleSelect = (key) => {
-        if(tab !== key) {
-            setTab(key);
-        }
-    }
-
-    const isSelected = (key) => {
-        return key === tab;
-    }
-
-    // --------------------------------------------------------- //
-
-    useEffect(() => {
-        return () => {
-
-            if(!isFinalUnmount.current) {
-                isFinalUnmount.current = true;
-            }
-        }
+    const selectTab = useCallback((key) => {
+        setTab(previous => previous === key ? previous : key);
     }, []);
 
-    useEffect(() => {
+    // --------------------------------------------------------- //
 
-            return () => {
+    // Cache the lists when leaving the dashboard, so coming back from another
+    // page is instant. Skipped while results are still arriving, and when there
+    // is nothing worth keeping.
+    useUnmountEffect(() => {
 
-                if(!isFinalUnmount.current) return;              
+        if(serverList.length === 0) return;
+        if(Date.now() - lastUpdate.current < SETTLE_DELAY) return;
 
-                // do we even have anything to save?
-                if(serverList.length === 0) return;
-
-                // check if the last update in serverlists was recent
-                if(Date.now() - lastUpdate.current < 1500) return;
-    
-                const storeObj = {
-                    favs: favs,
-                    hiddens: hiddens,
-                    recents: recents,
-                    serverList: serverList,
-                    favList: favList,
-                    featuredList: featuredList,
-                    recentList: recentList
-                };
-    
-                localStorage.setItem('servers', JSON.stringify(storeObj));
-            }
-        
-    }, [favs, recents, hiddens, serverList, favList, featuredList, recentList]);
+        localStorage.setItem(CACHE_KEY, JSON.stringify({
+            favs, hiddens, recents, serverList, favList, featuredList, recentList
+        }));
+    });
 
     // --------------------------------------------------------- //
 
     useEffect(() => {
 
-        const effect = async () => {
+        const load = async () => {
+
             setLoading(true);
             setFailed(false);
-
             setServerList([]);
             setFeaturedList([]);
 
-            // --------------------------------------------------------- //
-            
             const settingsFile = await loadFile('settings.json');
 
-            if(reload === 0) {
-                
-                const storedData = localStorage.getItem('servers');
-                const storedTab = localStorage.getItem('lastTab');
-                
-                // set the tab to last opened one or default if not available
-                setTab(storedTab === null ? settingsFile.master.defaultTab : storedTab);
+            // ------------------------------------------------- //
+            // a manual reload always goes to the network
 
-                if(storedData !== null) {
-                    const storedServers = JSON.parse(storedData);
-                    
-                    setFavs(storedServers.favs);
-                    setHidden(storedServers.hiddens);
-                    setRecents(storedServers.recents);
-                    
-                    setServerList(storedServers.serverList);
-                    setFeaturedList(storedServers.featuredList);
-                    setRecentList(storedServers.recentList);
-                    setFavList(storedServers.favList);
-                    
+            if(reload === 0) {
+                const storedTab = localStorage.getItem(LAST_TAB_KEY);
+                setTab(storedTab ?? settingsFile.master.defaultTab);
+
+                const cached = localStorage.getItem(CACHE_KEY);
+
+                if(cached !== null) {
+                    const stored = JSON.parse(cached);
+
+                    setFavs(stored.favs);
+                    setHidden(stored.hiddens);
+                    setRecents(stored.recents);
+
+                    setServerList(stored.serverList);
+                    setFeaturedList(stored.featuredList);
+                    setRecentList(stored.recentList);
+                    setFavList(stored.favList);
+
                     setLoading(false);
                     return;
                 }
             }
 
-            // --------------------------------------------------------- //
+            // ------------------------------------------------- //
 
             const {favorites, history, hidden} = await loadFile('servers.json');
-            setFavs(favorites); setRecents(history); setHidden(hidden);
+            setFavs(favorites);
+            setRecents(history);
+            setHidden(hidden);
 
-            let masterServers, featServers, failed = false;
+            let masterServers = [];
+            let official = new Set();
+            let masterlistFailed = false;
 
             try {
-                masterServers = await http.fetch(`${settingsFile.master.url}servers`);
+                const response = await fetchJson(`${settingsFile.master.url}servers`);
 
-                const featuredUrl = settingsFile.master.useLegacy ? `${settingsFile.master.url}official` : 'https://v4.vcmp.net/featured';
-                featServers = await http.fetch(featuredUrl);    
-
-                if(!masterServers.data.hasOwnProperty('servers') || !featServers.data.hasOwnProperty('servers')) {
-                    failed = true;
-                    throw new Error();
+                if(!Array.isArray(response.servers)) {
+                    throw new Error('masterlist response carried no servers');
                 }
 
-            } catch (error) {
-                failed = true;
+                masterServers = response.servers;
+
+                // the masterlist already flags official servers, so the
+                // featured tab needs no request of its own
+                official = new Set(
+                    masterServers.filter(v => v.is_official).map(addressOf)
+                );
+
+            } catch {
+                masterlistFailed = true;
                 setFailed(true);
             }
 
             setLoading(false);
 
-            // --------------------------------------------------------- //
+            // ------------------------------------------------- //
+            // Each of these queries its whole list over one socket, so they
+            // finish in about the time of the slowest server rather than the
+            // sum of all of them.
 
-            // people want to land on favorites first, and it doesn't depend on masterlist
             if(reload === 0) {
                 setFavList([]);
 
-                favorites.forEach(async (v) => {
-                    performUDP(v.ip, v.port)
-                        .then(async r => {
-
-                            lastUpdate.current = Date.now();
-
-                            setFavList(p => {
-                                return [...p, r];
-                            });
-                        })
-                        .catch();
+                queryServers(favorites, result => {
+                    lastUpdate.current = Date.now();
+                    setFavList(p => [...p, result]);
                 });
             }
 
-            if(!failed)
-            {
-                // featured servers should be much lesser than masterlist, process them first
-                featServers.data.servers.forEach(async (v) => {
-                    performUDP(v.ip, v.port)
-                        .then(async r => {
+            if(!masterlistFailed) {
+                queryServers(masterServers, result => {
+                    lastUpdate.current = Date.now();
+                    setServerList(p => [...p, result]);
 
-                            lastUpdate.current = Date.now();
-
-                            setFeaturedList(p => {
-                                return [...p, r];
-                            });
-                        })
-                        .catch();
-                });
-
-                masterServers.data.servers.forEach(async (v) => {
-                    performUDP(v.ip, v.port)
-                        .then(async r => {
-
-                            lastUpdate.current = Date.now();
-
-                            setServerList(p => {
-                                return [...p, r];
-                            });
-                        })
-                        .catch();
+                    if(official.has(result.ip)) {
+                        setFeaturedList(p => [...p, result]);
+                    }
                 });
             }
 
-            // already taken care after first render
+            // recents are only loaded once; later changes are handled below
             if(reload !== 0) return;
 
             setRecentList([]);
 
-            history.forEach(async (v) => {
-                performUDP(v.ip, v.port)
-                    .then(async r => {
+            queryServers(history, result => {
+                lastUpdate.current = Date.now();
 
-                        lastUpdate.current = Date.now();
-
-                        r["addedAt"] = v.addedAt;
-                        setRecentList(p => {
-                            return [...p, r];
-                        });
-                    })
-                    .catch();
+                const entry = history.find(v => addressOf(v) === result.ip);
+                setRecentList(p => [...p, {...result, addedAt: entry?.addedAt}]);
             });
-        }
+        };
 
-        effect();
+        load();
     }, [reload]);
 
     // --------------------------------------------------------- //
 
-    useEffect(() => {
-        
+    // A server was just played: add it, or refresh when it was played again.
+    useAfterMount(() => {
+
         if(recents === null) return;
 
-        const effect = async() => {
+        const sync = async () => {
 
-            let v, fetched;
-            if(recents.length > 0) {
+            const newest = recents.at(-1);
+            const fetched = newest ? await queryServer(newest.ip, newest.port) : null;
 
-                // extract last element
-                v = recents.at(-1); 
-                fetched = await performUDP(v.ip, v.port);
-                fetched["addedAt"] = v.addedAt;
-            }
+            setRecentList(previous => {
 
-            // carefully check what to add or remove
-            setRecentList(p => {
+                if(!previous) return previous;
 
-                if(!p) return p;
-          
-                // its more than likely that there is gonna be more recents if state is changed
-                if(p.length < recents.length) {
-                    return [...p, fetched];
-
-                } else if(recents.length === 0) {
-                    return p;
-                } else {
-
-                    const n = [...p];
-
-                    // if its the same number, check if something has changed
-                    recents.forEach(r => {
-                        const at = n.findIndex(v1 => {
-                            const [ip, port] = v1.ip.split(':');
-                            return r.ip === ip && r.port === parseInt(port);
-                        });
-
-                        n[at].addedAt = r.addedAt;
-                    });
-
-                    return n;
+                if(fetched && previous.length < recents.length) {
+                    return [...previous, {...fetched, addedAt: newest.addedAt}];
                 }
+
+                // same entries, so only the timestamps can have moved
+                return previous.map(row => {
+                    const entry = recents.find(v => addressOf(v) === row.ip);
+                    return entry ? {...row, addedAt: entry.addedAt} : row;
+                });
             });
 
-            // save our changes
             const servers = await loadFile('servers.json');
-            saveFile('servers.json', {...servers, history: recents});
-        }
+            await saveFile('servers.json', {...servers, history: recents});
+        };
 
-        if(isInitialMountRec.current) {
-            isInitialMountRec.current = false;
-        } else {
-            effect();
-        }
-
+        sync();
     }, [recents]);
 
     // --------------------------------------------------------- //
 
-    useEffect(() => {
+    // A favorite was added or removed.
+    useAfterMount(() => {
 
         if(favs === null) return;
-      
-        const effect = async() => {
 
-            let v, fetched;
-            if(favs.length > 0) {
+        const sync = async () => {
 
-                // extract last element
-                v = favs.at(-1); 
-                fetched = await performUDP(v.ip, v.port);
-            }
+            const newest = favs.at(-1);
+            const addresses = new Set(favs.map(addressOf));
 
-            // carefully check what to add or remove
-            setFavList(p => {
+            const fetched = newest ? await queryServer(newest.ip, newest.port) : null;
 
-                if(!p) return p;
-          
-                if(p.length > favs.length) {
+            setFavList(previous => {
 
-                    return p.filter(v => {
-                        const [ip, port] = v.ip.split(':');
-                        return favs.findIndex(v2 => {
-                            return (v2.ip === ip) && (v2.port === parseInt(port));
-                        }) !== -1;
-                    })
+                if(!previous) return previous;
 
-                } else if(p.length < favs.length) {
-                    return [...p, fetched];
-
-                } else {
-                    return p;
+                if(previous.length > favs.length) {
+                    return previous.filter(v => addresses.has(v.ip));
                 }
+
+                if(fetched && previous.length < favs.length) {
+                    return [...previous, fetched];
+                }
+
+                return previous;
             });
 
-            // save our changes
             const servers = await loadFile('servers.json');
-            saveFile('servers.json', {...servers, favorites: favs});
-        }
+            await saveFile('servers.json', {...servers, favorites: favs});
+        };
 
-        if(isInitialMountFav.current) {
-            isInitialMountFav.current = false;
-        } else {
-            effect();
-        }
-
+        sync();
     }, [favs]);
 
     // --------------------------------------------------------- //
 
-    useEffect(() => {
+    useAfterMount(() => {
 
-        const effect = async () => {
+        const sync = async () => {
             const servers = await loadFile('servers.json');
-            saveFile('servers.json', {...servers, hidden: hiddens});
-        }
+            await saveFile('servers.json', {...servers, hidden: hiddens});
+        };
 
-        if(isInitialMountHid.current) {
-            isInitialMountHid.current = false;
-        } else {
-            effect();
-        }
-
+        sync();
     }, [hiddens]);
 
     // --------------------------------------------------------- //
 
     useEffect(() => {
 
-        // register shortcut, Q and E to switch between dashboard tabs
-        const listener = event => {
-            if(!event.ctrlKey) {
+        // Q and E step through the tabs
+        const onKeyDown = event => {
 
-                // it should not work while searching
-                if(document.activeElement.nodeName === 'INPUT') return;
+            if(event.ctrlKey) return;
 
-                let next = '';
-                if(event.key === 'q') {
-                    switch(tab) {
-                        case 'Favorites':   next = 'Recent'; break;
-                        case 'Masterlist':  next = 'Favorites'; break;
-                        case 'Featured':    next = 'Masterlist'; break;
-                        case 'Recent':      next = 'Featured'; break;
-                    }
+            // not while the user is typing in the search box
+            if(document.activeElement?.nodeName === 'INPUT') return;
 
-                } else if(event.key === 'e') {
-                    switch(tab) {
-                        case 'Favorites':   next = 'Masterlist'; break;
-                        case 'Masterlist':  next = 'Featured'; break;
-                        case 'Featured':    next = 'Recent'; break;
-                        case 'Recent':      next = 'Favorites'; break;
-                    }
-                }
+            const step = event.key === 'e' ? 1 : (event.key === 'q' ? -1 : 0);
+            if(step === 0) return;
 
-                if(next !== '') {
-                    handleSelect(next);
-                }
-            }
+            const current = TABS.indexOf(tab);
+            if(current === -1) return;
+
+            selectTab(TABS[(current + step + TABS.length) % TABS.length]);
         };
 
-        // save the current tab to restore it later on
-        if(tab) localStorage.setItem('lastTab', tab);
+        // remember the tab so the next visit opens on it
+        if(tab) localStorage.setItem(LAST_TAB_KEY, tab);
 
-        document.addEventListener('keydown', listener);
+        document.addEventListener('keydown', onKeyDown);
+        return () => document.removeEventListener('keydown', onKeyDown);
 
-        return () => {
-            document.removeEventListener('keydown', listener)
-        }
-    }, [tab]);
-
-    const shouldShowFallback = (tab === 'Masterlist' || tab === 'Featured');
+    }, [tab, selectTab]);
 
     // --------------------------------------------------------- //
-    
+
+    // shared by every tab; only the list differs
+    const listProps = {
+        hiddenList: hiddens,
+        changeHidden: setHidden,
+        favoriteList: favs,
+        changeFavs: setFavs,
+        changeRecents: setRecents
+    };
+
+    const awaitingMasterlist = (loading || failed) && MASTERLIST_TABS.includes(tab);
+
     return (
         <Content>
             <Container>
                 <Header className='dashHeader'>
-
                     <div className='dashNavWrapper'>
                         <Tag className='dashTag' size='sm'> Q </Tag>
-                        <Nav appearance='default' className='dashNav' onSelect={(ek, e) => handleSelect(e.target.outerText)}>
-                            <Nav.Item as={'span'} active={isSelected('Favorites')}>Favorites</Nav.Item>
-                            <Nav.Item as={'span'} active={isSelected('Masterlist')}>Masterlist</Nav.Item>
-                            <Nav.Item as={'span'} active={isSelected('Featured')}>Featured</Nav.Item>
-                            <Nav.Item as={'span'} active={isSelected('Recent')}>Recent</Nav.Item>
+
+                        <Nav
+                            appearance='default'
+                            className='dashNav'
+                            onSelect={(eventKey, event) => selectTab(event.target.outerText)}
+                        >
+                            {TABS.map(name => (
+                                <Nav.Item as={'span'} key={name} active={tab === name}>{name}</Nav.Item>
+                            ))}
                         </Nav>
+
                         <Tag className='dashTag' size='sm'> E </Tag>
                     </div>
-
                 </Header>
 
-                {(loading || failed) && shouldShowFallback
-                ? 
-                    failed  ? <div className='dashFetchError'><ExcIcon className='dashExc'/><h5>Failed to fetch masterlist</h5> <IconButton icon={<ReloadIcon />} onClick={forceReload}>Retry</IconButton></div> 
-                            : <Loader className='dashLoader' vertical content='Fetching masterlist...' size='md'/>
-                :
-                    <Content>
-                        { tab === 'Masterlist' && <ServerList list={serverList} updateList={setServerList} hiddenList={hiddens} changeHidden={setHidden} favoriteList={favs} changeFavs={setFavs} changeRecents={setRecents} reloadCb={forceReload}/> }
-                        { tab === 'Featured' && <ServerList list={featuredList} updateList={setFeaturedList} hiddenList={hiddens} changeHidden={setHidden} favoriteList={favs} changeFavs={setFavs} changeRecents={setRecents} reloadCb={forceReload}/> }
-                        { tab === 'Recent' && <ServerList list={recentList} updateList={setRecentList} hiddenList={hiddens} changeHidden={setHidden} favoriteList={favs} changeFavs={setFavs} changeRecents={setRecents} recentsTab /> }
-                        { tab === 'Favorites' && <ServerList list={favList} updateList={setFavList} hiddenList={hiddens} changeHidden={setHidden} favoriteList={favs} changeFavs={setFavs} changeRecents={setRecents} favoritesTab /> }
-                    </Content>
+                {awaitingMasterlist
+                    ?
+                        failed
+                            ?
+                                <div className='dashFetchError'>
+                                    <ExcIcon className='dashExc' />
+                                    <h5>Failed to fetch masterlist</h5>
+                                    <IconButton icon={<ReloadIcon />} onClick={forceReload}>Retry</IconButton>
+                                </div>
+                            :
+                                <Loader className='dashLoader' vertical content='Fetching masterlist...' size='md' />
+                    :
+                        <Content>
+                            {tab === 'Masterlist' && <ServerList list={serverList} updateList={setServerList} reloadCb={forceReload} {...listProps} />}
+                            {tab === 'Featured' && <ServerList list={featuredList} updateList={setFeaturedList} reloadCb={forceReload} {...listProps} />}
+                            {tab === 'Recent' && <ServerList list={recentList} updateList={setRecentList} recentsTab {...listProps} />}
+                            {tab === 'Favorites' && <ServerList list={favList} updateList={setFavList} favoritesTab {...listProps} />}
+                        </Content>
                 }
             </Container>
         </Content>

@@ -9,10 +9,6 @@ import './settings.less';
 
 const listUpdaters = [
     {
-        "label": "v4.vcmp.net",
-        "value": "https://v4.vcmp.net/updater/"
-    },
-    {
         "label": "Official Updater",
         "value": "https://u04.vc-mp.org/"
     },
@@ -35,10 +31,8 @@ const listMasters = [
 
 const defaultValues = {
     masterUrl: "http://master.vc-mp.org/",
-    useLegacy: false,
-    updaterUrl: "https://v4.vcmp.net/updater/",
-    checkOnStartup: true,
-    httpDownloads: true
+    updaterUrl: "https://u04.vc-mp.org/",
+    checkOnStartup: true
 };
 
 // ========================================================= //
@@ -69,16 +63,6 @@ function Settings({setUpdate}) {
                 return n;
             });
 
-        } else if (type === 'legacy') {
-            if(value !== settings.master.useLegacy) {
-                enableSave = true;
-            }
-
-            setInputState(p => {
-                const n = {...p};
-                n.useLegacy = value;
-                return n;
-            });
         } else if (type === 'updaterurl') {
             if(value !== settings.updater.url) {
                 enableSave = true;
@@ -99,16 +83,6 @@ function Settings({setUpdate}) {
                 n.checkOnStartup = value;
                 return n;
             });
-        } else if(type === 'httpd') {
-            if(value !== settings.httpDownloads) {
-                enableSave = true;
-            }
-
-            setInputState(p => {
-                const n = {...p};
-                n.httpDownloads = value;
-                return n;
-            });
         }
 
         setSaveEnabled(enableSave);
@@ -127,10 +101,8 @@ function Settings({setUpdate}) {
             setSettings({...settingsFile});
             setInputState({
                 masterUrl: settingsFile.master.url,
-                useLegacy: settingsFile.master.useLegacy,
                 updaterUrl: settingsFile.updater.url,
-                checkOnStartup: settingsFile.updater.checkOnStartup,
-                httpDownloads: settingsFile.httpDownloads
+                checkOnStartup: settingsFile.updater.checkOnStartup
             });
 
             setLoading(false);
@@ -146,10 +118,8 @@ function Settings({setUpdate}) {
 
         const n = {...settings};
         n.master.url = inputState.masterUrl;
-        n.master.useLegacy = inputState.useLegacy;
         n.updater.url = inputState.updaterUrl;
         n.updater.checkOnStartup = inputState.checkOnStartup;
-        n.httpDownloads = inputState.httpDownloads;
 
         saveFile('settings.json', n);
         setSaveEnabled(false);
@@ -161,10 +131,8 @@ function Settings({setUpdate}) {
         setSaveEnabled(false);
         setInputState({
             masterUrl: settings.master.url,
-            useLegacy: settings.master.useLegacy,
             updaterUrl: settings.updater.url,
-            checkOnStartup: settings.updater.checkOnStartup,
-            httpDownloads: settings.httpDownloads
+            checkOnStartup: settings.updater.checkOnStartup
         });
     }
 
@@ -176,10 +144,8 @@ function Settings({setUpdate}) {
 
         const n = {...settings};
         n.master.url = defaultValues.masterUrl;
-        n.master.useLegacy = defaultValues.useLegacy;
         n.updater.url = defaultValues.updaterUrl;
         n.updater.checkOnStartup = defaultValues.checkOnStartup;
-        n.httpDownloads = defaultValues.httpDownloads;
 
         saveFile('settings.json', n);
         setSaveEnabled(false);
@@ -229,16 +195,6 @@ function Settings({setUpdate}) {
                             />
                         </div>
 
-                        <div className='sttField sttFieldRight sttFieldRightBottom'>
-                            <span>Enable HTTP downloads:</span>
-
-                            <Toggle 
-                                className='sttIptT'
-                                checked={inputState.httpDownloads}
-                                onChange={(value) => handleInputChange('httpd', value)}
-                            />
-                        </div>
-
                         <div className='sttField sttFieldMargin'>
                             <span>Check for updates on startup:</span>
                             <Toggle 
@@ -261,15 +217,6 @@ function Settings({setUpdate}) {
                                 value={inputState.masterUrl} 
                                 cleanable={false}
                                 onChange={(value) => handleInputChange('masterurl', value)}
-                            />
-                        </div>
-
-                        <div className='sttField sttFieldMargin'>
-                            <span>Use legacy featured list:</span>
-                            <Toggle 
-                                className='sttIptT'
-                                checked={inputState.useLegacy}
-                                onChange={(value) => handleInputChange('legacy', value)}
                             />
                         </div>
                     </div>

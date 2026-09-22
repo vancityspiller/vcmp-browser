@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Button, Content, Input, InputGroup, InputPicker, Loader, Toggle, Tooltip } from 'rsuite';
-import { dialog } from '@tauri-apps/api';
+import { openFileDialog } from '../../api/tauri';
+import { useNavigationLock } from '../../state/navigationLock';
 
 import { loadFile, saveFile } from '../../utils/resfile.util';
 
@@ -31,6 +32,8 @@ const listTabs = [
 // ========================================================= //
 
 function Customize() {
+
+    const {setLocked} = useNavigationLock();
 
     const [settings, setSettings] = useState({});
     const [loading, setLoading] = useState(true);
@@ -119,8 +122,9 @@ function Customize() {
         n.richPresence.enabled = inputState.discordRP;
         n.richPresence.minimal = inputState.minimalRP;
 
+        // the first run is complete once both are filled in
         if((settings.playerName === '' || settings.gameDir === '') && (n.playerName !== '' && n.gameDir !== '')) {
-            localStorage.setItem('navSwitching', 'true');
+            setLocked(false);
         }
 
         saveFile('settings.json', n);
@@ -146,7 +150,7 @@ function Customize() {
     // --------------------------------------------------------- //
 
     const selectGameDir = () => {
-        dialog.open({
+        openFileDialog({
             directory: false,
             multiple: false,
             defaultPath: settings.gameDir ? settings.gameDir : undefined,

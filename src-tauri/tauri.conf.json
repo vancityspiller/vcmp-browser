@@ -1,99 +1,66 @@
 {
-  "$schema": "..\\node_modules/@tauri-apps/cli\\schema.json",
+  "$schema": "../node_modules/@tauri-apps/cli/config.schema.json",
+  "productName": "vcmp-browser",
+  "version": "1.0.4",
+  "identifier": "vcmp.browser",
   "build": {
-    "beforeBuildCommand": "npm run vite-build",
     "beforeDevCommand": "npm run vite-dev",
-    "devPath": "http://localhost:3000",
-    "distDir": "../dist"
+    "beforeBuildCommand": "npm run vite-build",
+    "devUrl": "http://localhost:3000",
+    "frontendDist": "../dist"
   },
-  "package": {
-    "productName": "vcmp-browser",
-    "version": "1.0.4"
-  },
-  "tauri": {
-    "allowlist": {
-      "all": true,
-      "fs": {
-        "scope": ["$RESOURCE", "$RESOURCE/**", "$DATA", "$DATA/**", "$DATA", "$APPDATA", "$APPDATA/**"]
-      },
-      "http": {
-        "all": true,
-        "scope": [
-          "http://master.vc-mp.org/*", 
-          "https://u04.vc-mp.org/*", 
-          "https://v4.vcmp.net/*", 
-          "https://master.thijn.ovh/*",
-          "https://u04.thijn.ovh/*",
-          "https://serverfiles.vcmp.net/uploads/*",
-          "https://dns.google.com/*"
-        ]
-      },
-      "dialog": {
-        "open": true
-      }
-    },
-    "bundle": {
-      "active": true,
-      "category": "Game",
-      "copyright": "",
-      "deb": {
-        "depends": []
-      },
-      "externalBin": [],
-      "icon": [
-        "icons/32x32.png",
-        "icons/128x128.png",
-        "icons/128x128@2x.png",
-        "icons/icon.icns",
-        "icons/icon.ico"
-      ],
-      "identifier": "vcmp.browser",
-      "longDescription": "",
-      "macOS": {
-        "entitlements": null,
-        "exceptionDomain": "",
-        "frameworks": [],
-        "providerShortName": null,
-        "signingIdentity": null
-      },
-      "resources": ["./7z.dll", "./launcher.steam.exe"],
-      "shortDescription": "",
-      "targets": "all",
-      "windows": {
-        "certificateThumbprint": null,
-        "digestAlgorithm": "sha256",
-        "timestampUrl": "",
-        "wix": {
-          "dialogImagePath": "wix\\dialogImage.bmp",
-          "bannerPath": "wix\\bannerImage.bmp"
-        }
-      }
-    },
-    "security": {
-      "csp": null
-    },
-    "updater": {
-      "active": true,
-      "endpoints": [
-          "https://v4.vcmp.net/browserupdate/{{current_version}}"
-      ],
-      "dialog": true,
-      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDEzOURGRkRFQ0ExMUE3NEIKUldSTHB4SEszditkRTJWTG50cm1BbjRLS0lnYkszNTFXUFVqR1oyMzZaRGYwN2dnWjltazV5TnkK",
-      "windows": {
-        "installMode": "basicUi"
-      }
-    },
+  "app": {
     "windows": [
       {
-        "fullscreen": false,
-        "resizable": true,
         "title": "VCMP Browser",
         "width": 1067,
         "height": 600,
         "minWidth": 1067,
         "minHeight": 600,
+        "resizable": true,
+        "fullscreen": false,
         "decorations": false
       }
-    ]
+    ],
+    "security": {
+      "csp": null
+    }
+  },
+  "bundle": {
+    "active": true,
+    "targets": "all",
+    "category": "Game",
+    "copyright": "",
+    "shortDescription": "",
+    "longDescription": "",
+    "icon": [
+      "icons/32x32.png",
+      "icons/128x128.png",
+      "icons/128x128@2x.png",
+      "icons/icon.icns",
+      "icons/icon.ico"
+    ],
+    "resources": [],
+    "externalBin": [],
+    "windows": {
+      "certificateThumbprint": null,
+      "digestAlgorithm": "sha256",
+      "timestampUrl": "",
+      "wix": {
+        "dialogImagePath": "wix\\dialogImage.bmp",
+        "bannerPath": "wix\\bannerImage.bmp"
+      }
+    }
+  },
+  "plugins": {
+    "updater": {
+      "endpoints": [
+        "https://browserupdate.spiller.ovh/{{current_version}}"
+      ],
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDEzOURGRkRFQ0ExMUE3NEIKUldSTHB4SEszditkRTJWTG50cm1BbjRLS0lnYkszNTFXUFVqR1oyMzZaRGYwN2dnWjltazV5TnkK",
+      "windows": {
+        "installMode": "basicUi"
+      }
+    }
   }
 }

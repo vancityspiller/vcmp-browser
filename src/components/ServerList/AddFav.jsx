@@ -1,4 +1,4 @@
-import { http } from '@tauri-apps/api';
+import { fetchJson } from '../../api/tauri';
 import React, { useState, useEffect } from 'react';
 import { Button, Input, Modal } from 'rsuite';
 
@@ -86,16 +86,16 @@ function AddFav({setFavorites}) {
 
             try {
                 // use Google's public DNS to resolve the hostname
-                const resolved = await http.fetch(`https://dns.google.com/resolve?name=${ip.split(':')[0]}`);
+                const resolved = await fetchJson(`https://dns.google/resolve?name=${ip.split(':')[0]}`);
 
-                if(resolved.data.Answer[0].type !== 1) {
+                if(resolved.Answer[0].type !== 1) {
                     setProcessingFailed(true);
                     setProcessingIp(false);
 
                 } else {
 
                     const [, port] = ip.split(':');
-                    const s_ip = resolved.data.Answer[0].data, s_port = parseInt(port);
+                    const s_ip = resolved.Answer[0].data, s_port = parseInt(port);
 
                     let failed = false;
 
