@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Container, Loader, Notification } from 'rsuite';
 
-import { dialog } from '@tauri-apps/api';
-import { appWindow } from '@tauri-apps/api/window';
+import { message, window as appWindow } from './api/tauri';
+import { useNavigationLock } from './state/navigationLock';
 
 import DraggableHeader from './components/DraggableHeader';
 import SideNavbar from './components/Navbar/Navbar';
@@ -20,6 +20,7 @@ import { runUpdater } from './utils/update.util';
 function App() {
 
     const [navAddress, setNavAddress] = useState('Dashboard');
+    const {setLocked} = useNavigationLock();
 
     const [update, setUpdate] = useState(0);
     const [updating, setUpdating] = useState(true);
@@ -47,8 +48,9 @@ function App() {
             try {
                 await checkConfig();
             } catch (e) {
-                dialog.message(`Fatal Error: ${e}! Program will exit.`)
-                .then(() => appWindow.close());
+                await message(`Fatal Error: ${e}! Program will exit.`);
+                await appWindow.close();
+                return;
             }
 
             const settings = await loadFile('settings.json');
@@ -61,8 +63,9 @@ function App() {
                 }
             }
 
+            // nothing works without these, so keep the user on Customize
             if(settings.gameDir === '' || settings.playerName === '') {
-                localStorage.setItem('navSwitching', 'false');
+                setLocked(true);
                 setNavAddress('Customize');
             }
 
@@ -89,28 +92,6 @@ function App() {
 
     // ========================================================= //
 
-    function NavElement() {
-        if(navAddress === 'Dashboard') {
-            return ( <Dashboard /> );
-        }
-
-        if(navAddress === 'Customize') {
-            return ( <Customize/> );
-        }
-
-        if(navAddress === 'About') {
-            return ( <About /> );
-        }
-
-        if(navAddress === 'Settings') {
-            return ( <Settings setUpdate={setUpdate}/> );
-        }
-
-        return (<React.Fragment />);
-    }
-
-    // --------------------------------------------------------- //
-
     return (
         <React.Fragment>
             <Container>
@@ -124,9 +105,21 @@ function App() {
                     </Notification>
                 }
              
-                {updating 
+                {/*
+                    Rendered inline rather than through a component declared in
+                    this function. Such a component gets a new identity on every
+                    render, so React unmounts and remounts the whole page -
+                    losing the dashboard's server lists and selection any time
+                    App re-rendered, such as when the navigation lock changed.
+                */}
+                {updating
                     ? <Loader className='updateLoader' vertical content='Updating...' size='md'/>
-                    : <NavElement />
+                    : <React.Fragment>
+                        {navAddress === 'Dashboard' && <Dashboard />}
+                        {navAddress === 'Customize' && <Customize />}
+                        {navAddress === 'About' && <About />}
+                        {navAddress === 'Settings' && <Settings setUpdate={setUpdate} />}
+                    </React.Fragment>
                 }
                 
             </Container>

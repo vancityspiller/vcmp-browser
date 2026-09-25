@@ -1,10 +1,9 @@
-import { invoke, path } from '@tauri-apps/api';
+import { invoke, appDirPath } from '../../api/tauri';
 import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { Button, Loader, Modal } from 'rsuite';
-import { downloadFiles } from '../../utils/httpd.utils';
-
 import { loadFile } from '../../utils/resfile.util';
-import { buildVersions, checkVersions, downloadVersion } from '../../utils/update.util';
+import { useNavigationLock } from '../../state/navigationLock';
+import { buildVersions, downloadVersion } from '../../utils/update.util';
 
 // ========================================================= //
 
@@ -14,6 +13,15 @@ function LaunchModal({progress, setProgress, selected, password, setRecents, bui
     const [error, setError] = useState('');
 
     const settings = useRef({});
+    const {setLocked} = useNavigationLock();
+
+    // The drawer refreshes a server a second or two after it is opened, so
+    // `selected` can change while a launch is already running. The steps read
+    // it through this ref, keeping the state machine driven purely by
+    // `progress` -- otherwise that refresh re-entered the current step and
+    // started a second download on top of the first.
+    const server = useRef(selected);
+    server.current = selected;
 
     const isOpen = progress !== '' || error !== '';
 
@@ -31,7 +39,7 @@ function LaunchModal({progress, setProgress, selected, password, setRecents, bui
 
             switch(progress) {
                 case 'updater': {
-                    localStorage.setItem('navSwitching', 'false');
+                    setLocked(true);
                     settings.current = await loadFile('settings.json');
                     setProgress('builds');
                     break;
@@ -39,74 +47,40 @@ function LaunchModal({progress, setProgress, selected, password, setRecents, bui
 
                 case 'builds': {
                     // skip checking for updater if the server is 0.3z R2
-                    if(selected.version === '03zR2') {
+                    if(server.current.version === '03zR2') {
                         setProgress('launch');
                         break;
                     }
 
                     const downloadedVersions = await buildVersions();
-                    setProgress(downloadedVersions.hasOwnProperty(selected.version) ? 'httpd' : 'check');
-                    break;
-                }
-
-                case 'check': {
-                    try {
-                        const vObj = {};
-                        vObj[selected.version] = '00000001';
-
-                        const buildsAvailable = await checkVersions(settings.current.updater, vObj);
-                        if(buildsAvailable.length === 0) {
-                            throw new Error();
-                        }
-
-                        setProgress('download');
-
-                    } catch (e) {
-                        buildMode.current = false;
-
-                        setError(`Version ${selected.version} is not available locally or on updater!`);
-                        setProgress('errored');
-
-                        localStorage.setItem('navSwitching', 'true');
-                        break;
-                    }
+                    setProgress(downloadedVersions.hasOwnProperty(server.current.version) ? 'launch' : 'download');
                     break;
                 }
 
                 case 'download': {
                     try {
-                        await downloadVersion(settings.current.updater, selected.version);
-                        setProgress('httpd');
+                        // the updater's /check only compares hashes, it never
+                        // reports whether a version exists, so the download is
+                        // the only honest availability test
+                        await downloadVersion(settings.current.updater, server.current.version);
+                        setProgress('launch');
 
                     } catch (e) {
                         buildMode.current = false;
 
-                        setError(`Version ${selected.version} could not be downloaded successfully!`);
+                        setError(`Could not install version ${server.current.version}: ${e?.message ?? e}`);
                         setProgress('errored');
 
-                        localStorage.setItem('navSwitching', 'true');
+                        setLocked(false);
                         break;
                     }
                     break;
                 }
 
-                case 'httpd': {
-                    if(settings.current.httpDownloads) {
-                        await downloadFiles(selected.ip);
-                    }
-                    
-                    setProgress('launch');
-                    break;
-                }
-
                 case 'launch': {
                     try {
-                        let resDirPath = await path.appDataDir();
-                        const [ip, port] = selected.ip.split(":");
-
-                        if(resDirPath.startsWith('\\\\?\\')) {
-                            resDirPath = resDirPath.slice(4);
-                        }
+                        const resDirPath = await appDirPath();
+                        const [ip, port] = server.current.ip.split(":");
 
                         const newRecent = {ip: ip, port: parseInt(port), addedAt: Date.now()};
 
@@ -124,13 +98,13 @@ function LaunchModal({progress, setProgress, selected, password, setRecents, bui
                             }
                         });
 
-                        let commandLine = !selected.password ? `-c -h ${ip} -c -p ${port} -n ${settings.current.playerName}` : `-c -h ${ip} -c -p ${port} -n ${settings.current.playerName} -z ${password}`;
+                        let commandLine = !server.current.password ? `-c -h ${ip} -c -p ${port} -n ${settings.current.playerName}` : `-c -h ${ip} -c -p ${port} -n ${settings.current.playerName} -z ${password}`;
                         if(buildMode.current) commandLine += ' -d';
 
-                        const isR2 = selected.version === '03zR2';
+                        const isR2 = server.current.version === '03zR2';
                         const pid = await invoke("launch_game", 
                             { 
-                                dllPath: isR2 ? '' : `${resDirPath}versions\\${selected.version}\\${settings.current.isSteam ? 'vcmp-steam.dll' : 'vcmp-game.dll'}`, 
+                                dllPath: isR2 ? '' : `${resDirPath}versions\\${server.current.version}\\${settings.current.isSteam ? 'vcmp-steam.dll' : 'vcmp-game.dll'}`, 
                                 gameDir: settings.current.gameDir, 
                                 commandLine: commandLine, 
                                 isSteam: settings.current.isSteam,
@@ -140,10 +114,9 @@ function LaunchModal({progress, setProgress, selected, password, setRecents, bui
                         if(settings.current.richPresence.enabled === true) { 
                             invoke("discord_presence", 
                             {
-                                pid: parseInt(pid), 
-                                ip: selected.ip, 
-                                sendString: `VCMP${ip.slice(0, 4)}${port.toString().slice(0, 2)}i`, 
-                                serverName: selected.serverName, 
+                                pid: parseInt(pid),
+                                ip: server.current.ip,
+                                serverName: server.current.serverName,
                                 minimal: settings.current.richPresence.minimal,
                                 isR2: isR2
                             });
@@ -153,13 +126,13 @@ function LaunchModal({progress, setProgress, selected, password, setRecents, bui
 
                         setError(error);
                         setProgress('errored');
-                        localStorage.setItem('navSwitching', 'true');
+                        setLocked(false);
 
                         break;
                     }
 
                     buildMode.current = false;
-                    localStorage.setItem('navSwitching', 'true');
+                    setLocked(false);
 
                     setProgress('');
                     handleClose();
@@ -168,11 +141,12 @@ function LaunchModal({progress, setProgress, selected, password, setRecents, bui
             }
         }
 
-        if(progress !== '' || progress !== 'errored') {
+        if(progress !== '' && progress !== 'errored') {
             effect();
         }
 
-    }, [progress, selected])
+        // deliberately not depending on `selected`; see the ref above
+    }, [progress])
 
     // --------------------------------------------------------- //
 
@@ -182,12 +156,8 @@ function LaunchModal({progress, setProgress, selected, password, setRecents, bui
                 return 'Fetching updater settings';
             case 'builds':
                 return 'Checking build versions';
-            case 'check':
-                return `Checking updater`;
             case 'download':
                 return `Downloading version ${selected.version}`;
-            case 'httpd':
-                return 'Downloading server store files';
             case 'launch':
                 return 'Launching game';
             default: return '';

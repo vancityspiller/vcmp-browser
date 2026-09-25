@@ -1,44 +1,26 @@
-import { fs, path } from "@tauri-apps/api";
+import { appData } from '../api/tauri';
 
 // ======================================================= //
 
 /**
- * Reads a resource text file from %APP%
+ * Reads a resource JSON file from the browser's app data directory
  * @param {String} fileName Name of the resource file
- * @returns {Promise<Object>} Resolves with the contents of file after JSON parsing
+ * @returns {Promise<Object>} Parsed contents
  */
 export async function loadFile(fileName) {
-
-    return new Promise((resolve, reject) => {
-        path.appDataDir()
-            .then(resDirPath => {
-                fs.readTextFile(`${resDirPath}data\\${fileName}`)
-                    .then(file => resolve(JSON.parse(file)))
-                    .catch(() => reject());
-            })
-            .catch(() => reject());
-    });
+    return JSON.parse(await appData.readTextFile(`data\\${fileName}`));
 }
 
 // ------------------------------------------------------- //
 
 /**
- * Writes a resource text file to %APP%
+ * Writes a resource JSON file to the browser's app data directory
  * @param {String} fileName Name of the resource file
  * @param {Object} contents Contents to write, stringified as JSON
- * @returns {Promise} Resolves after writing
+ * @returns {Promise}
  */
 export async function saveFile(fileName, contents) {
-
-    return new Promise((resolve, reject) => {
-        path.appDataDir()
-            .then(resDirPath => {
-                fs.writeFile({path: `${resDirPath}data\\${fileName}`, contents: JSON.stringify(contents, null, 2)})
-                .then(() => resolve())
-                .catch(() => reject());
-            })
-            .catch(() => reject());
-    });
+    return appData.writeTextFile(`data\\${fileName}`, JSON.stringify(contents, null, 2));
 }
 
 // ------------------------------------------------------- //

@@ -1,5 +1,4 @@
-import { fs, http, invoke, path } from "@tauri-apps/api";
-import { Body, ResponseType } from "@tauri-apps/api/http";
+import { appData, appDirPath, invoke, postUpdaterForm } from '../api/tauri';
 
 // ======================================================= //
 
@@ -10,164 +9,134 @@ import { Body, ResponseType } from "@tauri-apps/api/http";
  */
 
 /**
- * Checks for VC:MP version updates
- * @param {UpdaterSettings} updater 
- * @returns 
+ * Downloads any locally installed VC:MP version the updater considers stale
+ * @param {UpdaterSettings} updater
+ * @returns {Promise}
  */
 export async function runUpdater(updater) {
-    
-    const currentVersions = await buildVersions();
 
-    return new Promise((resolve, reject) => {
-        checkVersions(updater, currentVersions)
-            .then(versions => {
+    const installed = await buildVersions();
+    const outdated = await checkVersions(updater, installed);
 
-                if(versions.length === 0) {
-                    resolve();
-                    return;
-                }
-
-                versions.forEach(v => {
-                    downloadVersion(updater, v)
-                        .then(() => resolve())
-                        .catch(() => reject());
-                })
-            })
-            .catch(() => reject());
-    })
+    // sequential: each version is a multi-megabyte archive
+    for(const version of outdated) {
+        await downloadVersion(updater, version);
+    }
 }
 
 // ======================================================= //
 
 /**
- * Checks for versions available to download
- * @param {UpdaterSettings} updater 
- * @param {Object} versions 
- * @returns {Promise<String[]>} Resolves with an array of versions available for update
+ * Asks the updater which of the given versions are out of date.
+ *
+ * This compares hashes; it does not tell you whether a version exists. Sending
+ * a hash the updater has never seen reports an update regardless, so this
+ * cannot be used to test availability - only `downloadVersion` can.
+ * @param {UpdaterSettings} updater
+ * @param {Object} versions Map of version name to its installed hash
+ * @returns {Promise<String[]>} Versions with a differing hash
  */
 export async function checkVersions(updater, versions) {
 
-    return new Promise((resolve, reject) => {
-        http.fetch(`${updater.url}check`, {
-            method: 'POST',
-            headers: {
-                'content-type': 'multipart/form-data'
-            },
-            body: Body.form({
-                "json": JSON.stringify({
-                    'password': updater.password,
-                    'versions': versions
-                })
-            }),
-            responseType: ResponseType.Text
-        })
-    
-        // ------------------------------------------------------- //
-    
-            .then(r => {
-                if(r.data.length > 0) {
-                    resolve(r.data.split('|'));
-                } else {
-                    resolve('');
-                }
-            })
-            .catch(() => reject());
-    });
+    const body = await postUpdaterForm(
+        `${updater.url}check`,
+        {password: updater.password, versions: versions},
+        'text'
+    );
+
+    return body.length > 0 ? body.split('|') : [];
 }
 
 // ======================================================= //
 
+// Downloads already running, keyed by version.
+//
+// Installing starts by deleting the version directory, so two overlapping
+// installs of the same version would have the second wipe what the first had
+// already extracted and then interleave writes into it, leaving a random
+// subset of the files on disk. A second caller now waits on the first instead.
+const installing = new Map();
+
 /**
- * Downloads a version from the updater
- * @param {UpdaterSettings} updater 
+ * Downloads a version from the updater and extracts it into place.
+ *
+ * Calling this again for a version already being installed returns the
+ * in-flight promise rather than starting a competing install.
+ * @param {UpdaterSettings} updater
  * @param {String} version The version to download
- * @returns {Promise} Resolves after downloading the version from updater
+ * @returns {Promise}
  */
-export async function downloadVersion(updater, version) {
+export function downloadVersion(updater, version) {
 
-    return new Promise((resolve, reject) => {
-        http.fetch(`${updater.url}download`, {
-            method: 'POST',
-            headers: {
-                'content-type': 'multipart/form-data'
-            },
-            body: Body.form({
-                "json": JSON.stringify({
-                    'password': updater.password,
-                    'version': version
-                })
-            }),
-            responseType: ResponseType.Binary
-        })
-        .then(async r => {
+    const running = installing.get(version);
+    if(running) return running;
 
-            path.appDataDir()
-                .then(resDirPath => {
+    const task = installVersion(updater, version).finally(() => installing.delete(version));
+    installing.set(version, task);
 
-                    fs.readDir(`${resDirPath}versions`)
-                        .then(async entries => {
+    return task;
+}
 
-                            const savePath = `${resDirPath}versions\\${version}\\`;
-                            
-                            let savePathAlt = savePath;
-                            if(savePath.startsWith('\\\\?\\')) {
-                                savePathAlt = savePath.slice(4);
-                            }
+// ------------------------------------------------------- //
 
-                            if(entries.findIndex(entry => entry.name === version) === -1) {
-                                await fs.createDir(savePath);
-                            } else {
-                                await fs.removeDir(savePath, {recursive: true});
-                                await fs.createDir(savePath);
-                            }
+/**
+ * Performs the download and extraction. Callers go through downloadVersion.
+ */
+async function installVersion(updater, version) {
 
-                            fs.writeBinaryFile({contents: r.data, path: `${savePath}version.7z`})
-                                .then(() => {
-                                    invoke("extract7z", {path: `${savePathAlt}version.7z`, dest: savePathAlt})
-                                        .then(() => {
-                                            fs.removeFile(`${savePath}version.7z`)
-                                                .then(() => resolve())
-                                        })
-                                });
-                        })
-                })
-        })
-        .catch(() => reject());
-    })
+    const archive = await postUpdaterForm(
+        `${updater.url}download`,
+        {password: updater.password, version: version},
+        'binary'
+    );
+
+    // ------------------------------------------------------- //
+
+    const dir = `versions\\${version}`;
+
+    if(await appData.exists(dir)) {
+        await appData.removeDir(dir);
+    }
+
+    await appData.createDir(dir);
+
+    const archivePath = `${dir}\\version.7z`;
+    await appData.writeBinaryFile(archivePath, archive);
+
+    // extract7z is our own command, so it needs absolute paths
+    const root = await appDirPath();
+
+    try {
+        await invoke('extract7z', {path: `${root}${archivePath}`, dest: `${root}${dir}\\`});
+    } catch (error) {
+        throw new Error(`downloaded ${version} (${archive.length} bytes) but could not extract it: ${error}`);
+    }
+
+    await appData.removeFile(archivePath);
 }
 
 // ======================================================= //
 
 /**
- * Returns a list of locally available versions
- * @returns {Promise<Object>}
+ * Returns the locally installed versions and their hashes
+ * @returns {Promise<Object>} Map of version name to the contents of its version.txt
  */
 export async function buildVersions() {
 
-    return new Promise(resolve => {
-        const versions = {};
-    
-        path.appDataDir()
-            .then(resDirPath => {
-                fs.readDir(`${resDirPath}versions`, {recursive: true})
-                    .then(async entries => {
+    const versions = {};
+    const entries = await appData.readDir('versions');
 
-                        const versionList = await Promise.all(entries.map(entry => {
+    await Promise.all(entries
+        .filter(entry => entry.isDirectory)
+        .map(async entry => {
+            try {
+                const hash = await appData.readTextFile(`versions\\${entry.name}\\version.txt`);
+                versions[entry.name] = hash.trim();
 
-                            if(entry.children && (entry.children.findIndex(v => v.name === 'version.txt') !== -1)) {
-                                 return fs.readTextFile(`${resDirPath}versions\\${entry.name}\\version.txt`);
-                            } else {
-                                return new Promise(resolve => resolve(null));
-                            }
-                        }));                    
+            } catch {
+                // no version.txt, so the directory isn't a usable install
+            }
+        }));
 
-                        versionList.forEach((v, i) => {
-                            if(v === null) return;
-                            versions[entries[i].name] = v;
-                        });
-                        
-                        resolve(versions);
-                    });
-            });
-    });
+    return versions;
 }

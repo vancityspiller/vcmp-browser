@@ -19,20 +19,15 @@ More screenshots on [Imgur Gallery](https://imgur.com/gallery/GKaAMb8).
 ### Auto Updater
 Tauri's updater is able to deliver updates swiftly. If a new version is available, you will be prompted to install it on launch.
 
+> Browser self-updates are currently disabled: the previous update host (`v4.vcmp.net`) is gone. Game version updates are unaffected and continue to work through the updater configured in settings.
+
 ### Steam Support
 The browser can launch both vanilla Vice City on Steam or a 1.0 downgrade patch.
 
 Select `gta-vc.exe` if you have applied a 1.0 downgrade patch over your steam game, otherwise select `testapp.exe`.
 
-### Custom Featured List
-The `official` tab is replaced with a **Featured** List, that displays a combination of official and recommended servers. Original idea belongs to Xmair.
-
-This can be disabled in settings.
-
-### HTTP Downloads
-For selected servers, the browser can automatically download store over HTTP instead of downloading them slowly over UDP ingame.
-
-Store files are provided for all servers in the featured list.
+### Featured List
+The `official` tab is replaced with a **Featured** list, built from the servers the masterlist flags as official. Original idea belongs to Xmair.
 
 ### Discord Rich Presence
 Displays the details of the server you're currently playing as Discord activity.
@@ -71,9 +66,14 @@ Head over to [releases](https://github.com/vancityspiller/vcmp-browser/releases)
 ## Building
 
 ### Prerequisites
-- Node.js
-- Tauri [prerequisites](https://tauri.studio/v1/guides/getting-started/prerequisites).
-- x86 toolchains for Rust: Run `rustup target add i686-pc-windows-msvc` after installing Rust.
+- Node.js 20 or newer.
+- Rust **1.93 or newer**.
+- Tauri 2 [prerequisites](https://v2.tauri.app/start/prerequisites/).
+- The 32-bit Windows target: `rustup target add i686-pc-windows-msvc`.
+
+> The build has to stay 32-bit. The browser injects a DLL into the game, and
+> the addresses it writes are 32-bit; a 64-bit build would resolve the wrong
+> ones.
 
 ### Cloning
 1. Clone this repository

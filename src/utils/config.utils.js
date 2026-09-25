@@ -1,4 +1,4 @@
-import { fs, http, path } from "@tauri-apps/api";
+import { appData, roamingData } from '../api/tauri';
 
 // ======================================================= //
 
@@ -7,13 +7,12 @@ const fallback = {
 
     settings: {
         updater: {
-            url: 'https://v4.vcmp.net/updater/',
+            url: 'https://u04.vc-mp.org/',
             password: '',
             checkOnStartup: true
         },
         master: {
             url: 'http://master.vc-mp.org/',
-            useLegacy: false,
             defaultTab: 'Favorites'
         },
         richPresence: {
@@ -22,7 +21,6 @@ const fallback = {
         },
         playerName: '',
         gameDir: '',
-        httpDownloads: true,
         isSteam: false
     },
 
@@ -36,110 +34,89 @@ const fallback = {
 
 // ------------------------------------------------------- //
 
+// hosts that no longer resolve to a working service; settings pointing at them
+// are rewritten on load, otherwise the stored value wins the merge below and an
+// existing install stays broken forever
+const DEAD_UPDATER_URLS = [
+    'https://v4.vcmp.net/updater/',
+    'http://v4.vcmp.net/updater/'
+];
+
+// store a maximum of this many recently played servers
+const MAX_HISTORY = 20;
+
+// ------------------------------------------------------- //
+
+/**
+ * Applies fallbacks to a settings file and repairs values that can no longer work
+ * @param {Object} settingsFile Parsed contents of settings.json
+ * @returns {Object} The settings to persist
+ */
+function migrateSettings(settingsFile) {
+
+    const settings = {...fallback.settings, ...settingsFile};
+
+    // nested objects need merging separately, a spread only goes one level deep
+    settings.updater = {...fallback.settings.updater, ...settingsFile.updater};
+    settings.master = {...fallback.settings.master, ...settingsFile.master};
+
+    if(DEAD_UPDATER_URLS.includes(settings.updater.url)) {
+        settings.updater.url = fallback.settings.updater.url;
+    }
+
+    // removed features, drop them so the file doesn't carry dead keys around
+    delete settings.httpDownloads;
+    delete settings.master.useLegacy;
+
+    return settings;
+}
+
+// ------------------------------------------------------- //
+
 /**
  * Verifies browser config and resources, creates them if they do not exist
- * @returns {Promise<|String>} Resolves after verifying, rejects otherwise.
+ * @returns {Promise} Resolves after verifying, rejects with a reason otherwise.
  */
 export async function checkConfig() {
 
-    return new Promise((resolve, reject) => {
+    try {
+        // recursive creation is a no-op when the directory already exists
+        await appData.createDir('data');
+        await appData.createDir('versions');
 
-        // put http download links in storage (don't need to wait for it)
-        http.fetch("https://v4.vcmp.net/httpdownloads")
-            .then(r => {
-                localStorage.setItem('httpd', JSON.stringify(r.data));
-            })
-            .catch(() => {
-                localStorage.setItem('httpd', '[]');
-            });
+        // the game reads its downloaded server content from here
+        await roamingData.createDir('VCMP\\04beta\\store');
 
-        // ------------------------------------------------------- //
+    } catch {
+        throw new Error('Could not create app directories');
+    }
 
-        path.appDataDir()
-        .then(async resDirPath => {
+    // ------------------------------------------------------- //
 
-            try {
-                await fs.createDir(resDirPath);
-            } catch (error) {
-                // must already exist
-            }
+    const entries = await appData.readDir('data');
 
-            // ------------------------------------------------------- //
+    await Promise.all(['settings', 'servers'].map(file => {
+        if(entries.findIndex(entry => entry.name === `${file}.json`) !== -1) {
+            return null;
+        }
 
-            fs  .readDir(resDirPath)
-                .then(async entries => {
+        return appData.writeTextFile(`data\\${file}.json`, JSON.stringify(fallback[file], null, 2));
+    }));
 
-                    // need to create the data & versions dirs if it doesn't exist
-                    if(entries.findIndex(entry => entry.name === 'data') === -1) {
-                        await fs.createDir(resDirPath + 'data');
-                    }
+    // ------------------------------------------------------- //
 
-                    if(entries.findIndex(entry => entry.name === 'versions') === -1) {
-                        await fs.createDir(resDirPath + 'versions');
-                    }
+    const settingsFile = JSON.parse(await appData.readTextFile('data\\settings.json'));
+    await appData.writeTextFile('data\\settings.json',
+        JSON.stringify(migrateSettings(settingsFile), null, 2));
 
-                    // ------------------------------------------------------- //
+    const serversFile = JSON.parse(await appData.readTextFile('data\\servers.json'));
+    const servers = {...fallback.servers, ...serversFile};
 
-                    // is there VCMP folder
-                    const appDataPath = await path.dataDir();
-                    const appDataEntries = await fs.readDir(appDataPath);
+    if(servers.history.length > MAX_HISTORY) {
+        servers.history = servers.history.slice(-MAX_HISTORY);
+    }
 
-                    // if not, create it and all subdirectories
-                    if(appDataEntries.findIndex(v => v.name === 'VCMP') === -1) {
-                        await fs.createDir(appDataPath + 'VCMP');
-                        await fs.createDir(appDataPath + 'VCMP\\04beta');
-                        await fs.createDir(appDataPath + 'VCMP\\04beta\\store');
-                    } else {
-
-                        // otherwise check if subdirs exist
-                        const VCMPEntries = await fs.readDir(appDataPath + 'VCMP');
-
-                        if(VCMPEntries.findIndex(v => v.name === '04beta') === -1) {
-                            await fs.createDir(appDataPath + 'VCMP\\04beta');
-                            await fs.createDir(appDataPath + 'VCMP\\04beta\\store');
-                        } else {
-
-                            const BetaEntries = await fs.readDir(appDataPath + 'VCMP\\04beta');
-                            if(BetaEntries.findIndex(v => v.name === 'store') === -1) {
-                                await fs.createDir(appDataPath + 'VCMP\\04beta\\store');
-                            }
-                        }
-                    }
-
-                    // ------------------------------------------------------- //
-
-                    fs  .readDir(resDirPath + 'data')
-                        .then(async entries => {
-
-                            const files = ['settings', 'servers'];
-                            
-                            await Promise.all(files.map(file => {
-                                if(entries.findIndex(entry => entry.name === `${file}.json`) == -1) {
-                                    return fs.writeFile({contents: JSON.stringify(fallback[file], null, 2), path: `${resDirPath}data\\${file}.json`});
-                                }
-                            }));
-                            
-                            // compatibility for older versions
-                            const settingsFile = JSON.parse(await fs.readTextFile(`${resDirPath}data\\settings.json`));
-                            await fs.writeFile({contents: JSON.stringify({...fallback.settings, ...settingsFile}, null, 2), path: `${resDirPath}data\\settings.json`});                       
-
-                            const serversFile = JSON.parse(await fs.readTextFile(`${resDirPath}data\\servers.json`));
-                            await fs.writeFile({contents: JSON.stringify({...fallback.servers, ...serversFile}, null, 2), path: `${resDirPath}data\\servers.json`});                                                   
-
-                            // store a maximum of 20 recents
-                            if(serversFile.history.length > 20) {
-                                serversFile.history = serversFile.history.slice(-20);
-                                await fs.writeFile({contents: JSON.stringify(serversFile, null, 2), path: `${resDirPath}data\\servers.json`});
-                            }
-
-                            resolve();
-                        })
-                        .catch();
-                })
-                .catch(() => reject('Could not read app directory'));
-        })
-        .catch(() => reject('Could not read path to app directory'));
-    })
+    await appData.writeTextFile('data\\servers.json', JSON.stringify(servers, null, 2));
 }
 
 // ------------------------------------------------------- //

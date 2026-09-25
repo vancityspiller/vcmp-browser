@@ -1,0 +1,51 @@
+{
+  "$schema": "../gen/schemas/desktop-schema.json",
+  "identifier": "default",
+  "description": "Permissions the browser window needs.",
+  "windows": ["main"],
+  "permissions": [
+    "core:default",
+    "core:window:allow-close",
+    "core:window:allow-start-dragging",
+    "core:app:allow-version",
+
+    "clipboard-manager:allow-write-text",
+    "dialog:allow-open",
+    "dialog:allow-message",
+    "opener:allow-open-url",
+    "process:default",
+    "updater:default",
+
+    {
+      "identifier": "fs:scope",
+      "allow": [
+        { "path": "$APPDATA" },
+        { "path": "$APPDATA/**" },
+        { "path": "$DATA" },
+        { "path": "$DATA/**" }
+      ]
+    },
+    "fs:allow-mkdir",
+    "fs:allow-read-dir",
+    "fs:allow-read-text-file",
+    "fs:allow-write-text-file",
+    "fs:allow-write-file",
+    "fs:allow-remove",
+    "fs:allow-exists",
+    "fs:allow-appdata-read-recursive",
+    "fs:allow-appdata-write-recursive",
+    "fs:allow-data-read-recursive",
+    "fs:allow-data-write-recursive",
+
+    {
+      "identifier": "http:default",
+      "allow": [
+        { "url": "http://master.vc-mp.org/*" },
+        { "url": "https://master.thijn.ovh/*" },
+        { "url": "https://u04.vc-mp.org/*" },
+        { "url": "https://u04.thijn.ovh/*" },
+        { "url": "https://dns.google/*" }
+      ]
+    }
+  ]
+}

@@ -1,7 +1,8 @@
 import React, { useEffect } from 'react';
 
 import { Sidebar } from 'rsuite';
-import { appWindow } from '@tauri-apps/api/window';
+import { window as appWindow } from '../../api/tauri';
+import { useNavigationLock } from '../../state/navigationLock';
 
 import CustomIcon from './CustomIcon';
 
@@ -43,13 +44,15 @@ const iconList = [
 
 function SideNavbar({address, setAddress}) {
 
+    const {locked} = useNavigationLock();
+
     const isSelected = (title) => {
         return title === address;
     }
 
     const clickCb = (title) => {
 
-        if(localStorage.getItem('navSwitching') === 'false') return;
+        if(locked) return;
 
         if(title !== address)
         setAddress(title);

@@ -1,9 +1,29 @@
-@import 'rsuite/styles/index.less';
+// rsuite 6 ships compiled CSS rather than Less sources, so the v5 variables
+// (@primary-color-dark, @font-family-base, @enable-dark-mode) no longer exist.
+// Theming is done through CSS custom properties instead; the stylesheet itself
+// is imported from main.jsx.
+//
+// The app runs dark-only via <CustomProvider theme='dark'>, which is what sets
+// .rs-theme-dark, and rsuite defines a separate primary scale under it. The
+// shades below follow rsuite's own lightness curve at the brand hue, with 500
+// pinned to the brand colour.
 
-// custom styles
-@enable-dark-mode: true;
-@primary-color-dark: #c14ce4;
-@font-family-base: 'Roboto', Helvetica, Arial, sans-serif;
+:root,
+[data-theme='dark'],
+.rs-theme-dark {
+    --rs-primary-50: #fbf4fd;
+    --rs-primary-100: #f0d3f8;
+    --rs-primary-200: #e4b2f3;
+    --rs-primary-300: #d991ee;
+    --rs-primary-400: #cd6fe9;
+    --rs-primary-500: #c14ce4;
+    --rs-primary-600: #ba39e1;
+    --rs-primary-700: #ac20d6;
+    --rs-primary-800: #8f1bb1;
+    --rs-primary-900: #6b1485;
+
+    --rs-font-family-base: 'Roboto', Helvetica, Arial, sans-serif;
+}
 
 // --------------------------------------------------------- //
 
